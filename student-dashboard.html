@@ -1,0 +1,1494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard - Exam Management</title>
+    <link rel="shortcut icon" href="icon.jpg" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Firebase 8.10.0 -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        :root {
+            --bg-dark: #161a1d;
+            --card-bg: #212529;
+            --primary-red: #d62839;
+            --primary-hover: #ba181b;
+            --text-light: #f5f3f4;
+            --text-muted: #b1a7a6;
+            --border-color: #333;
+            --success: #2a9d8f;
+            --warning: #e9c46a;
+            --danger: #e63946;
+            --info: #457b9d;
+            --radius: 12px;
+            --shadow: 0 8px 16px rgba(0,0,0,0.3);
+        }
+
+        body {
+            background: var(--bg-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 20px 0;
+            margin-bottom: 30px;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo h1 {
+            font-size: 24px;
+            background: linear-gradient(90deg, var(--primary-red), #ff6b6b);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 4px;
+        }
+
+        .logo p {
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .student-welcome {
+            text-align: right;
+        }
+
+        .student-name {
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--text-light);
+        }
+
+        .student-class {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        /* Card Styles */
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .card-header h2 {
+            font-size: 18px;
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        /* Student Info */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .info-item {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .info-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-light);
+            word-break: break-word;
+        }
+
+        .masked-number {
+            font-family: monospace;
+            letter-spacing: 1px;
+        }
+
+        /* Attendance */
+        .month-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .month-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .month-title {
+            font-weight: 500;
+            color: var(--text-light);
+        }
+
+        .month-days {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .day-badge {
+            background: rgba(42, 157, 143, 0.2);
+            color: var(--success);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+        }
+
+        /* Exam Results */
+        .search-box {
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 15px 12px 45px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            color: var(--text-light);
+            font-size: 15px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23b1a7a6' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: left 15px center;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-red);
+            box-shadow: 0 0 0 3px rgba(214, 40, 57, 0.2);
+        }
+
+        .sort-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: var(--radius);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-light);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--text-muted);
+        }
+
+        /* ✅ Added: missing btn-primary (used in modal footer) */
+        .btn-primary {
+            background: var(--primary-red);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #21867a;
+            transform: translateY(-2px);
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .result-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 20px;
+            transition: all 0.3s;
+        }
+
+        .result-card:hover {
+            border-color: var(--primary-red);
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .exam-name {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-light);
+        }
+
+        .exam-code {
+            background: rgba(214, 40, 57, 0.2);
+            color: var(--primary-red);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            display: inline-block;
+            margin-top: 6px;
+        }
+
+        .result-meta {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 15px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .status-final {
+            background: rgba(42, 157, 143, 0.2);
+            color: var(--success);
+        }
+
+        .status-pending {
+            background: rgba(233, 196, 106, 0.2);
+            color: var(--warning);
+        }
+
+        .score-display {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .score-item {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .score-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
+
+        .score-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        .percentage-big {
+            text-align: center;
+            margin: 15px 0;
+        }
+
+        .percentage-value {
+            font-size: 36px;
+            font-weight: bold;
+        }
+
+        .percentage-value.success {
+            color: var(--success);
+        }
+
+        .percentage-value.warning {
+            color: var(--warning);
+        }
+
+        .percentage-value.danger {
+            color: var(--danger);
+        }
+
+        .result-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* Performance Chart */
+        .chart-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            padding: 8px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            color: var(--text-light);
+            min-width: 150px;
+        }
+
+        .stats-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 15px;
+            border-radius: 8px;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            width: 100%;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            max-width: 800px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--text-light);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px;
+            line-height: 1;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        /* ✅ Added: modal footer styling (already exists in HTML) */
+        .modal-footer {
+            padding: 20px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* OMR View Modal */
+        .omr-view-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .omr-view-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            border: 2px solid transparent;
+        }
+
+        .omr-view-item.correct {
+            border-color: var(--success);
+            background: rgba(42, 157, 143, 0.1);
+        }
+
+        .omr-view-item.wrong {
+            border-color: var(--danger);
+            background: rgba(230, 57, 70, 0.1);
+        }
+
+        .omr-view-item.unmarked {
+            border-color: var(--warning);
+            background: rgba(233, 196, 106, 0.1);
+        }
+
+        .omr-view-number {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+
+        .omr-view-options {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 5px;
+        }
+
+        .omr-view-option {
+            padding: 5px;
+            border-radius: 4px;
+            font-size: 12px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .omr-view-option.correct {
+            background: var(--success);
+            color: white;
+        }
+
+        .omr-view-option.wrong {
+            background: var(--danger);
+            color: white;
+        }
+
+        .omr-view-option.selected {
+            background: var(--primary-red);
+            color: white;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .empty-title {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: var(--text-light);
+        }
+
+        .empty-subtitle {
+            font-size: 14px;
+        }
+
+        /* Loading */
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--primary-red);
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Footer */
+        footer {
+            background: var(--card-bg);
+            border-top: 1px solid var(--border-color);
+            padding: 20px 0;
+            margin-top: 40px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .student-welcome {
+                text-align: center;
+            }
+
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .chart-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .modal-footer {
+                justify-content: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <h1>Fardin (DU Physics)</h1>
+                    <p>Student Dashboard</p>
+                </div>
+                <div class="student-welcome">
+                    <div class="student-name" id="studentName">Loading...</div>
+                    <div class="student-class" id="studentClass">Class: Loading...</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <div class="container">
+            <!-- Student Information -->
+            <section class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-user"></i> Student Information</h2>
+                </div>
+                <div class="card-body">
+                    <div class="info-grid" id="studentInfo">
+                        <!-- Student info will be loaded here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Attendance -->
+            <section class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-calendar-check"></i> Attendance</h2>
+                </div>
+                <div class="card-body">
+                    <div id="attendanceContent">
+                        <div class="spinner"></div>
+                        <div class="empty-title">Loading attendance...</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Exam Results -->
+            <section class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-chart-line"></i> Exam Results</h2>
+                </div>
+                <div class="card-body">
+                    <div class="search-box">
+                        <input type="text" id="resultSearch" class="search-input" placeholder="Search exams by name or code...">
+                    </div>
+                    <div class="sort-buttons">
+                        <button class="btn btn-secondary" onclick="sortResults('date')">
+                            <i class="fas fa-calendar"></i> Sort by Date
+                        </button>
+                        <button class="btn btn-secondary" onclick="sortResults('score')">
+                            <i class="fas fa-sort-numeric-down"></i> Sort by Score
+                        </button>
+                        <button class="btn btn-secondary" onclick="sortResults('code')">
+                            <i class="fas fa-barcode"></i> Sort by Code
+                        </button>
+                    </div>
+                    <div class="results-grid" id="resultsGrid">
+                        <!-- Results will be loaded here -->
+                        <div class="empty-state">
+                            <div class="spinner"></div>
+                            <div class="empty-title">Loading results...</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Performance Progress Chart -->
+            <section class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-chart-area"></i> Performance Progress</h2>
+                </div>
+                <div class="card-body">
+                    <div class="stats-row">
+                        <div class="stat-card">
+                            <div class="stat-label">Average Percentage</div>
+                            <div class="stat-value" id="avgPercentage">0%</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Best Percentage</div>
+                            <div class="stat-value" id="bestPercentage">0%</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Total Exams</div>
+                            <div class="stat-value" id="totalExams">0</div>
+                        </div>
+                    </div>
+                    <div class="chart-controls">
+                        <div class="filter-group">
+                            <label>Show:</label>
+                            <select id="chartFilter" class="filter-select" onchange="updateChart()">
+                                <option value="finalOnly">Final Results Only</option>
+                                <option value="includePending">Include Pending MCQ</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Filter:</label>
+                            <button class="btn btn-secondary" onclick="filterChart('all')">All</button>
+                            <button class="btn btn-secondary" onclick="filterChart('last5')">Last 5</button>
+                            <button class="btn btn-secondary" onclick="filterChart('top5')">Top 5</button>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="performanceChart"></canvas>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>© <span id="currentYear"></span> Fardin (DU Physics). All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- OMR View Modal -->
+    <div class="modal-overlay" id="omrModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title" id="omrModalTitle">OMR View</div>
+                <button class="modal-close" onclick="closeModal('omrModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="omrModalContent">
+                    <!-- OMR view will be loaded here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="closeModal('omrModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAlR-WEX_HZjkE1hzh_rPRYAz7CrjQYB54",
+            authDomain: "exammanagementsystem-a7720.firebaseapp.com",
+            projectId: "exammanagementsystem-a7720",
+            storageBucket: "exammanagementsystem-a7720.firebasestorage.app",
+            messagingSenderId: "269325070232",
+            appId: "1:269325070232:web:79bdf01e4f47ea36bd45ed"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Global Variables
+        let currentStudent = null;
+        let studentUsername = null;
+        let submissions = [];
+        let performanceChart = null;
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Get username from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            studentUsername = urlParams.get('user');
+
+            if (!studentUsername) {
+                showError('No student specified. Please use a valid dashboard link.');
+                return;
+            }
+
+            // Set current year
+            document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+            // Load student data
+            await loadStudentData();
+
+            // Load submissions
+            await loadSubmissions();
+        });
+
+        // Utility Functions
+        function safeNum(v) {
+            const n = Number(v);
+            return Number.isFinite(n) ? n : null;
+        }
+
+        // ✅ Main change: calculate percentage from obtained marks and total marks
+        // Priority:
+        // 1) If finalTotal + totalMark/totalMarks/finalTotalMax exists => final percentage
+        // 2) Else if mcqScore + mcqTotal exists => MCQ percentage
+        // 3) Else fallback to stored mcqPercentage (older data)
+        function getSubmissionPercentage(sub) {
+            const finalTotal = safeNum(sub.finalTotal);
+            const totalMark =
+                safeNum(sub.totalMark) ??
+                safeNum(sub.totalMarks) ??
+                safeNum(sub.finalTotalMax);
+
+            if (finalTotal !== null && totalMark !== null && totalMark > 0) {
+                return Math.round((finalTotal / totalMark) * 100);
+            }
+
+            const mcqScore = safeNum(sub.mcqScore);
+            const mcqTotal = safeNum(sub.mcqTotal);
+
+            if (mcqScore !== null && mcqTotal !== null && mcqTotal > 0) {
+                return Math.round((mcqScore / mcqTotal) * 100);
+            }
+
+            const storedPct = safeNum(sub.mcqPercentage);
+            return storedPct !== null ? storedPct : null;
+        }
+
+        function getPercentageClass(pct) {
+            if (pct === null) return '';
+            if (pct >= 80) return 'success';
+            if (pct >= 50) return 'warning';
+            return 'danger';
+        }
+
+        function formatDateShort(iso) {
+            const date = new Date(iso);
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}.${month}.${year}`;
+        }
+
+        function formatDate(iso) {
+            const date = new Date(iso);
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+
+        function maskPhoneNumber(number) {
+            if (!number) return 'N/A';
+            const digits = String(number).replace(/\D/g, '');
+            if (digits.length < 7) return number;
+            return `${digits.substring(0, 4)}*****${digits.substring(digits.length - 3)}`;
+        }
+
+        function showModal(modalId) {
+            document.getElementById(modalId).style.display = 'flex';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // Data Loading
+        async function loadStudentData() {
+            try {
+                const studentDoc = await db.collection('students').doc(studentUsername).get();
+
+                if (!studentDoc.exists) {
+                    showError('Student not found. Please check your dashboard link.');
+                    return;
+                }
+
+                currentStudent = studentDoc.data();
+                currentStudent.username = studentUsername;
+
+                // Update header
+                document.getElementById('studentName').textContent = currentStudent.studentName || studentUsername;
+                document.getElementById('studentClass').textContent = `Class: ${currentStudent.className || 'N/A'}`;
+
+                // Render student info
+                renderStudentInfo();
+
+                // Load attendance
+                loadAttendance();
+
+            } catch (error) {
+                console.error('Load student error:', error);
+                showError('Failed to load student data.');
+            }
+        }
+
+        function renderStudentInfo() {
+            const infoGrid = document.getElementById('studentInfo');
+
+            const info = [
+                { label: 'Full Name', value: currentStudent.studentName || 'N/A' },
+                { label: 'Username', value: currentStudent.username || 'N/A' },
+                { label: 'Class', value: currentStudent.className || 'N/A' },
+                { label: 'School', value: currentStudent.studentSchool || 'Not specified' },
+                { label: 'Guardian Number', value: maskPhoneNumber(currentStudent.guardianNumber), class: 'masked-number' },
+                { label: 'Dashboard Link', value: currentStudent.dashboardLink || `${window.location.origin}/student-dashboard.html?user=${currentStudent.username}` }
+            ];
+
+            infoGrid.innerHTML = info.map(item => `
+                <div class="info-item">
+                    <div class="info-label">${item.label}</div>
+                    <div class="info-value ${item.class || ''}">${item.value}</div>
+                </div>
+            `).join('');
+        }
+
+        function loadAttendance() {
+            const content = document.getElementById('attendanceContent');
+
+            if (!currentStudent.attendance || !currentStudent.attendance.months || currentStudent.attendance.months.length === 0) {
+                content.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <i class="fas fa-calendar-times"></i>
+                        </div>
+                        <div class="empty-title">No attendance records</div>
+                        <div class="empty-subtitle">Attendance will appear here once recorded by your teacher</div>
+                    </div>
+                `;
+                return;
+            }
+
+            const months = [...currentStudent.attendance.months].reverse();
+
+            let html = '';
+            months.forEach(month => {
+                const totalDays = (month.days && month.days.length) ? month.days.length : 0;
+                const startDate = month.startDate ? formatDateShort(month.startDate) : 'N/A';
+
+                html += `
+                    <div class="month-card">
+                        <div class="month-header">
+                            <div class="month-title">Month ${month.monthNumber || ''}</div>
+                            <div style="color: var(--success);">${totalDays} classes</div>
+                        </div>
+                        <div style="color: var(--text-muted); font-size: 14px; margin-bottom: 10px;">
+                            Started: ${startDate}
+                        </div>
+                        <div class="month-days">
+                            ${(month.days || []).map(day => {
+                                const date = new Date(day.date);
+                                const dayStr = String(date.getDate()).padStart(2, '0');
+                                const monthStr = String(date.getMonth() + 1).padStart(2, '0');
+                                const yearStr = date.getFullYear().toString().slice(-2);
+                                return `<span class="day-badge">${day.dayNumber}.${month.monthNumber} (${dayStr}.${monthStr}.${yearStr})</span>`;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+
+            content.innerHTML = html;
+        }
+
+        async function loadSubmissions() {
+            try {
+                const snapshot = await db.collection('submissions')
+                    .where('username', '==', studentUsername)
+                    .orderBy('submittedAt', 'desc')
+                    .get();
+
+                submissions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                // Render results
+                renderResults(submissions);
+
+                // Update stats and chart
+                updateStats();
+                updateChart();
+
+            } catch (error) {
+                console.error('Load submissions error:', error);
+                showError('Failed to load exam results.');
+            }
+        }
+
+        function renderResults(results) {
+            const grid = document.getElementById('resultsGrid');
+
+            if (!results || results.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <div class="empty-title">No exam results yet</div>
+                        <div class="empty-subtitle">Your exam results will appear here after submission</div>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = results.map(sub => {
+                const pct = getSubmissionPercentage(sub);
+                const percentageClass = getPercentageClass(pct);
+
+                const showPercentage = (pct !== null);
+                const hasMCQ = (sub.mcqScore !== undefined || sub.mcqTotal !== undefined || sub.mcqAnswers || sub.mcqReview);
+
+                return `
+                    <div class="result-card">
+                        <div class="result-header">
+                            <div>
+                                <div class="exam-name">${sub.examName || 'Exam'}</div>
+                                <div class="exam-code">${sub.questionCode || 'N/A'}</div>
+                            </div>
+                        </div>
+
+                        <div class="result-meta">
+                            <span><i class="fas fa-calendar"></i> ${sub.submittedAt ? formatDate(sub.submittedAt) : 'N/A'}</span>
+                            <span class="status-badge ${sub.status === 'FINAL_PUBLISHED' ? 'status-final' : 'status-pending'}">
+                                ${(sub.status || 'UNKNOWN').split('_').join(' ')}
+                            </span>
+                        </div>
+
+                        ${showPercentage ? `
+                            <div class="percentage-big">
+                                <div class="percentage-value ${percentageClass}">${pct}%</div>
+                            </div>
+                        ` : ''}
+
+                        ${hasMCQ ? `
+                            <div class="score-display">
+                                <div class="score-item">
+                                    <div class="score-label">Score</div>
+                                    <div class="score-value">${(sub.mcqScore ?? 0)}/${(sub.mcqTotal ?? '?')}</div>
+                                </div>
+                                <div class="score-item">
+                                    <div class="score-label">Correct</div>
+                                    <div class="score-value">${sub.mcqCorrect ?? 0}</div>
+                                </div>
+                                <div class="score-item">
+                                    <div class="score-label">Wrong</div>
+                                    <div class="score-value">${sub.mcqWrong ?? 0}</div>
+                                </div>
+                                <div class="score-item">
+                                    <div class="score-label">Unmarked</div>
+                                    <div class="score-value">${sub.mcqUnmarked ?? 0}</div>
+                                </div>
+                            </div>
+                        ` : ''}
+
+                        ${sub.writtenTotal !== undefined ? `
+                            <div class="score-display">
+                                <div class="score-item">
+                                    <div class="score-label">Written Score</div>
+                                    <div class="score-value">${sub.writtenTotal}</div>
+                                </div>
+                            </div>
+                        ` : ''}
+
+                        ${sub.finalTotal !== undefined ? `
+                            <div style="text-align: center; margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border-color);">
+                                <div style="font-size: 12px; color: var(--text-muted);">Final Total</div>
+                                <div style="font-size: 24px; font-weight: bold; color: var(--success);">
+                                    ${sub.finalTotal} marks
+                                </div>
+                            </div>
+                        ` : ''}
+
+                        <div class="result-actions">
+                            ${(sub.mcqAnswers || sub.mcqReview) ? `
+                                <button class="btn btn-secondary" onclick="viewOMR('${sub.id}')">
+                                    <i class="fas fa-eye"></i> View OMR
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Search and Sort
+        function sortResults(criteria) {
+            let sorted = [...submissions];
+
+            switch (criteria) {
+                case 'date':
+                    sorted.sort((a, b) => new Date(b.submittedAt || 0) - new Date(a.submittedAt || 0));
+                    break;
+                case 'score':
+                    sorted.sort((a, b) => {
+                        const scoreA = getSubmissionPercentage(a) ?? (safeNum(a.finalTotal) ?? 0);
+                        const scoreB = getSubmissionPercentage(b) ?? (safeNum(b.finalTotal) ?? 0);
+                        return scoreB - scoreA;
+                    });
+                    break;
+                case 'code':
+                    sorted.sort((a, b) => String(a.questionCode || '').localeCompare(String(b.questionCode || '')));
+                    break;
+            }
+
+            renderResults(sorted);
+        }
+
+        // Search functionality
+        document.getElementById('resultSearch').addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+
+            if (!searchTerm) {
+                renderResults(submissions);
+                return;
+            }
+
+            const filtered = submissions.filter(sub => {
+                const name = String(sub.examName || '').toLowerCase();
+                const code = String(sub.questionCode || '').toLowerCase();
+                return name.includes(searchTerm) || code.includes(searchTerm);
+            });
+
+            renderResults(filtered);
+        });
+
+        // Stats and Chart
+        function updateStats() {
+            const finalResults = submissions.filter(s => s.status === 'FINAL_PUBLISHED');
+
+            const percents = finalResults
+                .map(s => getSubmissionPercentage(s))
+                .filter(p => p !== null);
+
+            if (percents.length === 0) {
+                document.getElementById('avgPercentage').textContent = '0%';
+                document.getElementById('bestPercentage').textContent = '0%';
+                document.getElementById('totalExams').textContent = '0';
+                return;
+            }
+
+            const totalPercentage = percents.reduce((sum, p) => sum + p, 0);
+            const avgPercentage = Math.round(totalPercentage / percents.length);
+            const bestPercentage = Math.max(...percents);
+
+            document.getElementById('avgPercentage').textContent = `${avgPercentage}%`;
+            document.getElementById('bestPercentage').textContent = `${bestPercentage}%`;
+            document.getElementById('totalExams').textContent = String(percents.length);
+        }
+
+        function updateChart() {
+            const filter = document.getElementById('chartFilter').value;
+            let dataToUse = [...submissions];
+
+            if (filter === 'finalOnly') {
+                dataToUse = dataToUse.filter(s => s.status === 'FINAL_PUBLISHED');
+            } else {
+                // includePending: keep all
+                dataToUse = dataToUse.filter(s => (s.mcqScore !== undefined || s.mcqPercentage !== undefined || s.finalTotal !== undefined));
+            }
+
+            // sort by date ASC
+            dataToUse.sort((a, b) => new Date(a.submittedAt || 0) - new Date(b.submittedAt || 0));
+
+            const labels = dataToUse.map(sub => sub.questionCode || 'N/A');
+            const percentages = dataToUse.map(sub => getSubmissionPercentage(sub) ?? 0);
+            const statuses = dataToUse.map(sub => sub.status || 'UNKNOWN');
+
+            const canvas = document.getElementById('performanceChart');
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+
+            if (performanceChart) {
+                performanceChart.destroy();
+            }
+
+            performanceChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Performance (%)',
+                        data: percentages,
+                        borderColor: 'rgb(214, 40, 57)',
+                        backgroundColor: 'rgba(214, 40, 57, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: function(context) {
+                            const index = context.dataIndex;
+                            return statuses[index] === 'FINAL_PUBLISHED' ? 'rgb(42, 157, 143)' : 'rgb(233, 196, 106)';
+                        },
+                        pointBorderColor: 'rgba(255, 255, 255, 0.8)',
+                        pointBorderWidth: 2,
+                        pointRadius: 6,
+                        pointHoverRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: 'rgb(245, 243, 244)' }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(33, 37, 41, 0.9)',
+                            titleColor: 'rgb(245, 243, 244)',
+                            bodyColor: 'rgb(245, 243, 244)',
+                            borderColor: 'rgb(214, 40, 57)',
+                            borderWidth: 1,
+                            callbacks: {
+                                label: function(context) {
+                                    const index = context.dataIndex;
+                                    const sub = dataToUse[index];
+                                    const pct = getSubmissionPercentage(sub);
+                                    let label = `${pct ?? 0}%`;
+
+                                    if (sub.finalTotal !== undefined) {
+                                        const totalMark = safeNum(sub.totalMark) ?? safeNum(sub.totalMarks) ?? safeNum(sub.finalTotalMax);
+                                        if (totalMark !== null) label += ` (${sub.finalTotal}/${totalMark})`;
+                                        else label += ` (Final: ${sub.finalTotal})`;
+                                    } else if (sub.mcqScore !== undefined && sub.mcqTotal !== undefined) {
+                                        label += ` (${sub.mcqScore}/${sub.mcqTotal})`;
+                                    }
+
+                                    if (sub.status !== 'FINAL_PUBLISHED') label += ' - Pending';
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                            ticks: { color: 'rgb(177, 167, 166)', maxRotation: 45 }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                            ticks: { color: 'rgb(177, 167, 166)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function filterChart(type) {
+            if (!performanceChart) return;
+
+            const filter = document.getElementById('chartFilter').value;
+            let dataToUse = [...submissions];
+
+            if (filter === 'finalOnly') {
+                dataToUse = dataToUse.filter(s => s.status === 'FINAL_PUBLISHED');
+            }
+
+            dataToUse.sort((a, b) => new Date(a.submittedAt || 0) - new Date(b.submittedAt || 0));
+
+            switch (type) {
+                case 'last5':
+                    dataToUse = dataToUse.slice(-5);
+                    break;
+                case 'top5':
+                    dataToUse.sort((a, b) => (getSubmissionPercentage(b) ?? 0) - (getSubmissionPercentage(a) ?? 0));
+                    dataToUse = dataToUse.slice(0, 5);
+                    dataToUse.sort((a, b) => new Date(a.submittedAt || 0) - new Date(b.submittedAt || 0));
+                    break;
+                // all -> keep all
+            }
+
+            const labels = dataToUse.map(sub => sub.questionCode || 'N/A');
+            const percentages = dataToUse.map(sub => getSubmissionPercentage(sub) ?? 0);
+            const statuses = dataToUse.map(sub => sub.status || 'UNKNOWN');
+
+            performanceChart.data.labels = labels;
+            performanceChart.data.datasets[0].data = percentages;
+            performanceChart.data.datasets[0].pointBackgroundColor = statuses.map(status =>
+                status === 'FINAL_PUBLISHED' ? 'rgb(42, 157, 143)' : 'rgb(233, 196, 106)'
+            );
+            performanceChart.update();
+        }
+
+        // OMR View
+        async function viewOMR(submissionId) {
+            try {
+                const submissionDoc = await db.collection('submissions').doc(submissionId).get();
+                if (!submissionDoc.exists) {
+                    showError('Submission not found');
+                    return;
+                }
+
+                const submission = submissionDoc.data();
+
+                // ✅ Use calculated percentage from marks
+                const pct = getSubmissionPercentage(submission);
+                const pctText = (pct !== null) ? `${pct}%` : 'N/A';
+
+                // ✅ Prefer mcqReview (new submissions) to avoid extra exam fetch & avoid undefined issues
+                let totalQuestions = safeNum(submission.mcqTotal) ?? null;
+                let correctAnswers = null;
+                let studentAnswers = submission.mcqAnswers || null;
+                let reviewByQuestion = submission.mcqReview && submission.mcqReview.byQuestion ? submission.mcqReview.byQuestion : null;
+
+                // Fallback: fetch exam answers if review not present
+                if (!reviewByQuestion) {
+                    if (!submission.setId) {
+                        showError('Exam set not found for this submission');
+                        return;
+                    }
+                    const examDoc = await db.collection('questionSets').doc(submission.setId).get();
+                    if (!examDoc.exists) {
+                        showError('Exam data not found');
+                        return;
+                    }
+                    const exam = examDoc.data();
+                    if (!exam.mcq || !exam.mcq.totalQuestions) {
+                        showError('This exam has no MCQ configuration');
+                        return;
+                    }
+                    totalQuestions = safeNum(exam.mcq.totalQuestions) ?? totalQuestions;
+                    correctAnswers = exam.mcq.answers || null;
+                }
+
+                // Build OMR header
+                let content = `
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="margin-bottom: 10px;">
+                            ${(submission.examName || 'Exam')} (${submission.questionCode || 'N/A'})
+                        </h4>
+                        <div class="score-display">
+                            <div class="score-item">
+                                <div class="score-label">Score</div>
+                                <div class="score-value">${(submission.mcqScore ?? 0)}/${(submission.mcqTotal ?? '?')}</div>
+                            </div>
+                            <div class="score-item">
+                                <div class="score-label">Percentage</div>
+                                <div class="score-value">${pctText}</div>
+                            </div>
+                            <div class="score-item">
+                                <div class="score-label">Correct</div>
+                                <div class="score-value">${submission.mcqCorrect ?? 0}</div>
+                            </div>
+                            <div class="score-item">
+                                <div class="score-label">Wrong</div>
+                                <div class="score-value">${submission.mcqWrong ?? 0}</div>
+                            </div>
+                            <div class="score-item">
+                                <div class="score-label">Unmarked</div>
+                                <div class="score-value">${submission.mcqUnmarked ?? 0}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="omr-view-grid" id="omrViewGrid">
+                        <!-- OMR items will be generated here -->
+                    </div>
+                `;
+
+                document.getElementById('omrModalTitle').textContent = `OMR View - ${submission.examName || 'Exam'}`;
+                document.getElementById('omrModalContent').innerHTML = content;
+
+                const grid = document.getElementById('omrViewGrid');
+
+                const tq = totalQuestions ?? 0;
+                if (!tq) {
+                    grid.innerHTML = `
+                        <div class="empty-state" style="grid-column: 1 / -1;">
+                            <div class="empty-icon"><i class="fas fa-circle-exclamation"></i></div>
+                            <div class="empty-title">No MCQ questions found</div>
+                            <div class="empty-subtitle">This submission doesn’t have a valid MCQ total.</div>
+                        </div>
+                    `;
+                    showModal('omrModal');
+                    return;
+                }
+
+                for (let i = 1; i <= tq; i++) {
+                    const qNum = i.toString();
+
+                    // If we have mcqReview, use it
+                    let correctAns = null;
+                    let studentAns = null;
+
+                    if (reviewByQuestion && reviewByQuestion[qNum]) {
+                        correctAns = (reviewByQuestion[qNum].correct != null) ? reviewByQuestion[qNum].correct : null;
+                        studentAns = (reviewByQuestion[qNum].student != null) ? reviewByQuestion[qNum].student : null;
+                    } else {
+                        correctAns = (correctAnswers && correctAnswers[qNum] != null) ? correctAnswers[qNum] : null;
+                        studentAns = (studentAnswers && studentAnswers[qNum] != null) ? studentAnswers[qNum] : null;
+                    }
+
+                    let itemClass = 'omr-view-item';
+                    if (studentAns == null) itemClass += ' unmarked';
+                    else if (correctAns != null && studentAns === correctAns) itemClass += ' correct';
+                    else if (correctAns != null && studentAns !== correctAns) itemClass += ' wrong';
+                    // if correctAns is null, don't label correct/wrong (only selected/unmarked)
+
+                    let optionsHTML = '';
+                    ['A', 'B', 'C', 'D'].forEach(option => {
+                        let optionClass = 'omr-view-option';
+
+                        // Show correct answer in green only if we have answer key
+                        if (correctAns != null && option === correctAns) optionClass += ' correct';
+
+                        // Student selection
+                        if (studentAns != null && option === studentAns) optionClass += ' selected';
+
+                        // If student is wrong, mark selected option as wrong (red)
+                        if (studentAns != null && correctAns != null && option === studentAns && studentAns !== correctAns) {
+                            optionClass += ' wrong';
+                        }
+
+                        optionsHTML += `<div class="${optionClass}">${option}</div>`;
+                    });
+
+                    grid.innerHTML += `
+                        <div class="${itemClass}">
+                            <div class="omr-view-number">Q${i}</div>
+                            <div class="omr-view-options">
+                                ${optionsHTML}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                showModal('omrModal');
+
+            } catch (error) {
+                console.error('View OMR error:', error);
+                showError('Failed to load OMR view');
+            }
+        }
+
+        // Error display (simplified)
+        function showError(message) {
+            console.error('Dashboard error:', message);
+            alert(`Error: ${message}`);
+        }
+
+        // Modal close on outside click
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    overlay.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

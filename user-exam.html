@@ -1,0 +1,1641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Take Exam - Exam Management</title>
+    <link rel="shortcut icon" href="icon.jpg" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase 8.10.0 -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        :root {
+            --bg-dark: #161a1d;
+            --card-bg: #212529;
+            --primary-red: #d62839;
+            --primary-hover: #ba181b;
+            --text-light: #f5f3f4;
+            --text-muted: #b1a7a6;
+            --border-color: #333;
+            --success: #2a9d8f;
+            --warning: #e9c46a;
+            --danger: #e63946;
+            --info: #457b9d;
+            --radius: 12px;
+            --shadow: 0 8px 16px rgba(0,0,0,0.3);
+        }
+
+        body {
+            background: var(--bg-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .logo h1 {
+            font-size: 28px;
+            background: linear-gradient(90deg, var(--primary-red), #ff6b6b);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 8px;
+        }
+
+        .logo p {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        /* Card Styles */
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .card-header h2 {
+            font-size: 20px;
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        /* Exam Info */
+        .exam-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .info-item {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .info-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-light);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .badge-primary {
+            background: rgba(214, 40, 57, 0.2);
+            color: var(--primary-red);
+        }
+
+        .badge-success {
+            background: rgba(42, 157, 143, 0.2);
+            color: var(--success);
+        }
+
+        .badge-warning {
+            background: rgba(233, 196, 106, 0.2);
+            color: var(--warning);
+        }
+
+        .badge-danger {
+            background: rgba(230, 57, 70, 0.2);
+            color: #ff6b6b;
+        }
+
+        /* Question Chips */
+        .question-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .chip {
+            background: rgba(69, 123, 157, 0.2);
+            color: var(--info);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-light);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            color: var(--text-light);
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-red);
+            box-shadow: 0 0 0 3px rgba(214, 40, 57, 0.2);
+        }
+
+        /* OMR Grid - MOBILE FIRST */
+        .omr-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .omr-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .omr-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .omr-item.selected {
+            background: rgba(214, 40, 57, 0.1);
+            border-color: var(--primary-red);
+        }
+
+        /* Review styling for unmarked questions */
+        .omr-item.review-unmarked {
+            background: rgba(233, 196, 106, 0.1);
+            border-color: var(--warning);
+        }
+
+        .omr-number {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            color: var(--text-light);
+        }
+
+        .omr-options {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .omr-option {
+            padding: 12px 5px;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+
+        .omr-option:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .omr-option.selected {
+            background: var(--primary-red);
+            color: white;
+        }
+
+        /* Review styling for options */
+        .omr-option.review-correct {
+            background: rgba(42, 157, 143, 0.3);
+            border-color: var(--success);
+            color: var(--success);
+        }
+
+        .omr-option.review-wrong {
+            background: rgba(230, 57, 70, 0.3);
+            border-color: var(--danger);
+            color: #ff6b6b;
+        }
+
+        .omr-option.review-neutral {
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-muted);
+        }
+
+        /* Progress Indicator */
+        .progress-indicator {
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .progress-indicator strong {
+            color: var(--text-light);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: var(--radius);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 15px;
+        }
+
+        .btn-primary {
+            background: var(--primary-red);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover:not(:disabled) {
+            background: #21867a;
+            transform: translateY(-2px);
+        }
+
+        .btn-success:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-block {
+            width: 100%;
+            justify-content: center;
+        }
+
+        /* Result Display */
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .result-item {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .result-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
+
+        .result-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        .result-value.success {
+            color: var(--success);
+        }
+
+        .result-value.warning {
+            color: var(--warning);
+        }
+
+        .result-value.danger {
+            color: var(--danger);
+        }
+
+        /* MCQ Review Section */
+        .review-section {
+            margin-top: 30px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .review-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .review-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            padding: 15px;
+            border: 2px solid var(--border-color);
+        }
+
+        /* Status-based border colors for review items */
+        .review-item.wrong {
+            border-color: rgba(230, 57, 70, 0.3);
+        }
+
+        .review-item.unmarked {
+            border-color: rgba(233, 196, 106, 0.3);
+            background: rgba(233, 196, 106, 0.05);
+        }
+
+        .review-item.correct {
+            border-color: rgba(42, 157, 143, 0.3);
+        }
+
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .review-question {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-light);
+        }
+
+        .review-options {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .review-option {
+            padding: 10px 5px;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: 500;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+        }
+
+        .review-option.correct {
+            background: rgba(42, 157, 143, 0.3);
+            border-color: var(--success);
+            color: var(--success);
+        }
+
+        .review-option.wrong {
+            background: rgba(230, 57, 70, 0.3);
+            border-color: var(--danger);
+            color: #ff6b6b;
+        }
+
+        .review-option.neutral {
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-muted);
+        }
+
+        /* Status summary for each question */
+        .question-status {
+            margin-top: 10px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .status-wrong {
+            background: rgba(230, 57, 70, 0.2);
+            color: #ff6b6b;
+        }
+
+        .status-unmarked {
+            background: rgba(233, 196, 106, 0.2);
+            color: var(--warning);
+        }
+
+        .status-correct {
+            background: rgba(42, 157, 143, 0.2);
+            color: var(--success);
+        }
+
+        /* Loading */
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--primary-red);
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--text-light);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px;
+            line-height: 1;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .modal-footer {
+            padding: 20px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* Alert */
+        .alert {
+            padding: 15px;
+            border-radius: var(--radius);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert-success {
+            background: rgba(42, 157, 143, 0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
+        }
+
+        .alert-warning {
+            background: rgba(233, 196, 106, 0.1);
+            border: 1px solid var(--warning);
+            color: var(--warning);
+        }
+
+        .alert-error {
+            background: rgba(230, 57, 70, 0.1);
+            border: 1px solid var(--danger);
+            color: #ff6b6b;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        /* Responsive Styles for MOBILE OMR LAYOUT */
+        @media (min-width: 768px) {
+            .omr-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+            }
+            
+            .omr-option {
+                padding: 10px 5px;
+                font-size: 13px;
+                min-height: 40px;
+            }
+
+            .review-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .omr-grid {
+                grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+                gap: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+            }
+
+            .omr-option {
+                padding: 14px 5px;
+                font-size: 15px;
+                min-height: 50px;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .review-options {
+                gap: 6px;
+            }
+            
+            .review-option {
+                padding: 12px 5px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="logo">
+                <h1>Fardin (DU Physics)</h1>
+                <p>Online Exam Portal</p>
+            </div>
+        </header>
+
+        <!-- Alert Messages -->
+        <div class="alert" id="alertMessage" style="display: none;">
+            <i class="fas fa-info-circle"></i> <span id="alertText"></span>
+        </div>
+
+        <!-- Exam Info Card -->
+        <div class="card" id="examInfoCard">
+            <div class="card-header">
+                <h2><i class="fas fa-file-alt"></i> Exam Information</h2>
+            </div>
+            <div class="card-body">
+                <div class="exam-info" id="examInfo">
+                    <!-- Exam info will be loaded here -->
+                </div>
+                <div class="question-chips" id="questionChips">
+                    <!-- Question type chips will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Username Verification Card -->
+        <div class="card" id="usernameCard">
+            <div class="card-header">
+                <h2><i class="fas fa-user"></i> Student Verification</h2>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label for="usernameInput">Enter Your Username</label>
+                    <input type="text" id="usernameInput" class="form-control" placeholder="Your username">
+                </div>
+                <button class="btn btn-primary btn-block" id="verifyBtn" onclick="verifyStudent()">
+                    <i class="fas fa-check"></i> Verify and Start Exam
+                </button>
+                <div class="spinner" id="verifySpinner" style="display: none;"></div>
+            </div>
+        </div>
+
+        <!-- OMR Card (for MCQ exams) -->
+        <div class="card" id="omrCard" style="display: none;">
+            <div class="card-header">
+                <h2><i class="fas fa-check-circle"></i> MCQ Questions</h2>
+                <div style="font-size: 14px; color: var(--text-muted); margin-top: 5px;">
+                    Tap on options to select/deselect. Selected options are highlighted in red.
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="progress-indicator" id="progressIndicator">
+                    <!-- Progress will be shown here -->
+                </div>
+                <div class="omr-grid" id="omrGrid">
+                    <!-- OMR items will be generated here -->
+                </div>
+                <button class="btn btn-success btn-block" id="submitBtn" onclick="showSubmitModal()">
+                    <i class="fas fa-paper-plane"></i> Submit Exam
+                </button>
+                <div class="spinner" id="submitSpinner" style="display: none;"></div>
+            </div>
+        </div>
+
+        <!-- Written Only Card -->
+        <div class="card" id="writtenOnlyCard" style="display: none;">
+            <div class="card-header">
+                <h2><i class="fas fa-file-contract"></i> Written Exam</h2>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-info-circle"></i>
+                    <div>
+                        <strong>Written exam only</strong><br>
+                        Please wait for the teacher to publish your results. Your submission has been recorded.
+                    </div>
+                </div>
+                <button class="btn btn-primary btn-block" id="writtenSubmitBtn" onclick="submitWrittenOnly()">
+                    <i class="fas fa-check"></i> Confirm Submission
+                </button>
+                <div class="spinner" id="writtenSpinner" style="display: none;"></div>
+            </div>
+        </div>
+
+        <!-- Result Card -->
+        <div class="card" id="resultCard" style="display: none;">
+            <div class="card-header">
+                <h2><i class="fas fa-chart-line"></i> Exam Results</h2>
+            </div>
+            <div class="card-body">
+                <div id="resultContent">
+                    <!-- Results will be displayed here -->
+                </div>
+                <div class="action-buttons" style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="btn btn-primary" onclick="viewDashboard()">
+                        <i class="fas fa-external-link-alt"></i> View Dashboard
+                    </button>
+                    <button class="btn btn-secondary" onclick="location.reload()">
+                        <i class="fas fa-redo"></i> Take Another Exam
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>© <span id="currentYear"></span> Fardin (DU Physics). All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Submit Confirmation Modal -->
+    <div class="modal-overlay" id="submitModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Confirm Submission</div>
+                <button class="modal-close" onclick="closeModal('submitModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to submit your exam?</p>
+                <p style="color: var(--text-muted); font-size: 14px; margin-top: 10px;">
+                    You can submit even if you haven't answered all questions. Unanswered questions will be marked as unmarked.
+                </p>
+                <div id="submissionSummary" style="margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.03); border-radius: 6px;"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('submitModal')">Cancel</button>
+                <button class="btn btn-success" id="confirmSubmitBtn" onclick="submitExam()">Submit Exam</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAlR-WEX_HZjkE1hzh_rPRYAz7CrjQYB54",
+            authDomain: "exammanagementsystem-a7720.firebaseapp.com",
+            projectId: "exammanagementsystem-a7720",
+            storageBucket: "exammanagementsystem-a7720.firebasestorage.app",
+            messagingSenderId: "269325070232",
+            appId: "1:269325070232:web:79bdf01e4f47ea36bd45ed"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Global Variables
+        let currentExam = null;
+        let currentStudent = null;
+        let mcqAnswers = {};
+        let examSetId = null;
+        let isSubmitting = false;
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Set current year
+            document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+            // Get exam ID from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            examSetId = urlParams.get('setId');
+            
+            if (!examSetId) {
+                showAlert('No exam specified. Please use a valid exam link.', 'error');
+                disableForm();
+                return;
+            }
+
+            // Load exam data
+            await loadExamData();
+        });
+
+        // Utility Functions
+        function showAlert(message, type = 'info') {
+            const alert = document.getElementById('alertMessage');
+            const text = document.getElementById('alertText');
+            
+            alert.className = 'alert';
+            switch (type) {
+                case 'success':
+                    alert.classList.add('alert-success');
+                    break;
+                case 'warning':
+                    alert.classList.add('alert-warning');
+                    break;
+                case 'error':
+                    alert.classList.add('alert-error');
+                    break;
+            }
+            
+            text.textContent = message;
+            alert.style.display = 'flex';
+            
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 5000);
+        }
+
+        function showModal(modalId) {
+            document.getElementById(modalId).style.display = 'flex';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function disableForm() {
+            document.getElementById('usernameInput').disabled = true;
+            document.getElementById('verifyBtn').disabled = true;
+        }
+
+        // Data Loading
+        async function loadExamData() {
+            try {
+                const examDoc = await db.collection('questionSets').doc(examSetId).get();
+                
+                if (!examDoc.exists) {
+                    showAlert('Exam not found. Please check the link.', 'error');
+                    disableForm();
+                    return;
+                }
+                
+                currentExam = examDoc.data();
+                currentExam.id = examDoc.id;
+                
+                // Render exam info
+                renderExamInfo();
+                
+                // Show/hide sections based on exam type
+                if (currentExam.mcq && currentExam.mcq.enabled) {
+                    // MCQ exam - show OMR grid after verification
+                    renderOMRGrid();
+                } else if (currentExam.writtenConfig && currentExam.writtenConfig.enabled) {
+                    // Written only exam - show written only card
+                    document.getElementById('writtenOnlyCard').style.display = 'block';
+                } else {
+                    showAlert('This exam has no questions configured.', 'warning');
+                    disableForm();
+                }
+                
+            } catch (error) {
+                console.error('Load exam error:', error);
+                showAlert('Failed to load exam data. Please try again.', 'error');
+                disableForm();
+            }
+        }
+
+        function renderExamInfo() {
+            const examInfo = document.getElementById('examInfo');
+            const questionChips = document.getElementById('questionChips');
+            
+            // Basic exam info
+            examInfo.innerHTML = `
+                <div class="info-item">
+                    <div class="info-label">Exam Name</div>
+                    <div class="info-value">${currentExam.setName}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Question Code</div>
+                    <div class="info-value">
+                        <span class="badge badge-primary">${currentExam.questionCode}</span>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Class & Subject</div>
+                    <div class="info-value">${currentExam.className} - ${currentExam.subjectName}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Chapter</div>
+                    <div class="info-value">${currentExam.chapterName}</div>
+                </div>
+            `;
+            
+            // Question type chips
+            let chipsHTML = '';
+            
+            if (currentExam.mcq && currentExam.mcq.enabled) {
+                chipsHTML += `
+                    <div class="chip">
+                        <i class="fas fa-check-circle"></i>
+                        MCQ: ${currentExam.mcq.totalQuestions} questions
+                    </div>
+                `;
+            }
+            
+            if (currentExam.writtenConfig) {
+                if (currentExam.writtenConfig.shortQ && currentExam.writtenConfig.shortQ.count > 0) {
+                    chipsHTML += `
+                        <div class="chip">
+                            <i class="fas fa-file-alt"></i>
+                            SQ: ${currentExam.writtenConfig.shortQ.count} × 2
+                        </div>
+                    `;
+                }
+                
+                if (currentExam.writtenConfig.broadQ && currentExam.writtenConfig.broadQ.count > 0) {
+                    chipsHTML += `
+                        <div class="chip">
+                            <i class="fas fa-file-contract"></i>
+                            BQ: ${currentExam.writtenConfig.broadQ.count} × ${currentExam.writtenConfig.broadQ.maxMarkPerQ}
+                        </div>
+                    `;
+                }
+                
+                if (currentExam.writtenConfig.cqMath && currentExam.writtenConfig.cqMath.count > 0) {
+                    chipsHTML += `
+                        <div class="chip">
+                            <i class="fas fa-square-root-alt"></i>
+                            CQ Math: ${currentExam.writtenConfig.cqMath.count}
+                        </div>
+                    `;
+                }
+                
+                if (currentExam.writtenConfig.cq && currentExam.writtenConfig.cq.count > 0) {
+                    chipsHTML += `
+                        <div class="chip">
+                            <i class="fas fa-list-ol"></i>
+                            CQ: ${currentExam.writtenConfig.cq.count}
+                        </div>
+                    `;
+                }
+            }
+            
+            questionChips.innerHTML = chipsHTML;
+        }
+
+        function renderOMRGrid() {
+            const grid = document.getElementById('omrGrid');
+            const totalQuestions = currentExam.mcq.totalQuestions;
+            
+            grid.innerHTML = '';
+            
+            for (let i = 1; i <= totalQuestions; i++) {
+                const div = document.createElement('div');
+                div.className = 'omr-item';
+                div.dataset.question = i;
+                
+                div.innerHTML = `
+                    <div class="omr-number">Q${i}</div>
+                    <div class="omr-options">
+                        <div class="omr-option" data-option="A">A</div>
+                        <div class="omr-option" data-option="B">B</div>
+                        <div class="omr-option" data-option="C">C</div>
+                        <div class="omr-option" data-option="D">D</div>
+                    </div>
+                `;
+                
+                // Add click event to options
+                const options = div.querySelectorAll('.omr-option');
+                options.forEach(option => {
+                    option.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        selectOption(i, option.dataset.option);
+                    });
+                });
+                
+                grid.appendChild(div);
+            }
+            
+            updateProgress();
+        }
+
+        // Student Verification
+        async function verifyStudent() {
+            const username = document.getElementById('usernameInput').value.trim();
+            
+            if (!username) {
+                showAlert('Please enter your username', 'warning');
+                return;
+            }
+            
+            try {
+                // Show loading
+                const verifyBtn = document.getElementById('verifyBtn');
+                const spinner = document.getElementById('verifySpinner');
+                verifyBtn.disabled = true;
+                spinner.style.display = 'block';
+                
+                // Check if student exists
+                const studentDoc = await db.collection('students').doc(username).get();
+                
+                if (!studentDoc.exists) {
+                    showAlert('Username not found. Please check your username or contact your teacher.', 'error');
+                    verifyBtn.disabled = false;
+                    spinner.style.display = 'none';
+                    return;
+                }
+                
+                currentStudent = studentDoc.data();
+                currentStudent.username = username;
+                
+                // Hide username card
+                document.getElementById('usernameCard').style.display = 'none';
+                
+                // Show appropriate exam section
+                if (currentExam.mcq && currentExam.mcq.enabled) {
+                    document.getElementById('omrCard').style.display = 'block';
+                } else if (currentExam.writtenConfig && currentExam.writtenConfig.enabled) {
+                    document.getElementById('writtenOnlyCard').style.display = 'block';
+                }
+                
+                // Reset spinner
+                verifyBtn.disabled = false;
+                spinner.style.display = 'none';
+                
+            } catch (error) {
+                console.error('Verify student error:', error);
+                showAlert('Failed to verify. Please try again.', 'error');
+                
+                // Reset button
+                document.getElementById('verifyBtn').disabled = false;
+                document.getElementById('verifySpinner').style.display = 'none';
+            }
+        }
+
+        // OMR Functions
+        function selectOption(questionNumber, option) {
+            const questionKey = questionNumber.toString();
+            
+            if (mcqAnswers[questionKey] === option) {
+                // Deselect if already selected
+                delete mcqAnswers[questionKey];
+            } else {
+                // Select new option
+                mcqAnswers[questionKey] = option;
+            }
+            
+            // Update UI
+            updateOMRUI(questionNumber);
+            updateProgress();
+        }
+
+        function updateOMRUI(questionNumber) {
+            const questionElement = document.querySelector(`.omr-item[data-question="${questionNumber}"]`);
+            const selectedOption = mcqAnswers[questionNumber.toString()];
+            
+            // Reset all options
+            const options = questionElement.querySelectorAll('.omr-option');
+            options.forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            // Highlight selected option
+            if (selectedOption) {
+                const selectedElement = questionElement.querySelector(`.omr-option[data-option="${selectedOption}"]`);
+                if (selectedElement) {
+                    selectedElement.classList.add('selected');
+                    questionElement.classList.add('selected');
+                }
+            } else {
+                questionElement.classList.remove('selected');
+            }
+        }
+
+        function updateProgress() {
+            const totalQuestions = currentExam.mcq.totalQuestions;
+            const answered = Object.keys(mcqAnswers).length;
+            const progressIndicator = document.getElementById('progressIndicator');
+            
+            progressIndicator.innerHTML = `
+                Progress: <strong>${answered}/${totalQuestions}</strong> questions answered
+                ${answered < totalQuestions ? 
+                    `<br><span style="color: var(--warning); font-size: 12px;">
+                        <i class="fas fa-exclamation-circle"></i> ${totalQuestions - answered} questions remaining
+                    </span>` : 
+                    '<br><span style="color: var(--success); font-size: 12px;"><i class="fas fa-check-circle"></i> All questions answered</span>'
+                }
+            `;
+        }
+
+        // Submit Functions
+        function showSubmitModal() {
+            if (!currentExam.mcq || !currentExam.mcq.enabled) return;
+            
+            if (isSubmitting) {
+                showAlert('Submission in progress. Please wait...', 'warning');
+                return;
+            }
+            
+            const totalQuestions = currentExam.mcq.totalQuestions;
+            const answered = Object.keys(mcqAnswers).length;
+            const summary = document.getElementById('submissionSummary');
+            
+            summary.innerHTML = `
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                    <span>Total Questions:</span>
+                    <span>${totalQuestions}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                    <span>Answered:</span>
+                    <span style="color: ${answered > 0 ? 'var(--success)' : 'var(--warning)'}">
+                        ${answered}
+                    </span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span>Unanswered:</span>
+                    <span style="color: ${answered < totalQuestions ? 'var(--warning)' : 'var(--success)'}">
+                        ${totalQuestions - answered}
+                    </span>
+                </div>
+                <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-color); font-size: 13px; color: var(--text-muted);">
+                    <i class="fas fa-info-circle"></i> You can submit with unanswered questions. Unanswered questions will be marked as unmarked.
+                </div>
+            `;
+            
+            showModal('submitModal');
+        }
+
+        async function submitWrittenOnly() {
+            if (!currentStudent || !currentExam) {
+                showAlert('Please verify your username first', 'warning');
+                return;
+            }
+            
+            if (isSubmitting) {
+                showAlert('Submission in progress. Please wait...', 'warning');
+                return;
+            }
+            
+            isSubmitting = true;
+            
+            try {
+                // Show loading
+                const submitBtn = document.getElementById('writtenSubmitBtn');
+                const spinner = document.getElementById('writtenSpinner');
+                submitBtn.disabled = true;
+                spinner.style.display = 'block';
+                
+                // Create submission
+                const submissionId = `${currentStudent.username}_${Date.now()}`;
+                const submittedAt = new Date().toISOString();
+                
+                const submissionData = {
+                    submissionId,
+                    setId: examSetId,
+                    questionCode: currentExam.questionCode,
+                    username: currentStudent.username,
+                    submittedAt,
+                    updatedAt: submittedAt,
+                    examName: currentExam.setName,
+                    className: currentExam.className,
+                    subjectName: currentExam.subjectName,
+                    chapterName: currentExam.chapterName,
+                    status: 'PENDING_WRITTEN'
+                };
+                
+                // Save to Firestore
+                await db.collection('submissions').doc(submissionId).set(submissionData);
+                
+                // Show success
+                showAlert('Written exam submitted successfully! The teacher will publish results soon.', 'success');
+                
+                // Hide written card
+                document.getElementById('writtenOnlyCard').style.display = 'none';
+                
+                // Show result card with pending message
+                showPendingResult();
+                
+            } catch (error) {
+                console.error('Submit written error:', error);
+                showAlert('Failed to submit. Please try again.', 'error');
+            } finally {
+                isSubmitting = false;
+                const submitBtn = document.getElementById('writtenSubmitBtn');
+                const spinner = document.getElementById('writtenSpinner');
+                submitBtn.disabled = false;
+                spinner.style.display = 'none';
+            }
+        }
+
+        async function submitExam() {
+            if (!currentStudent || !currentExam) {
+                showAlert('Please verify your username first', 'warning');
+                return;
+            }
+            
+            if (isSubmitting) {
+                showAlert('Submission in progress. Please wait...', 'warning');
+                return;
+            }
+            
+            isSubmitting = true;
+            
+            try {
+                // Close modal and show loading
+                closeModal('submitModal');
+                const submitBtn = document.getElementById('submitBtn');
+                const spinner = document.getElementById('submitSpinner');
+                submitBtn.disabled = true;
+                spinner.style.display = 'block';
+                
+                // Ensure mcqAnswers is an object (even if empty)
+                if (!mcqAnswers || typeof mcqAnswers !== 'object') {
+                    mcqAnswers = {};
+                }
+                
+                // Calculate MCQ results
+                let mcqResults = null;
+                let mcqReview = null;
+                
+                if (currentExam.mcq && currentExam.mcq.enabled && currentExam.mcq.answers) {
+                    mcqResults = calculateMCQ(
+                        currentExam.mcq.answers,
+                        mcqAnswers,
+                        currentExam.mcq.totalQuestions
+                    );
+                    
+                    // Build per-question review with ordering
+                    mcqReview = buildMCQReview(
+                        currentExam.mcq.answers,
+                        mcqAnswers,
+                        currentExam.mcq.totalQuestions
+                    );
+                }
+                
+                // Create submission
+                const submissionId = `${currentStudent.username}_${Date.now()}`;
+                const submittedAt = new Date().toISOString();
+                
+                const submissionData = {
+                    submissionId,
+                    setId: examSetId,
+                    questionCode: currentExam.questionCode,
+                    username: currentStudent.username,
+                    submittedAt,
+                    updatedAt: submittedAt,
+                    examName: currentExam.setName,
+                    className: currentExam.className,
+                    subjectName: currentExam.subjectName,
+                    chapterName: currentExam.chapterName,
+                    mcqTotal: currentExam.mcq ? currentExam.mcq.totalQuestions : 0
+                };
+                
+                // Add MCQ results if available
+                if (mcqResults) {
+                    // Store the actual answers (even if empty object)
+                    submissionData.mcqAnswers = mcqAnswers;
+                    submissionData.mcqScore = mcqResults.score;
+                    submissionData.mcqCorrect = mcqResults.correct;
+                    submissionData.mcqWrong = mcqResults.wrong;
+                    submissionData.mcqUnmarked = mcqResults.unmarked;
+                    submissionData.mcqPercentage = mcqResults.percentage;
+                    submissionData.mcqKeyVersionUsed = currentExam.mcq.keyVersion || 1;
+                    
+                    // Add MCQ review for dashboard compatibility
+                    submissionData.mcqReview = mcqReview;
+                }
+                
+                // Determine status
+                if (currentExam.writtenConfig && currentExam.writtenConfig.enabled) {
+                    submissionData.status = 'PENDING_WRITTEN';
+                } else {
+                    submissionData.status = 'FINAL_PUBLISHED';
+                    submissionData.finalTotal = mcqResults ? mcqResults.score : 0;
+                }
+                
+                // Save to Firestore
+                await db.collection('submissions').doc(submissionId).set(submissionData);
+                
+                // Hide OMR card
+                document.getElementById('omrCard').style.display = 'none';
+                
+                // Show results
+                if (submissionData.status === 'FINAL_PUBLISHED') {
+                    showFinalResult(submissionData, mcqResults, mcqReview);
+                } else {
+                    showPendingResult(submissionData, mcqResults, mcqReview);
+                }
+                
+                // Reset submitting state
+                isSubmitting = false;
+                
+            } catch (error) {
+                console.error('Submit exam error:', error);
+                showAlert('Failed to submit exam. Please try again.', 'error');
+            } finally {
+                isSubmitting = false;
+                const submitBtn = document.getElementById('submitBtn');
+                const spinner = document.getElementById('submitSpinner');
+                submitBtn.disabled = false;
+                spinner.style.display = 'none';
+            }
+        }
+
+        // MCQ Calculation and Review
+        function calculateMCQ(correctAnswers, studentAnswers, totalQuestions) {
+            let correct = 0;
+            let wrong = 0;
+            let unmarked = 0;
+            
+            for (let i = 1; i <= totalQuestions; i++) {
+                const qNum = i.toString();
+                const correctAns = correctAnswers[qNum];
+                const studentAns = studentAnswers ? studentAnswers[qNum] : null;
+                
+                if (!studentAns) {
+                    unmarked++;
+                } else if (studentAns === correctAns) {
+                    correct++;
+                } else {
+                    wrong++;
+                }
+            }
+            
+            const score = correct; // 1 mark per correct answer
+            const percentage = totalQuestions > 0 ? Math.round((correct / totalQuestions) * 100) : 0;
+            
+            return {
+                score,
+                total: totalQuestions,
+                correct,
+                wrong,
+                unmarked,
+                percentage
+            };
+        }
+
+        // ✅ FIXED: avoid undefined values (Firestore doesn't allow undefined)
+        // ✅ FIXED: unanswered questions are correctly marked as "unmarked" (not "wrong")
+        function buildMCQReview(correctAnswers, studentAnswers, totalQuestions) {
+            const byQuestion = {};
+            const questionsByStatus = {
+                wrong: [],
+                unmarked: [],
+                correct: []
+            };
+            
+            for (let i = 1; i <= totalQuestions; i++) {
+                const qNum = i.toString();
+
+                // Keep values Firestore-safe: string or null (never undefined)
+                const correctAns = (correctAnswers && correctAnswers[qNum] != null) ? correctAnswers[qNum] : null;
+                const studentAns = (studentAnswers && studentAnswers[qNum] != null) ? studentAnswers[qNum] : null;
+
+                let status = "unmarked";
+                if (studentAns == null) {
+                    status = "unmarked";
+                } else if (studentAns === correctAns) {
+                    status = "correct";
+                } else {
+                    status = "wrong";
+                }
+                
+                byQuestion[qNum] = {
+                    correct: correctAns,
+                    student: studentAns,
+                    status: status
+                };
+                
+                questionsByStatus[status].push(qNum);
+            }
+            
+            // Sort each group by question number ascending
+            questionsByStatus.wrong.sort((a, b) => parseInt(a) - parseInt(b));
+            questionsByStatus.unmarked.sort((a, b) => parseInt(a) - parseInt(b));
+            questionsByStatus.correct.sort((a, b) => parseInt(a) - parseInt(b));
+            
+            // Create ordered list: wrong first, then unmarked, then correct
+            const orderedQuestionNumbers = [
+                ...questionsByStatus.wrong,
+                ...questionsByStatus.unmarked,
+                ...questionsByStatus.correct
+            ];
+            
+            return {
+                orderedQuestionNumbers,
+                byQuestion
+            };
+        }
+
+        // Result Display
+        function showFinalResult(submission, mcqResults, mcqReview) {
+            const resultCard = document.getElementById('resultCard');
+            const resultContent = document.getElementById('resultContent');
+            
+            let html = `
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i>
+                    <div>
+                        <strong>Exam submitted successfully!</strong><br>
+                        Your results are final and have been published.
+                    </div>
+                </div>
+                
+                <div class="result-grid">
+                    <div class="result-item">
+                        <div class="result-label">MCQ Score</div>
+                        <div class="result-value success">${mcqResults.score}/${mcqResults.total}</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-label">Percentage</div>
+                        <div class="result-value ${mcqResults.percentage >= 50 ? 'success' : 'danger'}">
+                            ${mcqResults.percentage}%
+                        </div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-label">Correct</div>
+                        <div class="result-value">${mcqResults.correct}</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-label">Wrong</div>
+                        <div class="result-value">${mcqResults.wrong}</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-label">Unmarked</div>
+                        <div class="result-value warning">${mcqResults.unmarked}</div>
+                    </div>
+                </div>
+            `;
+            
+            // Add MCQ review section
+            if (mcqReview) {
+                html += renderMCQReview(mcqReview);
+            }
+            
+            resultContent.innerHTML = html;
+            resultCard.style.display = 'block';
+        }
+
+        function showPendingResult(submission = null, mcqResults = null, mcqReview = null) {
+            const resultCard = document.getElementById('resultCard');
+            const resultContent = document.getElementById('resultContent');
+            
+            let html = `
+                <div class="alert alert-warning">
+                    <i class="fas fa-clock"></i>
+                    <div>
+                        <strong>Exam submitted successfully!</strong><br>
+                        Your written answers are being evaluated by the teacher. Final results will be published soon.
+                    </div>
+                </div>
+            `;
+            
+            if (mcqResults) {
+                html += `
+                    <div class="result-grid">
+                        <div class="result-item">
+                            <div class="result-label">MCQ Score</div>
+                            <div class="result-value">${mcqResults.score}/${mcqResults.total}</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="result-label">Percentage</div>
+                            <div class="result-value ${mcqResults.percentage >= 50 ? 'success' : 'danger'}">
+                                ${mcqResults.percentage}%
+                            </div>
+                        </div>
+                        <div class="result-item">
+                            <div class="result-label">Correct</div>
+                            <div class="result-value">${mcqResults.correct}</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="result-label">Wrong</div>
+                            <div class="result-value">${mcqResults.wrong}</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="result-label">Unmarked</div>
+                            <div class="result-value warning">${mcqResults.unmarked}</div>
+                        </div>
+                    </div>
+                    <div style="text-align: center; margin-top: 20px; color: var(--text-muted); margin-bottom: 30px;">
+                        <i class="fas fa-info-circle"></i> Final total pending written evaluation
+                    </div>
+                `;
+                
+                // Add MCQ review section even for pending
+                if (mcqReview) {
+                    html += renderMCQReview(mcqReview);
+                }
+            }
+            
+            resultContent.innerHTML = html;
+            resultCard.style.display = 'block';
+        }
+
+        function renderMCQReview(mcqReview) {
+            const { orderedQuestionNumbers, byQuestion } = mcqReview;
+            const options = ['A', 'B', 'C', 'D'];
+            
+            let html = `
+                <div class="review-section">
+                    <div class="section-title">
+                        <i class="fas fa-list-check"></i> MCQ Question Review
+                        <span style="font-size: 14px; color: var(--text-muted); margin-left: auto;">
+                            ${orderedQuestionNumbers.length} questions
+                        </span>
+                    </div>
+                    <div class="review-grid">
+            `;
+            
+            orderedQuestionNumbers.forEach(qNum => {
+                const review = byQuestion[qNum];
+                const status = review.status;
+                const statusText = {
+                    'wrong': 'WRONG',
+                    'unmarked': 'UNMARKED',
+                    'correct': 'CORRECT'
+                };
+                
+                html += `
+                    <div class="review-item ${status}">
+                        <div class="review-header">
+                            <div class="review-question">Question ${qNum}</div>
+                            <span class="question-status status-${status}">
+                                ${statusText[status]}
+                            </span>
+                        </div>
+                        
+                        <div class="review-options">
+                `;
+                
+                // Render each option with appropriate coloring
+                options.forEach(option => {
+                    let optionClass = 'neutral';
+                    if (option === review.correct) {
+                        optionClass = 'correct';
+                    } else if (option === review.student && status === 'wrong') {
+                        optionClass = 'wrong';
+                    }
+                    
+                    html += `
+                        <div class="review-option ${optionClass}">
+                            ${option}
+                        </div>
+                    `;
+                });
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += `
+                    </div>
+                </div>
+            `;
+            
+            return html;
+        }
+
+        // Navigation
+        function viewDashboard() {
+            if (currentStudent && currentStudent.dashboardLink) {
+                window.open(currentStudent.dashboardLink, '_blank');
+            } else if (currentStudent) {
+                window.open(`student-dashboard.html?user=${currentStudent.username}`, '_blank');
+            }
+        }
+
+        // Modal close on outside click
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    overlay.style.display = 'none';
+                }
+            });
+        });
+
+        // Enter key support for username
+        document.getElementById('usernameInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                verifyStudent();
+            }
+        });
+    </script>
+</body>
+</html>

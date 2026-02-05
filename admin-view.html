@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Exam - Exam Management</title>
+    <link rel="shortcut icon" href="icon.jpg" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase 8.10.0 -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        :root {
+            --bg-dark: #161a1d;
+            --card-bg: #212529;
+            --primary-red: #d62839;
+            --primary-hover: #ba181b;
+            --text-light: #f5f3f4;
+            --text-muted: #b1a7a6;
+            --border-color: #333;
+            --success: #2a9d8f;
+            --warning: #e9c46a;
+            --danger: #e63946;
+            --info: #457b9d;
+            --radius: 12px;
+            --shadow: 0 8px 16px rgba(0,0,0,0.3);
+        }
+
+        body {
+            background: var(--bg-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 20px 0;
+            margin-bottom: 30px;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo h1 {
+            font-size: 24px;
+            background: linear-gradient(90deg, var(--primary-red), #ff6b6b);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 4px;
+        }
+
+        .logo p {
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .back-btn {
+            background: transparent;
+            color: var(--text-light);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 8px 16px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--text-muted);
+        }
+
+        /* Card Styles */
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            background: rgba(0, 0, 0, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-header h3 {
+            font-size: 18px;
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        /* Metadata */
+        .metadata-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .metadata-item {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .metadata-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
+
+        .metadata-value {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-light);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-left: 10px;
+        }
+
+        .badge-primary {
+            background: rgba(214, 40, 57, 0.2);
+            color: var(--primary-red);
+        }
+
+        .badge-success {
+            background: rgba(42, 157, 143, 0.2);
+            color: var(--success);
+        }
+
+        /* MCQ Key Editor */
+        .mcq-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .mcq-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .mcq-number {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .mcq-select {
+            width: 100%;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-light);
+            font-size: 14px;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: var(--radius);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: var(--primary-red);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-light);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--text-muted);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #21867a;
+            transform: translateY(-2px);
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--text-light);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px;
+            line-height: 1;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .modal-footer {
+            padding: 20px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-light);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            color: var(--text-light);
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-red);
+            box-shadow: 0 0 0 3px rgba(214, 40, 57, 0.2);
+        }
+
+        /* Alert */
+        .alert {
+            padding: 15px;
+            border-radius: var(--radius);
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert-success {
+            background: rgba(42, 157, 143, 0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
+        }
+
+        .alert-error {
+            background: rgba(230, 57, 70, 0.1);
+            border: 1px solid var(--danger);
+            color: #ff6b6b;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--card-bg);
+            border-top: 1px solid var(--border-color);
+            padding: 20px 0;
+            margin-top: 40px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        /* Loading */
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--primary-red);
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .metadata-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <h1>Fardin (DU Physics)</h1>
+                    <p>Exam Management System - Edit Exam</p>
+                </div>
+                <div class="header-actions">
+                    <button class="back-btn" onclick="goBack()">
+                        <i class="fas fa-arrow-left"></i> Back to Dashboard
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <div class="container">
+            <!-- Alert Messages -->
+            <div class="alert" id="successAlert">
+                <i class="fas fa-check-circle"></i> <span id="successText"></span>
+            </div>
+            <div class="alert alert-error" id="errorAlert">
+                <i class="fas fa-exclamation-circle"></i> <span id="errorText"></span>
+            </div>
+
+            <!-- Metadata Card -->
+            <div class="card" id="metadataCard">
+                <div class="card-header">
+                    <h3><i class="fas fa-info-circle"></i> Exam Information</h3>
+                </div>
+                <div class="card-body">
+                    <div class="metadata-grid" id="metadataGrid">
+                        <!-- Metadata will be loaded here -->
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn btn-secondary" onclick="showLinksModal()">
+                            <i class="fas fa-link"></i> View Links
+                        </button>
+                        <button class="btn btn-success" onclick="recheckSubmissions()">
+                            <i class="fas fa-sync"></i> Recheck Submissions
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MCQ Key Editor Card -->
+            <div class="card" id="mcqCard" style="display: none;">
+                <div class="card-header">
+                    <h3><i class="fas fa-key"></i> MCQ Answer Key</h3>
+                    <span class="badge badge-success" id="keyVersionBadge">Version 1</span>
+                </div>
+                <div class="card-body">
+                    <div class="mcq-grid" id="mcqKeyGrid">
+                        <!-- MCQ inputs will be generated here -->
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" onclick="saveMCQKey()">
+                            <i class="fas fa-save"></i> Save Answer Key
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>© <span id="currentYear"></span> Fardin (DU Physics). All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Links Modal -->
+    <div class="modal-overlay" id="linksModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Exam Links</div>
+                <button class="modal-close" onclick="closeModal('linksModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Admin View Link</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="adminLinkInput" class="form-control" readonly>
+                        <button class="btn btn-secondary" onclick="copyToClipboard('adminLinkInput')">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Student Exam Link</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="studentLinkInput" class="form-control" readonly>
+                        <button class="btn btn-secondary" onclick="copyToClipboard('studentLinkInput')">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Question Code</label>
+                    <input type="text" id="questionCodeInput" class="form-control" readonly>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="closeModal('linksModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+              apiKey: "AIzaSyAlR-WEX_HZjkE1hzh_rPRYAz7CrjQYB54",
+  authDomain: "exammanagementsystem-a7720.firebaseapp.com",
+  projectId: "exammanagementsystem-a7720",
+  storageBucket: "exammanagementsystem-a7720.firebasestorage.app",
+  messagingSenderId: "269325070232",
+  appId: "1:269325070232:web:79bdf01e4f47ea36bd45ed"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Global Variables
+        let currentExam = null;
+        let currentSetId = null;
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Check admin session
+            const session = localStorage.getItem('adminSession');
+            if (!session) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Get exam ID from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            currentSetId = urlParams.get('setId');
+            
+            if (!currentSetId) {
+                showError('No exam ID provided');
+                return;
+            }
+
+            // Set current year
+            document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+            // Load exam data
+            await loadExamData();
+        });
+
+        // Utility Functions
+        function formatDateShort(iso) {
+            const date = new Date(iso);
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}.${month}.${year}`;
+        }
+
+        function showSuccess(message) {
+            const alert = document.getElementById('successAlert');
+            const text = document.getElementById('successText');
+            text.textContent = message;
+            alert.style.display = 'block';
+            alert.className = 'alert alert-success';
+            
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 5000);
+        }
+
+        function showError(message) {
+            const alert = document.getElementById('errorAlert');
+            const text = document.getElementById('errorText');
+            text.textContent = message;
+            alert.style.display = 'block';
+            
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 5000);
+        }
+
+        function showModal(modalId) {
+            document.getElementById(modalId).style.display = 'flex';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function copyToClipboard(inputId) {
+            const input = document.getElementById(inputId);
+            input.select();
+            input.setSelectionRange(0, 99999);
+            
+            try {
+                document.execCommand('copy');
+                showSuccess('Copied to clipboard!');
+            } catch (err) {
+                showError('Failed to copy. Please copy manually.');
+            }
+        }
+
+        function goBack() {
+            window.location.href = 'index.html';
+        }
+
+        // Data Loading
+        async function loadExamData() {
+            try {
+                const examDoc = await db.collection('questionSets').doc(currentSetId).get();
+                
+                if (!examDoc.exists) {
+                    showError('Exam not found');
+                    return;
+                }
+                
+                currentExam = examDoc.data();
+                currentExam.id = examDoc.id;
+                
+                // Render metadata
+                renderMetadata();
+                
+                // Render MCQ key editor if enabled
+                if (currentExam.mcq && currentExam.mcq.enabled) {
+                    renderMCQKeyEditor();
+                    document.getElementById('mcqCard').style.display = 'block';
+                }
+                
+            } catch (error) {
+                console.error('Load exam error:', error);
+                showError('Failed to load exam data');
+            }
+        }
+
+        function renderMetadata() {
+            const grid = document.getElementById('metadataGrid');
+            
+            const metadata = [
+                { label: 'Set Name', value: currentExam.setName },
+                { label: 'Question Code', value: currentExam.questionCode },
+                { label: 'Class', value: currentExam.className },
+                { label: 'Subject', value: currentExam.subjectName },
+                { label: 'Chapter', value: currentExam.chapterName },
+                { label: 'Created', value: formatDateShort(currentExam.createdAt) },
+                { label: 'Last Updated', value: formatDateShort(currentExam.updatedAt) },
+                { label: 'MCQ Enabled', value: currentExam.mcq && currentExam.mcq.enabled ? 'Yes' : 'No' },
+                { label: 'Written Enabled', value: currentExam.writtenConfig && currentExam.writtenConfig.enabled ? 'Yes' : 'No' }
+            ];
+            
+            if (currentExam.mcq && currentExam.mcq.keyVersion) {
+                metadata.push({ 
+                    label: 'Key Version', 
+                    value: `Version ${currentExam.mcq.keyVersion}` 
+                });
+            }
+            
+            grid.innerHTML = metadata.map(item => `
+                <div class="metadata-item">
+                    <div class="metadata-label">${item.label}</div>
+                    <div class="metadata-value">${item.value}</div>
+                </div>
+            `).join('');
+        }
+
+        function renderMCQKeyEditor() {
+            const grid = document.getElementById('mcqKeyGrid');
+            const keyVersionBadge = document.getElementById('keyVersionBadge');
+            
+            // Update key version badge
+            keyVersionBadge.textContent = `Version ${currentExam.mcq.keyVersion || 1}`;
+            
+            // Generate MCQ inputs
+            grid.innerHTML = '';
+            const totalQuestions = currentExam.mcq.totalQuestions;
+            const answers = currentExam.mcq.answers || {};
+            
+            for (let i = 1; i <= totalQuestions; i++) {
+                const div = document.createElement('div');
+                div.className = 'mcq-item';
+                
+                const currentAnswer = answers[i.toString()] || '';
+                
+                div.innerHTML = `
+                    <div class="mcq-number">Q${i}</div>
+                    <select class="mcq-select" id="mcqKey${i}">
+                        <option value="">Select</option>
+                        <option value="A" ${currentAnswer === 'A' ? 'selected' : ''}>A</option>
+                        <option value="B" ${currentAnswer === 'B' ? 'selected' : ''}>B</option>
+                        <option value="C" ${currentAnswer === 'C' ? 'selected' : ''}>C</option>
+                        <option value="D" ${currentAnswer === 'D' ? 'selected' : ''}>D</option>
+                    </select>
+                `;
+                
+                grid.appendChild(div);
+            }
+        }
+
+        // Save MCQ Key
+        async function saveMCQKey() {
+            try {
+                const totalQuestions = currentExam.mcq.totalQuestions;
+                const answers = {};
+                let allFilled = true;
+                
+                // Collect answers
+                for (let i = 1; i <= totalQuestions; i++) {
+                    const select = document.getElementById(`mcqKey${i}`);
+                    if (!select.value) {
+                        allFilled = false;
+                        break;
+                    }
+                    answers[i.toString()] = select.value;
+                }
+                
+                if (!allFilled) {
+                    showError('Please select answer for all MCQ questions');
+                    return;
+                }
+                
+                // Update exam
+                const newKeyVersion = (currentExam.mcq.keyVersion || 1) + 1;
+                
+                await db.collection('questionSets').doc(currentSetId).update({
+                    'mcq.answers': answers,
+                    'mcq.keyVersion': newKeyVersion,
+                    updatedAt: new Date().toISOString()
+                });
+                
+                // Update local data
+                currentExam.mcq.answers = answers;
+                currentExam.mcq.keyVersion = newKeyVersion;
+                
+                // Update UI
+                document.getElementById('keyVersionBadge').textContent = `Version ${newKeyVersion}`;
+                
+                showSuccess('MCQ answer key updated successfully!');
+                
+            } catch (error) {
+                console.error('Save MCQ key error:', error);
+                showError('Failed to save MCQ answer key');
+            }
+        }
+
+        // Recheck Submissions
+        async function recheckSubmissions() {
+            if (!confirm('This will recalculate MCQ scores for all submissions of this exam using the current answer key. Continue?')) {
+                return;
+            }
+            
+            try {
+                // Load the latest exam data
+                const examDoc = await db.collection('questionSets').doc(currentSetId).get();
+                const exam = examDoc.data();
+                
+                if (!exam.mcq || !exam.mcq.enabled) {
+                    showError('This exam does not have MCQ questions to recheck.');
+                    return;
+                }
+                
+                // Query all submissions for this exam
+                const submissionsSnapshot = await db.collection('submissions')
+                    .where('setId', '==', currentSetId)
+                    .get();
+                
+                if (submissionsSnapshot.empty) {
+                    showError('No submissions found for this exam.');
+                    return;
+                }
+                
+                let updatedCount = 0;
+                let skippedCount = 0;
+                
+                // Process each submission
+                for (const doc of submissionsSnapshot.docs) {
+                    const submission = doc.data();
+                    
+                    if (!submission.mcqAnswers) {
+                        skippedCount++;
+                        continue;
+                    }
+                    
+                    // Recalculate MCQ results
+                    const correct = calculateMCQ(
+                        exam.mcq.answers,
+                        submission.mcqAnswers,
+                        exam.mcq.totalQuestions
+                    );
+                    
+                    // Prepare update data
+                    const updateData = {
+                        mcqScore: correct.score,
+                        mcqCorrect: correct.correct,
+                        mcqWrong: correct.wrong,
+                        mcqUnmarked: correct.unmarked,
+                        mcqPercentage: correct.percentage,
+                        mcqKeyVersionUsed: exam.mcq.keyVersion || 1,
+                        updatedAt: new Date().toISOString()
+                    };
+                    
+                    // If submission was already FINAL and has written marks, update final total
+                    if (submission.status === 'FINAL_PUBLISHED' && submission.writtenTotal !== undefined) {
+                        updateData.finalTotal = submission.writtenTotal + correct.score;
+                    }
+                    
+                    // Update the submission
+                    await doc.ref.update(updateData);
+                    updatedCount++;
+                }
+                
+                showSuccess(`Recheck completed! Updated: ${updatedCount}, Skipped: ${skippedCount}`);
+                
+            } catch (error) {
+                console.error('Recheck error:', error);
+                showError('Failed to recheck submissions');
+            }
+        }
+
+        // MCQ Calculation Helper
+        function calculateMCQ(correctAnswers, studentAnswers, totalQuestions) {
+            let correct = 0;
+            let wrong = 0;
+            let unmarked = 0;
+            
+            for (let i = 1; i <= totalQuestions; i++) {
+                const qNum = i.toString();
+                const correctAns = correctAnswers[qNum];
+                const studentAns = studentAnswers ? studentAnswers[qNum] : null;
+                
+                if (!studentAns) {
+                    unmarked++;
+                } else if (studentAns === correctAns) {
+                    correct++;
+                } else {
+                    wrong++;
+                }
+            }
+            
+            const score = correct; // 1 mark per correct answer
+            const percentage = totalQuestions > 0 ? Math.round((correct / totalQuestions) * 100) : 0;
+            
+            return {
+                score,
+                total: totalQuestions,
+                correct,
+                wrong,
+                unmarked,
+                percentage
+            };
+        }
+
+        // Show Links Modal
+        function showLinksModal() {
+            if (!currentExam) return;
+            
+            document.getElementById('adminLinkInput').value = window.location.href;
+            document.getElementById('studentLinkInput').value = `${window.location.origin}/user-exam.html?setId=${currentSetId}`;
+            document.getElementById('questionCodeInput').value = currentExam.questionCode;
+            
+            showModal('linksModal');
+        }
+
+        // Modal close on outside click
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    overlay.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

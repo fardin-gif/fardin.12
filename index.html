@@ -1,0 +1,4169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Exam Management</title>
+    <link rel="shortcut icon" href="icon.jpg" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase 8.10.0 -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        :root {
+            --bg-dark: #161a1d;
+            --card-bg: #212529;
+            --primary-red: #d62839;
+            --primary-hover: #ba181b;
+            --text-light: #f5f3f4;
+            --text-muted: #b1a7a6;
+            --border-color: #333;
+            --success: #2a9d8f;
+            --warning: #e9c46a;
+            --danger: #e63946;
+            --info: #457b9d;
+            --radius: 12px;
+            --shadow: 0 8px 16px rgba(0,0,0,0.3);
+        }
+
+        body {
+            background: var(--bg-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo h1 {
+            font-size: 24px;
+            background: linear-gradient(90deg, var(--primary-red), #ff6b6b);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 4px;
+        }
+
+        .logo p {
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .admin-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .admin-name {
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
+        .logout-btn {
+            background: rgba(214, 40, 57, 0.2);
+            color: var(--primary-red);
+            border: 1px solid var(--primary-red);
+            border-radius: var(--radius);
+            padding: 8px 16px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logout-btn:hover {
+            background: var(--primary-red);
+            color: white;
+        }
+
+        /* Main Content */
+        main {
+            padding: 30px 0 60px;
+        }
+
+        .section-title {
+            font-size: 22px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title i {
+            color: var(--primary-red);
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            background: rgba(0, 0, 0, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-header h3 {
+            font-size: 18px;
+            color: var(--text-light);
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        /* Form Styles */
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-light);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            color: var(--text-light);
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-red);
+            box-shadow: 0 0 0 3px rgba(214, 40, 57, 0.2);
+        }
+
+        .form-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23b1a7a6' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 12px;
+            padding-right: 40px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: var(--radius);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: var(--primary-red);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-light);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--text-muted);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #21867a;
+            transform: translateY(-2px);
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+
+        /* Preview Box */
+        .preview-box {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px dashed var(--border-color);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .preview-title {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .preview-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .preview-item {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .preview-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .preview-value {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-light);
+        }
+
+        /* Question Types */
+        .question-type-card {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .type-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .type-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+        }
+
+        .type-toggle {
+            position: relative;
+            width: 50px;
+            height: 26px;
+        }
+
+        .type-toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--border-color);
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: var(--success);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(24px);
+        }
+
+        .type-config {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .config-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .config-group label {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .config-input {
+            width: 80px;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-light);
+        }
+
+        .mark-badges {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .mark-badge {
+            background: rgba(69, 123, 157, 0.2);
+            color: var(--info);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        /* Exam List */
+        .search-box {
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 15px 12px 45px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            color: var(--text-light);
+            font-size: 15px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23b1a7a6' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: left 15px center;
+        }
+
+        .sort-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .exam-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .exam-card {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 20px;
+            transition: all 0.3s;
+        }
+
+        .exam-card:hover {
+            border-color: var(--primary-red);
+            transform: translateY(-4px);
+        }
+
+        .exam-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .exam-name {
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--text-light);
+            margin-bottom: 5px;
+        }
+
+        .exam-code {
+            background: rgba(214, 40, 57, 0.2);
+            color: var(--primary-red);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .exam-meta {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 15px;
+            display: flex;
+            gap: 15px;
+        }
+
+        .exam-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* Student Management */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .tab-btn {
+            padding: 10px 20px;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-weight: 500;
+            border-radius: var(--radius) var(--radius) 0 0;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            color: var(--primary-red);
+            background: rgba(214, 40, 57, 0.1);
+            border-bottom: 2px solid var(--primary-red);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .student-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .student-card {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 20px;
+        }
+
+        .student-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .student-name {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-light);
+        }
+
+        .student-username {
+            background: rgba(69, 123, 157, 0.2);
+            color: var(--info);
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .student-info {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .student-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        /* Attendance */
+        .attendance-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .attendance-date-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-width: 200px;
+        }
+
+        .attendance-date-group label {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .attendance-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .month-card {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .month-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .month-title {
+            font-weight: 500;
+            color: var(--text-light);
+        }
+
+        .month-status {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-current {
+            background: rgba(42, 157, 143, 0.2);
+            color: var(--success);
+        }
+
+        .status-ended {
+            background: rgba(233, 196, 106, 0.2);
+            color: var(--warning);
+        }
+
+        .month-dates {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+
+        .month-days {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .day-badge {
+            background: rgba(69, 123, 157, 0.2);
+            color: var(--info);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+        }
+
+        /* Submissions */
+        .filter-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .filter-select {
+            padding: 8px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            color: var(--text-light);
+            min-width: 150px;
+        }
+
+        .submission-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 20px;
+        }
+
+        .submission-card {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 20px;
+        }
+
+        .submission-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .submission-student-name {
+            font-weight: 500;
+            color: var(--text-light);
+        }
+
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-pending {
+            background: rgba(233, 196, 106, 0.2);
+            color: var(--warning);
+        }
+
+        .status-final {
+            background: rgba(42, 157, 143, 0.2);
+            color: var(--success);
+        }
+
+        .submission-meta {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .score-display {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .score-item {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            flex: 1;
+            min-width: 100px;
+        }
+
+        .score-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
+
+        .score-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        .submission-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* Modal System */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--text-light);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px;
+            line-height: 1;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .modal-footer {
+            padding: 20px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* MCQ Key Modal */
+        .mcq-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .mcq-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .mcq-number {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .mcq-select {
+            width: 100%;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-light);
+            font-size: 14px;
+        }
+
+        /* Written Marking */
+        .written-section {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .section-title-small {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 15px;
+            color: var(--text-light);
+        }
+
+        .question-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 12px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+        }
+
+        .question-label {
+            min-width: 60px;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .mark-input {
+            width: 80px;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-light);
+            text-align: center;
+        }
+
+        .mark-range {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-left: auto;
+        }
+
+        .total-box {
+            background: rgba(42, 157, 143, 0.1);
+            border: 1px solid var(--success);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .total-label {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
+
+        .total-value {
+            font-size: 32px;
+            font-weight: 600;
+            color: var(--success);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .empty-title {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: var(--text-light);
+        }
+
+        .empty-subtitle {
+            font-size: 14px;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--card-bg);
+            border-top: 1px solid var(--border-color);
+            padding: 20px 0;
+            margin-top: 40px;
+        }
+
+        .footer-content {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--primary-red);
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .exam-grid,
+            .student-grid,
+            .submission-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-row {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .filter-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .modal {
+                max-width: 100%;
+            }
+
+            .attendance-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .attendance-actions {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <h1>Fardin (DU Physics)</h1>
+                    <p>Exam Management System - Admin Dashboard</p>
+                </div>
+                <div class="admin-info">
+                    <span class="admin-name" id="adminName">Loading...</span>
+                    <button class="logout-btn" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <div class="container">
+            <!-- Section A: Create New Exam -->
+            <section class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-plus-circle"></i> Create New Exam</h3>
+                </div>
+                <div class="card-body">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="classSelect">Class</label>
+                            <div class="input-group">
+                                <select id="classSelect" class="form-control form-select">
+                                    <option value="">Select Class</option>
+                                </select>
+                                <button type="button" class="btn btn-secondary btn-sm" onclick="showAddClassModal()" style="margin-top: 8px;">
+                                    <i class="fas fa-plus"></i> Add New
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="subjectSelect">Subject</label>
+                            <div class="input-group">
+                                <select id="subjectSelect" class="form-control form-select">
+                                    <option value="">Select Subject</option>
+                                </select>
+                                <button type="button" class="btn btn-secondary btn-sm" onclick="showAddSubjectModal()" style="margin-top: 8px;">
+                                    <i class="fas fa-plus"></i> Add New
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="chapterInput">Chapter Name</label>
+                            <input type="text" id="chapterInput" class="form-control" placeholder="Enter chapter name">
+                        </div>
+                    </div>
+
+                    <!-- Preview Box -->
+                    <div class="preview-box">
+                        <div class="preview-title">Live Preview</div>
+                        <div class="preview-content">
+                            <div class="preview-item">
+                                <div class="preview-label">Set Name</div>
+                                <div class="preview-value" id="previewSetName">-</div>
+                            </div>
+                            <div class="preview-item">
+                                <div class="preview-label">Question Code</div>
+                                <div class="preview-value" id="previewQuestionCode">-</div>
+                            </div>
+                            <div class="preview-item">
+                                <div class="preview-label">Class & Subject</div>
+                                <div class="preview-value" id="previewClassSubject">-</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Generate Code Button -->
+                    <div style="text-align: center; margin: 20px 0;">
+                        <button class="btn btn-primary" id="generateCodeBtn" onclick="handleGenerateQuestionCode()">
+                            <i class="fas fa-barcode"></i> Generate Question Code
+                        </button>
+                    </div>
+
+                    <!-- Question Types -->
+                    <div class="question-types" id="questionTypes" style="display: none;">
+                        <div class="section-title">Select Question Types</div>
+                        
+                        <!-- MCQ -->
+                        <div class="question-type-card">
+                            <div class="type-header">
+                                <div class="type-title">
+                                    <i class="fas fa-check-circle"></i> Multiple Choice (MCQ)
+                                </div>
+                                <label class="type-toggle">
+                                    <input type="checkbox" id="mcqToggle" onchange="toggleMCQConfig()">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <div class="type-config" id="mcqConfig" style="display: none;">
+                                <div class="config-group">
+                                    <label>Total Questions:</label>
+                                    <input type="number" id="mcqTotal" class="config-input" min="1" max="100" value="10">
+                                </div>
+                                <div class="note" style="color: var(--warning); font-size: 14px;">
+                                    <i class="fas fa-info-circle"></i> Only MCQ is auto-checked
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Short Questions -->
+                        <div class="question-type-card">
+                            <div class="type-header">
+                                <div class="type-title">
+                                    <i class="fas fa-file-alt"></i> Short Questions
+                                </div>
+                                <label class="type-toggle">
+                                    <input type="checkbox" id="shortToggle" onchange="toggleShortConfig()">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <div class="type-config" id="shortConfig" style="display: none;">
+                                <div class="config-group">
+                                    <label>Count:</label>
+                                    <input type="number" id="shortCount" class="config-input" min="1" max="20" value="5">
+                                </div>
+                                <div class="mark-badges">
+                                    <span class="mark-badge">2 marks per Q</span>
+                                    <span class="mark-badge">Mark Code: 02</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Broad Questions -->
+                        <div class="question-type-card">
+                            <div class="type-header">
+                                <div class="type-title">
+                                    <i class="fas fa-file-contract"></i> Broad Questions
+                                </div>
+                                <label class="type-toggle">
+                                    <input type="checkbox" id="broadToggle" onchange="toggleBroadConfig()">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <div class="type-config" id="broadConfig" style="display: none;">
+                                <div class="config-group">
+                                    <label>Count:</label>
+                                    <input type="number" id="broadCount" class="config-input" min="1" max="10" value="2">
+                                </div>
+                                <div class="config-group">
+                                    <label>Max Marks per Q:</label>
+                                    <input type="number" id="broadMarks" class="config-input" min="1" max="20" value="10">
+                                </div>
+                                <div class="mark-badges">
+                                    <span class="mark-badge">Mark Code: 03</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- CQ Math -->
+                        <div class="question-type-card">
+                            <div class="type-header">
+                                <div class="type-title">
+                                    <i class="fas fa-square-root-alt"></i> CQ Math
+                                </div>
+                                <label class="type-toggle">
+                                    <input type="checkbox" id="cqMathToggle" onchange="toggleCQMathConfig()">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <div class="type-config" id="cqMathConfig" style="display: none;">
+                                <div class="config-group">
+                                    <label>Count:</label>
+                                    <input type="number" id="cqMathCount" class="config-input" min="1" max="10" value="1">
+                                </div>
+                                <div class="mark-badges">
+                                    <span class="mark-badge">2</span>
+                                    <span class="mark-badge">4</span>
+                                    <span class="mark-badge">4</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- CQ -->
+                        <div class="question-type-card">
+                            <div class="type-header">
+                                <div class="type-title">
+                                    <i class="fas fa-list-ol"></i> CQ (Creative Questions)
+                                </div>
+                                <label class="type-toggle">
+                                    <input type="checkbox" id="cqToggle" onchange="toggleCQConfig()">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <div class="type-config" id="cqConfig" style="display: none;">
+                                <div class="config-group">
+                                    <label>Count:</label>
+                                    <input type="number" id="cqCount" class="config-input" min="1" max="10" value="1">
+                                </div>
+                                <div class="mark-badges">
+                                    <span class="mark-badge">1</span>
+                                    <span class="mark-badge">2</span>
+                                    <span class="mark-badge">3</span>
+                                    <span class="mark-badge">4</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Create Button -->
+                        <div style="text-align: center; margin-top: 30px;">
+                            <button class="btn btn-success" id="createExamBtn" onclick="showConfirmExamModal()">
+                                <i class="fas fa-save"></i> Create Exam
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section B: Exam List -->
+            <section class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-list"></i> Exam List</h3>
+                </div>
+                <div class="card-body">
+                    <div class="search-box">
+                        <input type="text" id="examSearch" class="search-input" placeholder="Search exams by name, code, class, or subject...">
+                    </div>
+                    <div class="sort-buttons">
+                        <button class="btn btn-secondary btn-sm" onclick="sortExams('date')">
+                            <i class="fas fa-calendar"></i> Sort by Date
+                        </button>
+                        <button class="btn btn-secondary btn-sm" onclick="sortExams('code')">
+                            <i class="fas fa-barcode"></i> Sort by Code
+                        </button>
+                        <button class="btn btn-secondary btn-sm" onclick="sortExams('class')">
+                            <i class="fas fa-graduation-cap"></i> Sort by Class
+                        </button>
+                    </div>
+                    <div class="exam-grid" id="examGrid">
+                        <!-- Exams will be loaded here -->
+                        <div class="empty-state">
+                            <div class="spinner"></div>
+                            <div class="empty-title">Loading exams...</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section C: Student Management -->
+            <section class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-users"></i> Student Management</h3>
+                </div>
+                <div class="card-body">
+                    <div class="tabs">
+                        <button class="tab-btn active" onclick="switchTab('createStudent')">Create Student</button>
+                        <button class="tab-btn" onclick="switchTab('studentList')">Student List</button>
+                    </div>
+
+                    <!-- Create Student Tab -->
+                    <div id="createStudentTab" class="tab-content active">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="studentName">Student Name *</label>
+                                <input type="text" id="studentName" class="form-control" placeholder="Full name">
+                            </div>
+                            <div class="form-group">
+                                <label for="studentSchool">School (Optional)</label>
+                                <input type="text" id="studentSchool" class="form-control" placeholder="School name">
+                            </div>
+                            <div class="form-group">
+                                <label for="studentClass">Class *</label>
+                                <select id="studentClass" class="form-control form-select">
+                                    <option value="">Select Class</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="studentUsername">Username *</label>
+                                <input type="text" id="studentUsername" class="form-control" placeholder="Unique username">
+                            </div>
+                            <div class="form-group">
+                                <label for="guardianNumber">Guardian Number *</label>
+                                <input type="text" id="guardianNumber" class="form-control" placeholder="01XXXXXXXXX">
+                            </div>
+                            <div class="form-group">
+                                <label for="studentWa">Student WhatsApp (Optional)</label>
+                                <input type="text" id="studentWa" class="form-control" placeholder="01XXXXXXXXX">
+                            </div>
+                        </div>
+                        <div class="preview-box">
+                            <div class="preview-title">Dashboard Link Preview</div>
+                            <div id="dashboardLinkPreview" style="color: var(--info); font-size: 14px; word-break: break-all;">
+                                Will be generated after saving
+                            </div>
+                        </div>
+                        <div style="text-align: center; margin-top: 20px;">
+                            <button class="btn btn-success" onclick="saveStudent()">
+                                <i class="fas fa-save"></i> Save Student
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Student List Tab -->
+                    <div id="studentListTab" class="tab-content">
+                        <div class="search-box">
+                            <input type="text" id="studentSearch" class="search-input" placeholder="Search students by name, username, or class...">
+                        </div>
+                        <div class="student-grid" id="studentGrid">
+                            <!-- Students will be loaded here -->
+                            <div class="empty-state">
+                                <div class="spinner"></div>
+                                <div class="empty-title">Loading students...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section D: Attendance Manager -->
+            <section class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-calendar-check"></i> Attendance Manager</h3>
+                </div>
+                <div class="card-body">
+                    <div class="attendance-controls">
+                        <select id="attendanceStudentSelect" class="form-control" style="max-width: 300px;">
+                            <option value="">Select a student...</option>
+                        </select>
+                        <button class="btn btn-secondary" onclick="loadAttendanceForStudent()">
+                            <i class="fas fa-search"></i> Load
+                        </button>
+                    </div>
+                    <div id="attendanceContent">
+                        <div class="empty-state">
+                            <div class="empty-icon">
+                                <i class="fas fa-user-graduate"></i>
+                            </div>
+                            <div class="empty-title">Select a student to manage attendance</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section E: Submissions List -->
+            <section class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-file-upload"></i> Student Submissions</h3>
+                </div>
+                <div class="card-body">
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label>Search:</label>
+                            <input type="text" id="submissionSearch" class="form-control" placeholder="Username or question code" style="min-width: 200px;">
+                        </div>
+                        <div class="filter-group">
+                            <label>Exam:</label>
+                            <select id="submissionExamFilter" class="filter-select">
+                                <option value="">All Exams</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Status:</label>
+                            <select id="submissionStatusFilter" class="filter-select">
+                                <option value="">All</option>
+                                <option value="PENDING_WRITTEN">Pending Written</option>
+                                <option value="FINAL_PUBLISHED">Final Published</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-secondary" onclick="loadSubmissions()">
+                            <i class="fas fa-filter"></i> Apply Filters
+                        </button>
+                    </div>
+                    <div class="submission-grid" id="submissionGrid">
+                        <!-- Submissions will be loaded here -->
+                        <div class="empty-state">
+                            <div class="spinner"></div>
+                            <div class="empty-title">Loading submissions...</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <p>© <span id="footerYear"></span> Fardin (DU Physics). All rights reserved.</p>
+                <p>Exam Management System v2.0</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modals -->
+    <!-- Add Class Modal -->
+    <div class="modal-overlay" id="addClassModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Add New Class</div>
+                <button class="modal-close" onclick="closeModal('addClassModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="newClassName">Class Name</label>
+                    <input type="text" id="newClassName" class="form-control" placeholder="e.g., Class 5, SSC, HSC">
+                </div>
+                <div class="form-group">
+                    <label for="newClassCode">Class Code (2 digits)</label>
+                    <input type="text" id="newClassCode" class="form-control" placeholder="e.g., 05, 10, 12" maxlength="2">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('addClassModal')">Cancel</button>
+                <button class="btn btn-success" onclick="saveNewClass()">Save Class</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Subject Modal -->
+    <div class="modal-overlay" id="addSubjectModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Add New Subject</div>
+                <button class="modal-close" onclick="closeModal('addSubjectModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="newSubjectName">Subject Name</label>
+                    <input type="text" id="newSubjectName" class="form-control" placeholder="e.g., Physics, Chemistry">
+                </div>
+                <div class="form-group">
+                    <label for="newSubjectCode">Subject Code (2 digits)</label>
+                    <input type="text" id="newSubjectCode" class="form-control" placeholder="e.g., 06, 07" maxlength="2">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('addSubjectModal')">Cancel</button>
+                <button class="btn btn-success" onclick="saveNewSubject()">Save Subject</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Exam Modal -->
+    <div class="modal-overlay" id="confirmExamModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Confirm Exam Setup</div>
+                <button class="modal-close" onclick="closeModal('confirmExamModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="preview-box">
+                    <div class="preview-content">
+                        <div class="preview-item">
+                            <div class="preview-label">Set Name</div>
+                            <div class="preview-value" id="confirmSetName">-</div>
+                        </div>
+                        <div class="preview-item">
+                            <div class="preview-label">Question Code</div>
+                            <div class="preview-value" id="confirmQuestionCode">-</div>
+                        </div>
+                        <div class="preview-item">
+                            <div class="preview-label">Class & Subject</div>
+                            <div class="preview-value" id="confirmClassSubject">-</div>
+                        </div>
+                    </div>
+                </div>
+                <div id="examSummary" style="margin-top: 20px;"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('confirmExamModal')">Cancel</button>
+                <button class="btn btn-success" onclick="proceedToMCQKey()">Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MCQ Key Modal -->
+    <div class="modal-overlay" id="mcqKeyModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Enter MCQ Answer Key</div>
+                <button class="modal-close" onclick="closeModal('mcqKeyModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="color: var(--text-muted); margin-bottom: 20px;">Select correct answer for each question:</p>
+                <div class="mcq-grid" id="mcqKeyGrid">
+                    <!-- MCQ inputs will be generated here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('mcqKeyModal')">Cancel</button>
+                <button class="btn btn-success" onclick="saveExamWithMCQKey()">Save Exam</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Exam Links Modal -->
+    <div class="modal-overlay" id="examLinksModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Exam Created Successfully!</div>
+                <button class="modal-close" onclick="closeModal('examLinksModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="font-size: 24px; font-weight: bold; color: var(--primary-red);" id="successQuestionCode"></div>
+                    <div style="color: var(--text-muted); margin-top: 5px;">Question Code</div>
+                </div>
+                <div class="form-group">
+                    <label>Admin View Link</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="adminLinkInput" class="form-control" readonly>
+                        <button class="btn btn-secondary" onclick="copyToClipboard('adminLinkInput')">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Student Exam Link</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="studentLinkInput" class="form-control" readonly>
+                        <button class="btn btn-secondary" onclick="copyToClipboard('studentLinkInput')">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="closeModal('examLinksModal')">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Student Modal -->
+    <div class="modal-overlay" id="editStudentModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Edit Student</div>
+                <button class="modal-close" onclick="closeModal('editStudentModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="editStudentForm">
+                    <!-- Form will be loaded here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('editStudentModal')">Cancel</button>
+                <button class="btn btn-success" onclick="updateStudent()">Update</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Month Modal -->
+    <div class="modal-overlay" id="newMonthModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Start New Month</div>
+                <button class="modal-close" onclick="closeModal('newMonthModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="newMonthNumber">Month Number</label>
+                    <input type="number" id="newMonthNumber" class="form-control" min="1" value="1">
+                </div>
+                <div class="form-group">
+                    <label for="newMonthStartDate">Start Date</label>
+                    <input type="date" id="newMonthStartDate" class="form-control">
+                </div>
+                <div style="margin-top: 20px; padding: 15px; background: rgba(42, 157, 143, 0.1); border-radius: 8px;">
+                    <p style="color: var(--text-muted); margin-bottom: 5px;">New month will start on:</p>
+                    <p style="font-weight: 500; color: var(--success);" id="newMonthDateDisplay">-</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('newMonthModal')">Cancel</button>
+                <button class="btn btn-success" onclick="startNewMonthFromModal()">Start New Month</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Submission Modal -->
+    <div class="modal-overlay" id="viewSubmissionModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Submission Details</div>
+                <button class="modal-close" onclick="closeModal('viewSubmissionModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="submissionDetails">
+                    <!-- Details will be loaded here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="closeModal('viewSubmissionModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mark Written Modal -->
+    <div class="modal-overlay" id="markWrittenModal">
+        <div class="modal" style="max-width: 800px;">
+            <div class="modal-header">
+                <div class="modal-title" id="markWrittenTitle">Mark Written</div>
+                <button class="modal-close" onclick="closeModal('markWrittenModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="markWrittenContent">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('markWrittenModal')">Cancel</button>
+                <button class="btn btn-success" onclick="saveWrittenMarks()">Save Marks</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert Modal -->
+    <div class="modal-overlay" id="alertModal">
+        <div class="modal" style="max-width: 400px;">
+            <div class="modal-header">
+                <div class="modal-title" id="alertTitle">Alert</div>
+                <button class="modal-close" onclick="closeModal('alertModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="text-align: center; padding: 20px;">
+                    <div id="alertIcon" style="font-size: 48px; margin-bottom: 20px;"></div>
+                    <div id="alertMessage" style="font-size: 16px;"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="closeModal('alertModal')">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Modal -->
+    <div class="modal-overlay" id="confirmModal">
+        <div class="modal" style="max-width: 400px;">
+            <div class="modal-header">
+                <div class="modal-title" id="confirmTitle">Confirm</div>
+                <button class="modal-close" onclick="closeModal('confirmModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="padding: 20px;">
+                    <div id="confirmMessage" style="font-size: 16px; margin-bottom: 20px;"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('confirmModal')">Cancel</button>
+                <button class="btn btn-danger" id="confirmActionBtn">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAlR-WEX_HZjkE1hzh_rPRYAz7CrjQYB54",
+            authDomain: "exammanagementsystem-a7720.firebaseapp.com",
+            projectId: "exammanagementsystem-a7720",
+            storageBucket: "exammanagementsystem-a7720.firebasestorage.app",
+            messagingSenderId: "269325070232",
+            appId: "1:269325070232:web:79bdf01e4f47ea36bd45ed"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Global Variables
+        let currentAdmin = null;
+        let classes = [];
+        let subjects = [];
+        let questionSets = [];
+        let students = [];
+        let submissions = [];
+        let currentQuestionCode = null;
+        let currentSetId = null;
+        let currentAttendanceStudent = null;
+        let currentExamForCreation = null;
+
+        // DOM Elements
+        const adminName = document.getElementById('adminName');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const classSelect = document.getElementById('classSelect');
+        const subjectSelect = document.getElementById('subjectSelect');
+        const chapterInput = document.getElementById('chapterInput');
+        const examGrid = document.getElementById('examGrid');
+        const studentGrid = document.getElementById('studentGrid');
+        const submissionGrid = document.getElementById('submissionGrid');
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Check admin session
+            const session = localStorage.getItem('adminSession');
+            if (!session) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            try {
+                currentAdmin = JSON.parse(session);
+                adminName.textContent = `Admin: ${currentAdmin.adminUser}`;
+                
+                // Set footer year
+                document.getElementById('footerYear').textContent = new Date().getFullYear();
+                
+                // Set new month date
+                const todayYMD = getTodayYMD();
+                document.getElementById('newMonthDateDisplay').textContent = todayYMD;
+                document.getElementById('newMonthStartDate').value = todayYMD;
+                
+                // Load initial data
+                await loadInitialData();
+                
+                // Set up event listeners
+                setupEventListeners();
+                
+            } catch (error) {
+                console.error('Initialization error:', error);
+                showAlert('Error loading dashboard. Please refresh.', 'error');
+            }
+        });
+
+        // ==================== UTILITY FUNCTIONS ====================
+        function formatDate(iso) {
+            const date = new Date(iso);
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function formatDateShort(iso) {
+            const date = new Date(iso);
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear().toString().slice(-2);
+            return `${day}.${month}.${year}`;
+        }
+
+        function pad2(n) {
+            return String(n).padStart(2, '0');
+        }
+
+        function sanitizeNumberBD(input) {
+            // Remove all non-digit characters
+            let digits = input.replace(/\D/g, '');
+            
+            // Check if it's a valid Bangladesh number
+            if (digits.length === 11 && digits.startsWith('01')) {
+                return '+88' + digits;
+            } else if (digits.length === 13 && digits.startsWith('8801')) {
+                return '+' + digits;
+            } else if (digits.length === 10 && digits.startsWith('1')) {
+                return '+880' + digits;
+            } else {
+                throw new Error('Invalid Bangladesh phone number format. Use 01XXXXXXXXX');
+            }
+        }
+
+        function waDigits(numberWithPlus) {
+            // Remove + and non-digit characters
+            return numberWithPlus.replace(/\D/g, '');
+        }
+
+        function escapeHTML(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // ==================== DATE FUNCTIONS ====================
+        function getTodayYMD() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function isValidYMD(dateStr) {
+            if (!dateStr || typeof dateStr !== 'string') return false;
+            const regex = /^\d{4}-\d{2}-\d{2}$/;
+            if (!regex.test(dateStr)) return false;
+            const date = new Date(dateStr);
+            return date instanceof Date && !isNaN(date);
+        }
+
+        function formatYMDToDDMMYYYY(ymd) {
+            if (!isValidYMD(ymd)) return 'Invalid Date';
+            const [year, month, day] = ymd.split('-');
+            return `${day}.${month}.${year}`;
+        }
+
+        function openWhatsAppWithCopy(number, message) {
+            try {
+                navigator.clipboard.writeText(message).then(() => {
+                    console.log('Message copied to clipboard');
+                }).catch(err => {
+                    console.error('Clipboard copy failed:', err);
+                });
+                
+                const waNumber = waDigits(number);
+                window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`, '_blank');
+            } catch (error) {
+                console.error('WhatsApp open error:', error);
+                showAlert('Failed to open WhatsApp. Message copied to clipboard.', 'warning');
+            }
+        }
+
+        // ==================== UI FUNCTIONS ====================
+        function showAlert(message, type = 'info') {
+            const modal = document.getElementById('alertModal');
+            const title = document.getElementById('alertTitle');
+            const icon = document.getElementById('alertIcon');
+            const msg = document.getElementById('alertMessage');
+            
+            // Set type-specific styling
+            switch (type) {
+                case 'success':
+                    title.textContent = 'Success';
+                    icon.innerHTML = '<i class="fas fa-check-circle" style="color: var(--success);"></i>';
+                    break;
+                case 'error':
+                    title.textContent = 'Error';
+                    icon.innerHTML = '<i class="fas fa-times-circle" style="color: var(--danger);"></i>';
+                    break;
+                case 'warning':
+                    title.textContent = 'Warning';
+                    icon.innerHTML = '<i class="fas fa-exclamation-triangle" style="color: var(--warning);"></i>';
+                    break;
+                default:
+                    title.textContent = 'Information';
+                    icon.innerHTML = '<i class="fas fa-info-circle" style="color: var(--info);"></i>';
+            }
+            
+            msg.textContent = message;
+            modal.style.display = 'flex';
+        }
+
+        function showModal(modalId) {
+            document.getElementById(modalId).style.display = 'flex';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function setLoading(buttonId, isLoading) {
+            const button = document.getElementById(buttonId);
+            if (!button) return;
+            
+            if (isLoading) {
+                button.disabled = true;
+                const originalText = button.innerHTML;
+                button.setAttribute('data-original-text', originalText);
+                button.innerHTML = '<div class="spinner" style="width: 16px; height: 16px; border-width: 2px; display: inline-block; margin-right: 8px;"></div> Loading...';
+            } else {
+                button.disabled = false;
+                const originalText = button.getAttribute('data-original-text');
+                if (originalText) {
+                    button.innerHTML = originalText;
+                }
+            }
+        }
+
+        function renderEmptyState(container, icon, message, submessage = '') {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-${icon}"></i>
+                    </div>
+                    <div class="empty-title">${message}</div>
+                    ${submessage ? `<div class="empty-subtitle">${submessage}</div>` : ''}
+                </div>
+            `;
+        }
+
+        function copyToClipboard(inputId) {
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            
+            input.select();
+            input.setSelectionRange(0, 99999);
+            
+            try {
+                if (navigator.clipboard && window.isSecureContext) {
+                    navigator.clipboard.writeText(input.value);
+                } else {
+                    document.execCommand('copy');
+                }
+                showAlert('Copied to clipboard!', 'success');
+            } catch (err) {
+                showAlert('Failed to copy. Please copy manually.', 'error');
+            }
+        }
+
+        function confirmModal(title, message, onConfirm) {
+            const modal = document.getElementById('confirmModal');
+            const confirmTitle = document.getElementById('confirmTitle');
+            const confirmMessage = document.getElementById('confirmMessage');
+            const confirmBtn = document.getElementById('confirmActionBtn');
+            
+            confirmTitle.textContent = title;
+            confirmMessage.textContent = message;
+            
+            // Remove previous event listeners
+            const newConfirmBtn = confirmBtn.cloneNode(true);
+            confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+            
+            newConfirmBtn.addEventListener('click', () => {
+                onConfirm();
+                closeModal('confirmModal');
+            });
+            
+            modal.style.display = 'flex';
+        }
+
+        // ==================== AUTH FUNCTIONS ====================
+        function logout() {
+            localStorage.removeItem('adminSession');
+            window.location.href = 'login.html';
+        }
+
+        // ==================== DATA LOADING FUNCTIONS ====================
+        async function loadInitialData() {
+            try {
+                await Promise.all([
+                    loadClasses(),
+                    loadSubjects(),
+                    loadQuestionSets(),
+                    loadStudents(),
+                    loadSubmissions()
+                ]);
+            } catch (error) {
+                console.error('Error loading initial data:', error);
+                showAlert('Failed to load initial data. Please refresh.', 'error');
+            }
+        }
+
+        async function loadClasses() {
+            try {
+                const snapshot = await db.collection('classes').orderBy('className').get();
+                
+                if (snapshot.empty) {
+                    await seedDefaultClasses();
+                    await loadClasses();
+                    return;
+                }
+                
+                classes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                
+                // Update class selects
+                classSelect.innerHTML = '<option value="">Select Class</option>';
+                const studentClassSelect = document.getElementById('studentClass');
+                studentClassSelect.innerHTML = '<option value="">Select Class</option>';
+                
+                classes.forEach(cls => {
+                    const option1 = document.createElement('option');
+                    option1.value = cls.classCode;
+                    option1.textContent = cls.className;
+                    classSelect.appendChild(option1);
+                    
+                    const option2 = document.createElement('option');
+                    option2.value = cls.classCode;
+                    option2.textContent = cls.className;
+                    studentClassSelect.appendChild(option2);
+                });
+                
+                // Update attendance select
+                updateAttendanceStudentSelect();
+                
+            } catch (error) {
+                console.error('Error loading classes:', error);
+                showAlert('Failed to load classes', 'error');
+            }
+        }
+
+        async function seedDefaultClasses() {
+            const defaultClasses = [
+                { className: 'Class 5', classCode: '05' },
+                { className: 'SSC', classCode: '10' },
+                { className: 'HSC', classCode: '12' }
+            ];
+            
+            for (const cls of defaultClasses) {
+                await db.collection('classes').doc(cls.classCode).set({
+                    className: cls.className,
+                    classCode: cls.classCode,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                });
+            }
+        }
+
+        async function loadSubjects() {
+            try {
+                const snapshot = await db.collection('subjects').orderBy('subjectName').get();
+                
+                if (snapshot.empty) {
+                    await seedDefaultSubjects();
+                    await loadSubjects();
+                    return;
+                }
+                
+                subjects = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                
+                // Update subject select
+                subjectSelect.innerHTML = '<option value="">Select Subject</option>';
+                subjects.forEach(subject => {
+                    const option = document.createElement('option');
+                    option.value = subject.subjectCode;
+                    option.textContent = subject.subjectName;
+                    subjectSelect.appendChild(option);
+                });
+                
+            } catch (error) {
+                console.error('Error loading subjects:', error);
+                showAlert('Failed to load subjects', 'error');
+            }
+        }
+
+        async function seedDefaultSubjects() {
+            const defaultSubjects = [
+                { subjectName: 'Physics', subjectCode: '06' },
+                { subjectName: 'Chemistry', subjectCode: '07' },
+                { subjectName: 'Science', subjectCode: '08' },
+                { subjectName: 'General Math', subjectCode: '09' },
+                { subjectName: 'Higher Math', subjectCode: '10' },
+                { subjectName: 'ICT', subjectCode: '11' }
+            ];
+            
+            for (const subject of defaultSubjects) {
+                await db.collection('subjects').doc(subject.subjectCode).set({
+                    subjectName: subject.subjectName,
+                    subjectCode: subject.subjectCode,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                });
+            }
+        }
+
+        async function loadQuestionSets() {
+            try {
+                const snapshot = await db.collection('questionSets')
+                    .orderBy('createdAt', 'desc')
+                    .get();
+                
+                questionSets = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                
+                // Update exam filter
+                const examFilter = document.getElementById('submissionExamFilter');
+                examFilter.innerHTML = '<option value="">All Exams</option>';
+                questionSets.forEach(exam => {
+                    const option = document.createElement('option');
+                    option.value = exam.setId;
+                    option.textContent = `${exam.setName} (${exam.questionCode})`;
+                    examFilter.appendChild(option);
+                });
+                
+                // Render exams
+                renderExams(questionSets);
+                
+            } catch (error) {
+                console.error('Error loading question sets:', error);
+                showAlert('Failed to load exams', 'error');
+            }
+        }
+
+        async function loadStudents() {
+            try {
+                const snapshot = await db.collection('students').get();
+                students = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                
+                // Update attendance student select
+                updateAttendanceStudentSelect();
+                
+                // Render students
+                renderStudents(students);
+                
+            } catch (error) {
+                console.error('Error loading students:', error);
+                showAlert('Failed to load students', 'error');
+            }
+        }
+
+        function updateAttendanceStudentSelect() {
+            const attendanceSelect = document.getElementById('attendanceStudentSelect');
+            attendanceSelect.innerHTML = '<option value="">Select a student...</option>';
+            students.forEach(student => {
+                const option = document.createElement('option');
+                option.value = student.username;
+                option.textContent = `${student.studentName} (${student.username}) - ${student.className}`;
+                attendanceSelect.appendChild(option);
+            });
+        }
+
+        async function loadSubmissions() {
+            try {
+                const snapshot = await db.collection('submissions')
+                    .orderBy('submittedAt', 'desc')
+                    .limit(50)
+                    .get();
+                
+                submissions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                
+                // Render submissions
+                renderSubmissions(submissions);
+                
+            } catch (error) {
+                console.error('Error loading submissions:', error);
+                showAlert('Failed to load submissions', 'error');
+            }
+        }
+
+        // ==================== EVENT LISTENERS ====================
+        function setupEventListeners() {
+            // Logout button
+            logoutBtn.addEventListener('click', logout);
+            
+            // Chapter input - update preview
+            chapterInput.addEventListener('input', updatePreview);
+            
+            // Class and subject selects - update preview
+            classSelect.addEventListener('change', updatePreview);
+            subjectSelect.addEventListener('change', updatePreview);
+            
+            // Search inputs
+            document.getElementById('examSearch').addEventListener('input', filterExams);
+            document.getElementById('studentSearch').addEventListener('input', filterStudents);
+            document.getElementById('submissionSearch').addEventListener('input', filterSubmissions);
+            
+            // Filter selects
+            document.getElementById('submissionExamFilter').addEventListener('change', filterSubmissions);
+            document.getElementById('submissionStatusFilter').addEventListener('change', filterSubmissions);
+            
+            // Attendance student select
+            const attendanceSelect = document.getElementById('attendanceStudentSelect');
+            attendanceSelect.addEventListener('change', (e) => {
+                if (e.target.value) {
+                    currentAttendanceStudent = e.target.value;
+                    loadAttendanceForStudent(e.target.value);
+                }
+            });
+            
+            // Modal close on outside click
+            document.querySelectorAll('.modal-overlay').forEach(overlay => {
+                overlay.addEventListener('click', (e) => {
+                    if (e.target === overlay) {
+                        overlay.style.display = 'none';
+                    }
+                });
+            });
+        }
+
+        // ==================== EXAM CREATION FUNCTIONS ====================
+        function updatePreview() {
+            const classCode = classSelect.value;
+            const subjectCode = subjectSelect.value;
+            const chapter = chapterInput.value.trim();
+            
+            const classObj = classes.find(c => c.classCode === classCode);
+            const subjectObj = subjects.find(s => s.subjectCode === subjectCode);
+            
+            // Update set name preview
+            if (classObj && chapter) {
+                document.getElementById('previewSetName').textContent = `${chapter} (${classObj.className})`;
+            } else {
+                document.getElementById('previewSetName').textContent = '-';
+            }
+            
+            // Update class subject preview
+            if (classObj && subjectObj) {
+                document.getElementById('previewClassSubject').textContent = `${classObj.className} - ${subjectObj.subjectName}`;
+            } else {
+                document.getElementById('previewClassSubject').textContent = '-';
+            }
+            
+            // Show/hide question types section
+            if (classCode && subjectCode && chapter) {
+                document.getElementById('questionTypes').style.display = 'block';
+            } else {
+                document.getElementById('questionTypes').style.display = 'none';
+            }
+        }
+
+        function toggleMCQConfig() {
+            const toggle = document.getElementById('mcqToggle');
+            const config = document.getElementById('mcqConfig');
+            config.style.display = toggle.checked ? 'flex' : 'none';
+        }
+
+        function toggleShortConfig() {
+            const toggle = document.getElementById('shortToggle');
+            const config = document.getElementById('shortConfig');
+            config.style.display = toggle.checked ? 'flex' : 'none';
+        }
+
+        function toggleBroadConfig() {
+            const toggle = document.getElementById('broadToggle');
+            const config = document.getElementById('broadConfig');
+            config.style.display = toggle.checked ? 'flex' : 'none';
+        }
+
+        function toggleCQMathConfig() {
+            const toggle = document.getElementById('cqMathToggle');
+            const config = document.getElementById('cqMathConfig');
+            config.style.display = toggle.checked ? 'flex' : 'none';
+        }
+
+        function toggleCQConfig() {
+            const toggle = document.getElementById('cqToggle');
+            const config = document.getElementById('cqConfig');
+            config.style.display = toggle.checked ? 'flex' : 'none';
+        }
+
+        // BUG FIX A: Question Code Generation
+        async function generateQuestionCodeFromCounters(classCode, subjectCode) {
+            if (!classCode || !subjectCode) {
+                throw new Error('Please select both class and subject');
+            }
+            
+            const counterId = `${classCode}_${subjectCode}`;
+            const counterRef = db.collection('counters').doc(counterId);
+            
+            try {
+                let newSeq = 1;
+                
+                await db.runTransaction(async (transaction) => {
+                    const counterDoc = await transaction.get(counterRef);
+                    
+                    if (counterDoc.exists) {
+                        newSeq = counterDoc.data().lastSeq + 1;
+                    }
+                    
+                    transaction.set(counterRef, {
+                        lastSeq: newSeq,
+                        updatedAt: new Date().toISOString()
+                    }, { merge: true });
+                });
+                
+                return `${classCode}${subjectCode}${pad2(newSeq)}`;
+            } catch (error) {
+                console.error('Transaction failed:', error);
+                throw new Error('Failed to generate question code. Please try again.');
+            }
+        }
+
+        async function handleGenerateQuestionCode() {
+            const classCode = classSelect.value;
+            const subjectCode = subjectSelect.value;
+            const chapter = chapterInput.value.trim();
+            
+            if (!classCode || !subjectCode || !chapter) {
+                showAlert('Please select class, subject, and enter chapter name', 'warning');
+                return;
+            }
+            
+            try {
+                setLoading('generateCodeBtn', true);
+                const code = await generateQuestionCodeFromCounters(classCode, subjectCode);
+                currentQuestionCode = code;
+                document.getElementById('previewQuestionCode').textContent = code;
+                showAlert(`Question code generated: ${code}`, 'success');
+            } catch (error) {
+                showAlert(error.message, 'error');
+            } finally {
+                setLoading('generateCodeBtn', false);
+            }
+        }
+
+        function showConfirmExamModal() {
+            const classCode = classSelect.value;
+            const subjectCode = subjectSelect.value;
+            const chapter = chapterInput.value.trim();
+            const questionCode = document.getElementById('previewQuestionCode').textContent;
+            
+            if (!classCode || !subjectCode || !chapter || questionCode === '-') {
+                showAlert('Please generate a question code first', 'warning');
+                return;
+            }
+            
+            const classObj = classes.find(c => c.classCode === classCode);
+            const subjectObj = subjects.find(s => s.subjectCode === subjectCode);
+            const setName = `${chapter} (${classObj.className})`;
+            
+            // Store exam data for later use
+            currentExamForCreation = {
+                classCode,
+                subjectCode,
+                chapter,
+                classObj,
+                subjectObj,
+                setName,
+                questionCode
+            };
+            
+            // Update confirm modal
+            document.getElementById('confirmSetName').textContent = setName;
+            document.getElementById('confirmQuestionCode').textContent = questionCode;
+            document.getElementById('confirmClassSubject').textContent = `${classObj.className} - ${subjectObj.subjectName}`;
+            
+            // Build exam summary
+            let summary = '<div class="exam-summary">';
+            summary += '<div style="margin-bottom: 10px; font-weight: 500;">Question Types:</div>';
+            
+            if (document.getElementById('mcqToggle').checked) {
+                const total = document.getElementById('mcqTotal').value;
+                summary += `<div><i class="fas fa-check-circle"></i> MCQ: ${total} questions</div>`;
+            }
+            
+            if (document.getElementById('shortToggle').checked) {
+                const count = document.getElementById('shortCount').value;
+                summary += `<div><i class="fas fa-file-alt"></i> Short Questions: ${count} × 2 marks</div>`;
+            }
+            
+            if (document.getElementById('broadToggle').checked) {
+                const count = document.getElementById('broadCount').value;
+                const marks = document.getElementById('broadMarks').value;
+                summary += `<div><i class="fas fa-file-contract"></i> Broad Questions: ${count} × max ${marks} marks</div>`;
+            }
+            
+            if (document.getElementById('cqMathToggle').checked) {
+                const count = document.getElementById('cqMathCount').value;
+                summary += `<div><i class="fas fa-square-root-alt"></i> CQ Math: ${count} × 2+4+4 marks</div>`;
+            }
+            
+            if (document.getElementById('cqToggle').checked) {
+                const count = document.getElementById('cqCount').value;
+                summary += `<div><i class="fas fa-list-ol"></i> CQ: ${count} × 1+2+3+4 marks</div>`;
+            }
+            
+            summary += '</div>';
+            document.getElementById('examSummary').innerHTML = summary;
+            
+            showModal('confirmExamModal');
+        }
+
+        function proceedToMCQKey() {
+            closeModal('confirmExamModal');
+            
+            const mcqEnabled = document.getElementById('mcqToggle').checked;
+            
+            if (mcqEnabled) {
+                // Show MCQ key modal
+                const totalQuestions = parseInt(document.getElementById('mcqTotal').value);
+                const grid = document.getElementById('mcqKeyGrid');
+                grid.innerHTML = '';
+                
+                for (let i = 1; i <= totalQuestions; i++) {
+                    const div = document.createElement('div');
+                    div.className = 'mcq-item';
+                    div.innerHTML = `
+                        <div class="mcq-number">Q${i}</div>
+                        <select class="mcq-select" id="mcqKey${i}">
+                            <option value="">Select</option>
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                            <option value="C">C</option>
+                            <option value="D">D</option>
+                        </select>
+                    `;
+                    grid.appendChild(div);
+                }
+                
+                showModal('mcqKeyModal');
+            } else {
+                // Save exam without MCQ
+                saveExam(false);
+            }
+        }
+
+        async function saveExamWithMCQKey() {
+            const totalQuestions = parseInt(document.getElementById('mcqTotal').value);
+            const answers = {};
+            let allFilled = true;
+            
+            for (let i = 1; i <= totalQuestions; i++) {
+                const select = document.getElementById(`mcqKey${i}`);
+                if (!select.value) {
+                    allFilled = false;
+                    break;
+                }
+                answers[i.toString()] = select.value;
+            }
+            
+            if (!allFilled) {
+                showAlert('Please select answer for all MCQ questions', 'warning');
+                return;
+            }
+            
+            closeModal('mcqKeyModal');
+            saveExam(true, answers);
+        }
+
+        async function saveExam(hasMCQ = false, mcqAnswers = null) {
+            try {
+                if (!currentExamForCreation) {
+                    throw new Error('Exam data not found');
+                }
+                
+                const { classCode, subjectCode, chapter, classObj, subjectObj, setName, questionCode } = currentExamForCreation;
+                
+                const setId = `exam_${questionCode}_${Date.now()}`;
+                currentSetId = setId;
+                
+                // Prepare exam data
+                const examData = {
+                    setId,
+                    questionCode,
+                    setName,
+                    className: classObj.className,
+                    classCode,
+                    subjectName: subjectObj.subjectName,
+                    subjectCode,
+                    chapterName: chapter,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                };
+                
+                // MCQ configuration
+                const mcqEnabled = document.getElementById('mcqToggle').checked;
+                if (mcqEnabled) {
+                    const totalQuestions = parseInt(document.getElementById('mcqTotal').value);
+                    examData.mcq = {
+                        enabled: true,
+                        totalQuestions,
+                        answers: mcqAnswers,
+                        keyVersion: 1
+                    };
+                } else {
+                    examData.mcq = { enabled: false };
+                }
+                
+                // Written configuration
+                const writtenConfig = {
+                    enabled: false,
+                    shortQ: null,
+                    broadQ: null,
+                    cqMath: null,
+                    cq: null
+                };
+                
+                if (document.getElementById('shortToggle').checked) {
+                    const count = parseInt(document.getElementById('shortCount').value);
+                    writtenConfig.enabled = true;
+                    writtenConfig.shortQ = {
+                        count,
+                        markPerQ: 2,
+                        markCode: '02'
+                    };
+                }
+                
+                if (document.getElementById('broadToggle').checked) {
+                    const count = parseInt(document.getElementById('broadCount').value);
+                    const maxMarkPerQ = parseInt(document.getElementById('broadMarks').value);
+                    writtenConfig.enabled = true;
+                    writtenConfig.broadQ = {
+                        count,
+                        maxMarkPerQ,
+                        markCode: '03'
+                    };
+                }
+                
+                if (document.getElementById('cqMathToggle').checked) {
+                    const count = parseInt(document.getElementById('cqMathCount').value);
+                    writtenConfig.enabled = true;
+                    writtenConfig.cqMath = {
+                        count,
+                        sections: [2, 4, 4],
+                        markCode: '[DEFINE]'
+                    };
+                }
+                
+                if (document.getElementById('cqToggle').checked) {
+                    const count = parseInt(document.getElementById('cqCount').value);
+                    writtenConfig.enabled = true;
+                    writtenConfig.cq = {
+                        count,
+                        sections: [1, 2, 3, 4],
+                        markCode: '[DEFINE]'
+                    };
+                }
+                
+                examData.writtenConfig = writtenConfig;
+                
+                // Save to Firestore
+                await db.collection('questionSets').doc(setId).set(examData);
+                
+                // Show success modal with links
+                document.getElementById('successQuestionCode').textContent = questionCode;
+                document.getElementById('adminLinkInput').value = `${window.location.origin}/admin-view.html?setId=${setId}`;
+                document.getElementById('studentLinkInput').value = `${window.location.origin}/user-exam.html?setId=${setId}`;
+                
+                showModal('examLinksModal');
+                
+                // Reset form
+                resetExamForm();
+                
+                // Reload exams
+                await loadQuestionSets();
+                
+            } catch (error) {
+                console.error('Save exam error:', error);
+                showAlert(`Failed to save exam: ${error.message}`, 'error');
+            }
+        }
+
+        function resetExamForm() {
+            // Reset form fields
+            classSelect.value = '';
+            subjectSelect.value = '';
+            chapterInput.value = '';
+            
+            // Reset preview
+            document.getElementById('previewSetName').textContent = '-';
+            document.getElementById('previewQuestionCode').textContent = '-';
+            document.getElementById('previewClassSubject').textContent = '-';
+            
+            // Hide question types
+            document.getElementById('questionTypes').style.display = 'none';
+            
+            // Reset toggles
+            document.getElementById('mcqToggle').checked = false;
+            document.getElementById('shortToggle').checked = false;
+            document.getElementById('broadToggle').checked = false;
+            document.getElementById('cqMathToggle').checked = false;
+            document.getElementById('cqToggle').checked = false;
+            
+            // Hide configs
+            document.getElementById('mcqConfig').style.display = 'none';
+            document.getElementById('shortConfig').style.display = 'none';
+            document.getElementById('broadConfig').style.display = 'none';
+            document.getElementById('cqMathConfig').style.display = 'none';
+            document.getElementById('cqConfig').style.display = 'none';
+            
+            currentExamForCreation = null;
+        }
+
+        // ==================== EXAM LIST FUNCTIONS ====================
+        function renderExams(exams) {
+            if (exams.length === 0) {
+                renderEmptyState(examGrid, 'file', 'No exams found', 'Create your first exam using the form above');
+                return;
+            }
+            
+            examGrid.innerHTML = exams.map(exam => `
+                <div class="exam-card">
+                    <div class="exam-header">
+                        <div>
+                            <div class="exam-name">${escapeHTML(exam.setName)}</div>
+                            <div class="exam-code">${exam.questionCode}</div>
+                        </div>
+                    </div>
+                    <div class="exam-meta">
+                        <span><i class="fas fa-graduation-cap"></i> ${exam.className}</span>
+                        <span><i class="fas fa-book"></i> ${exam.subjectName}</span>
+                        <span><i class="fas fa-calendar"></i> ${formatDateShort(exam.createdAt)}</span>
+                    </div>
+                    <div class="exam-actions">
+                        <button class="btn btn-secondary btn-sm" onclick="editExam('${exam.id}')">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <button class="btn btn-secondary btn-sm" onclick="openStudentExam('${exam.id}')">
+                            <i class="fas fa-external-link-alt"></i> Student Link
+                        </button>
+                        <button class="btn btn-secondary btn-sm" onclick="copyStudentLink('${exam.id}')">
+                            <i class="fas fa-copy"></i> Copy Link
+                        </button>
+                        <button class="btn btn-secondary btn-sm" onclick="recheckExam('${exam.id}')">
+                            <i class="fas fa-sync"></i> Recheck
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function editExam(setId) {
+            window.open(`admin-view.html?setId=${setId}`, '_blank');
+        }
+
+        function openStudentExam(setId) {
+            window.open(`user-exam.html?setId=${setId}`, '_blank');
+        }
+
+        function copyStudentLink(setId) {
+            const link = `${window.location.origin}/user-exam.html?setId=${setId}`;
+            navigator.clipboard.writeText(link)
+                .then(() => showAlert('Student link copied to clipboard!', 'success'))
+                .catch(() => showAlert('Failed to copy link', 'error'));
+        }
+
+        function recheckExam(setId) {
+            confirmModal(
+                'Recheck Results',
+                'This will recalculate MCQ scores for all submissions of this exam using the current answer key. Continue?',
+                () => recheckAllSubmissionsForExam(setId)
+            );
+        }
+
+        async function recheckAllSubmissionsForExam(setId) {
+            try {
+                // Load the question set
+                const questionSetRef = db.collection('questionSets').doc(setId);
+                const questionSetDoc = await questionSetRef.get();
+                
+                if (!questionSetDoc.exists) {
+                    throw new Error('Question set not found');
+                }
+                
+                const questionSet = questionSetDoc.data();
+                
+                if (!questionSet.mcq || !questionSet.mcq.enabled) {
+                    showAlert('This exam does not have MCQ questions to recheck.', 'warning');
+                    return;
+                }
+                
+                // Query all submissions for this exam
+                const submissionsSnapshot = await db.collection('submissions')
+                    .where('setId', '==', setId)
+                    .get();
+                
+                if (submissionsSnapshot.empty) {
+                    showAlert('No submissions found for this exam.', 'info');
+                    return;
+                }
+                
+                let updatedCount = 0;
+                let skippedCount = 0;
+                
+                // Process each submission
+                for (const doc of submissionsSnapshot.docs) {
+                    const submission = doc.data();
+                    
+                    if (!submission.mcqAnswers) {
+                        skippedCount++;
+                        continue;
+                    }
+                    
+                    // Recalculate MCQ results
+                    const mcqResults = calculateMCQ(
+                        questionSet.mcq.answers,
+                        submission.mcqAnswers,
+                        questionSet.mcq.totalQuestions
+                    );
+                    
+                    // Calculate exam max total for overall percentage
+                    const examMaxTotal = calculateExamMaxTotal(questionSet);
+                    
+                    // Prepare update data
+                    const updateData = {
+                        mcqScore: mcqResults.score,
+                        mcqCorrect: mcqResults.correct,
+                        mcqWrong: mcqResults.wrong,
+                        mcqUnmarked: mcqResults.unmarked,
+                        mcqPercentage: mcqResults.percentage,
+                        mcqKeyVersionUsed: questionSet.mcq.keyVersion || 1,
+                        updatedAt: new Date().toISOString()
+                    };
+                    
+                    // Calculate overall percentage
+                    if (submission.status === 'FINAL_PUBLISHED' && submission.finalTotal !== undefined) {
+                        updateData.overallPercentage = examMaxTotal > 0 ? Math.round((submission.finalTotal / examMaxTotal) * 100) : 0;
+                    } else {
+                        updateData.overallPercentage = examMaxTotal > 0 ? Math.round((mcqResults.score / examMaxTotal) * 100) : 0;
+                    }
+                    
+                    // Update the submission
+                    await doc.ref.update(updateData);
+                    updatedCount++;
+                }
+                
+                // Show summary
+                showAlert(`Recheck completed! Updated: ${updatedCount}, Skipped: ${skippedCount}`, 'success');
+                
+                // Reload submissions
+                loadSubmissions();
+                
+            } catch (error) {
+                console.error('Recheck error:', error);
+                showAlert(`Recheck failed: ${error.message}`, 'error');
+            }
+        }
+
+        function calculateMCQ(correctAnswers, studentAnswers, totalQuestions) {
+            let correct = 0;
+            let wrong = 0;
+            let unmarked = 0;
+            
+            for (let i = 1; i <= totalQuestions; i++) {
+                const qNum = i.toString();
+                const correctAns = correctAnswers[qNum];
+                const studentAns = studentAnswers ? studentAnswers[qNum] : null;
+                
+                if (!studentAns) {
+                    unmarked++;
+                } else if (studentAns === correctAns) {
+                    correct++;
+                } else {
+                    wrong++;
+                }
+            }
+            
+            const score = correct; // 1 mark per correct answer
+            const percentage = totalQuestions > 0 ? Math.round((correct / totalQuestions) * 100) : 0;
+            
+            return {
+                score,
+                total: totalQuestions,
+                correct,
+                wrong,
+                unmarked,
+                percentage
+            };
+        }
+
+        function calculateExamMaxTotal(exam) {
+            let total = 0;
+            
+            // MCQ marks
+            if (exam.mcq && exam.mcq.enabled) {
+                total += exam.mcq.totalQuestions || 0; // 1 mark per question
+            }
+            
+            // Written marks
+            if (exam.writtenConfig && exam.writtenConfig.enabled) {
+                if (exam.writtenConfig.shortQ) {
+                    total += (exam.writtenConfig.shortQ.count || 0) * 2;
+                }
+                if (exam.writtenConfig.broadQ) {
+                    total += (exam.writtenConfig.broadQ.count || 0) * (exam.writtenConfig.broadQ.maxMarkPerQ || 0);
+                }
+                if (exam.writtenConfig.cqMath) {
+                    total += (exam.writtenConfig.cqMath.count || 0) * (2 + 4 + 4); // 2+4+4 per CQ Math
+                }
+                if (exam.writtenConfig.cq) {
+                    total += (exam.writtenConfig.cq.count || 0) * (1 + 2 + 3 + 4); // 1+2+3+4 per CQ
+                }
+            }
+            
+            return total;
+        }
+
+        function filterExams() {
+            const searchTerm = document.getElementById('examSearch').value.toLowerCase();
+            if (!searchTerm) {
+                renderExams(questionSets);
+                return;
+            }
+            
+            const filtered = questionSets.filter(exam => 
+                exam.setName.toLowerCase().includes(searchTerm) ||
+                exam.questionCode.toLowerCase().includes(searchTerm) ||
+                exam.className.toLowerCase().includes(searchTerm) ||
+                exam.subjectName.toLowerCase().includes(searchTerm) ||
+                exam.chapterName.toLowerCase().includes(searchTerm)
+            );
+            
+            renderExams(filtered);
+        }
+
+        function sortExams(criteria) {
+            let sorted = [...questionSets];
+            
+            switch (criteria) {
+                case 'date':
+                    sorted.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                    break;
+                case 'code':
+                    sorted.sort((a, b) => a.questionCode.localeCompare(b.questionCode));
+                    break;
+                case 'class':
+                    sorted.sort((a, b) => {
+                        const classCompare = a.className.localeCompare(b.className);
+                        if (classCompare === 0) return new Date(b.createdAt) - new Date(a.createdAt);
+                        return classCompare;
+                    });
+                    break;
+            }
+            
+            renderExams(sorted);
+        }
+
+        // ==================== STUDENT MANAGEMENT FUNCTIONS ====================
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            // Activate selected tab
+            document.querySelector(`.tab-btn:nth-child(${tabName === 'createStudent' ? 1 : 2})`).classList.add('active');
+            document.getElementById(`${tabName}Tab`).classList.add('active');
+        }
+
+        async function saveStudent() {
+            const name = document.getElementById('studentName').value.trim();
+            const school = document.getElementById('studentSchool').value.trim();
+            const className = document.getElementById('studentClass').value;
+            const username = document.getElementById('studentUsername').value.trim();
+            const guardianNumber = document.getElementById('guardianNumber').value.trim();
+            const studentWa = document.getElementById('studentWa').value.trim();
+            
+            if (!name || !className || !username || !guardianNumber) {
+                showAlert('Please fill all required fields (*)', 'warning');
+                return;
+            }
+            
+            try {
+                // Validate and format phone number
+                const formattedGuardian = sanitizeNumberBD(guardianNumber);
+                let formattedStudentWa = null;
+                if (studentWa) {
+                    formattedStudentWa = sanitizeNumberBD(studentWa);
+                }
+                
+                const classObj = classes.find(c => c.classCode === className);
+                if (!classObj) {
+                    throw new Error('Selected class not found');
+                }
+                
+                const dashboardLink = `${window.location.origin}/student-dashboard.html?user=${username}`;
+                
+                const studentData = {
+                    studentName: name,
+                    studentSchool: school || null,
+                    className: classObj.className,
+                    classCode: className,
+                    username,
+                    guardianNumber: formattedGuardian,
+                    waNumberStudent: formattedStudentWa,
+                    dashboardLink,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                    attendance: {
+                        currentMonthNumber: null,
+                        currentMonthStartDate: null,
+                        months: []
+                    }
+                };
+                
+                // Save to Firestore
+                await db.collection('students').doc(username).set(studentData);
+                
+                // Build WhatsApp message
+                const message = `Assalamu Alaikum,\n\nA new Student Dashboard app has been developed. All exam-related information will now be stored and displayed in a more effective way than before. Guardians can visit the Student Dashboard link to view their child’s track record and monitor their academic progress.\nIn addition, as a new feature, an Attendance Management System has been added. As a result, there will be no extra hassle in my tuition regarding tracking the number of classes and monthly calculations.\n\nStudent: ${name}\nClass: ${classObj.className}\nUsername: ${username}\n\nDashboard link(From now on, all updates will be available through this dashboard):\n${dashboardLink}\n\nPlease keep the username and link confidential.\nFor easier access, you may install it as a Web App:\n\nAndroid (Chrome):\n1) Open the dashboard link\n2) Tap the three-dot menu (top-right)\n3) Select “Add to Home screen”\n4) Confirm\n\niPhone (Safari):\n1) Open the dashboard link\n2) Tap the Share button\n3) Select “Add to Home Screen”\n4) Confirm\n\nAfter installation, the dashboard will open like a mobile app for quick access.\n\nIf any information needs correction or login support is required, please contact.\n\n -Fardin(DU Physics)`;
+                
+                // Copy to clipboard and open WhatsApp
+                try {
+                    await navigator.clipboard.writeText(message);
+                    const waNumber = waDigits(formattedGuardian);
+                    window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`, '_blank');
+                } catch (waError) {
+                    console.error('WhatsApp redirect error:', waError);
+                    showAlert('Student saved! Could not open WhatsApp. Message copied to clipboard.', 'warning');
+                }
+                
+                // Show success
+                showAlert(`Student "${name}" saved successfully!`, 'success');
+                
+                // Reset form
+                document.getElementById('studentName').value = '';
+                document.getElementById('studentSchool').value = '';
+                document.getElementById('studentClass').value = '';
+                document.getElementById('studentUsername').value = '';
+                document.getElementById('guardianNumber').value = '';
+                document.getElementById('studentWa').value = '';
+                document.getElementById('dashboardLinkPreview').textContent = 'Will be generated after saving';
+                
+                // Reload students
+                await loadStudents();
+                
+            } catch (error) {
+                console.error('Save student error:', error);
+                showAlert(`Failed to save student: ${error.message}`, 'error');
+            }
+        }
+
+        function renderStudents(studentList) {
+            if (studentList.length === 0) {
+                renderEmptyState(studentGrid, 'user-graduate', 'No students found', 'Create your first student using the form above');
+                return;
+            }
+            
+            studentGrid.innerHTML = studentList.map(student => `
+                <div class="student-card">
+                    <div class="student-header">
+                        <div class="student-name">${escapeHTML(student.studentName)}</div>
+                        <div class="student-username">${student.username}</div>
+                    </div>
+                    <div class="student-info">
+                        <div><i class="fas fa-graduation-cap"></i> ${student.className}</div>
+                        ${student.studentSchool ? `<div><i class="fas fa-school"></i> ${escapeHTML(student.studentSchool)}</div>` : ''}
+                        <div><i class="fas fa-phone"></i> ${student.guardianNumber}</div>
+                    </div>
+                    <div class="student-actions">
+                        <button class="btn btn-secondary btn-sm" onclick="editStudent('${student.username}')">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <button class="btn btn-secondary btn-sm" onclick="openDashboard('${student.username}')">
+                            <i class="fas fa-external-link-alt"></i> Dashboard
+                        </button>
+                        <button class="btn btn-secondary btn-sm" onclick="manageAttendance('${student.username}')">
+                            <i class="fas fa-calendar-plus"></i> Attendance
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterStudents() {
+            const searchTerm = document.getElementById('studentSearch').value.toLowerCase();
+            if (!searchTerm) {
+                renderStudents(students);
+                return;
+            }
+            
+            const filtered = students.filter(student => 
+                student.studentName.toLowerCase().includes(searchTerm) ||
+                student.username.toLowerCase().includes(searchTerm) ||
+                student.className.toLowerCase().includes(searchTerm) ||
+                (student.studentSchool && student.studentSchool.toLowerCase().includes(searchTerm))
+            );
+            
+            renderStudents(filtered);
+        }
+
+        async function editStudent(username) {
+            try {
+                const studentDoc = await db.collection('students').doc(username).get();
+                if (!studentDoc.exists) {
+                    showAlert('Student not found', 'error');
+                    return;
+                }
+                
+                const student = studentDoc.data();
+                
+                const form = `
+                    <div class="form-group">
+                        <label for="editStudentName">Student Name *</label>
+                        <input type="text" id="editStudentName" class="form-control" value="${escapeHTML(student.studentName)}">
+                    </div>
+                    <div class="form-group">
+                        <label for="editStudentSchool">School (Optional)</label>
+                        <input type="text" id="editStudentSchool" class="form-control" value="${escapeHTML(student.studentSchool || '')}">
+                    </div>
+                    <div class="form-group">
+                        <label for="editStudentClass">Class *</label>
+                        <select id="editStudentClass" class="form-control form-select">
+                            ${classes.map(c => `<option value="${c.classCode}" ${c.classCode === student.classCode ? 'selected' : ''}>${c.className}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editGuardianNumber">Guardian Number *</label>
+                        <input type="text" id="editGuardianNumber" class="form-control" value="${student.guardianNumber}">
+                    </div>
+                    <div class="form-group">
+                        <label for="editStudentWa">Student WhatsApp (Optional)</label>
+                        <input type="text" id="editStudentWa" class="form-control" value="${student.waNumberStudent || ''}">
+                    </div>
+                    <input type="hidden" id="editStudentUsername" value="${username}">
+                `;
+                
+                document.getElementById('editStudentForm').innerHTML = form;
+                currentAttendanceStudent = username;
+                showModal('editStudentModal');
+                
+            } catch (error) {
+                console.error('Edit student error:', error);
+                showAlert(`Failed to load student: ${error.message}`, 'error');
+            }
+        }
+
+        async function updateStudent() {
+            const username = document.getElementById('editStudentUsername').value;
+            const name = document.getElementById('editStudentName').value.trim();
+            const school = document.getElementById('editStudentSchool').value.trim();
+            const className = document.getElementById('editStudentClass').value;
+            const guardianNumber = document.getElementById('editGuardianNumber').value.trim();
+            const studentWa = document.getElementById('editStudentWa').value.trim();
+            
+            if (!name || !className || !guardianNumber) {
+                showAlert('Please fill all required fields (*)', 'warning');
+                return;
+            }
+            
+            try {
+                // Validate and format phone number
+                const formattedGuardian = sanitizeNumberBD(guardianNumber);
+                let formattedStudentWa = null;
+                if (studentWa) {
+                    formattedStudentWa = sanitizeNumberBD(studentWa);
+                }
+                
+                const classObj = classes.find(c => c.classCode === className);
+                if (!classObj) {
+                    throw new Error('Selected class not found');
+                }
+                
+                const dashboardLink = `${window.location.origin}/student-dashboard.html?user=${username}`;
+                
+                const updateData = {
+                    studentName: name,
+                    studentSchool: school || null,
+                    className: classObj.className,
+                    classCode: className,
+                    guardianNumber: formattedGuardian,
+                    waNumberStudent: formattedStudentWa,
+                    dashboardLink,
+                    updatedAt: new Date().toISOString()
+                };
+                
+                // Update in Firestore
+                await db.collection('students').doc(username).update(updateData);
+                
+                // Build WhatsApp message
+                const message = `Assalamu Alaikum,\n\nStudent profile updated:\n\nStudent: ${name}\nClass: ${classObj.className}\nUsername: ${username}\n\nDashboard link:\n${dashboardLink}\n\n- Fardin (DU Physics)`;
+                
+                // Copy to clipboard and open WhatsApp
+                try {
+                    await navigator.clipboard.writeText(message);
+                    const waNumber = waDigits(formattedGuardian);
+                    window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`, '_blank');
+                } catch (waError) {
+                    console.error('WhatsApp redirect error:', waError);
+                    showAlert('Student updated! Could not open WhatsApp. Message copied to clipboard.', 'warning');
+                }
+                
+                // Show success
+                showAlert(`Student "${name}" updated successfully!`, 'success');
+                
+                // Close modal and reload
+                closeModal('editStudentModal');
+                await loadStudents();
+                
+            } catch (error) {
+                console.error('Update student error:', error);
+                showAlert(`Failed to update student: ${error.message}`, 'error');
+            }
+        }
+
+        function openDashboard(username) {
+            window.open(`student-dashboard.html?user=${username}`, '_blank');
+        }
+
+        // ==================== ATTENDANCE FUNCTIONS ====================
+        function manageAttendance(username) {
+            currentAttendanceStudent = username;
+            loadAttendanceForStudent(username);
+        }
+
+        async function loadAttendanceForStudent(username = null) {
+            const targetUsername = username || currentAttendanceStudent;
+            if (!targetUsername) return;
+            
+            try {
+                const studentDoc = await db.collection('students').doc(targetUsername).get();
+                if (!studentDoc.exists) {
+                    showAlert('Student not found', 'error');
+                    return;
+                }
+                
+                const student = studentDoc.data();
+                currentAttendanceStudent = targetUsername;
+                
+                const attendance = student.attendance || {};
+                const months = attendance.months || [];
+                
+                let content = `
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="margin-bottom: 10px;">${escapeHTML(student.studentName)} (${student.username})</h4>
+                        <p style="color: var(--text-muted);">Class: ${student.className}</p>
+                    </div>
+                    
+                    <div class="attendance-controls">
+                        <div class="attendance-date-group">
+                            <label for="attendanceDate">Select Date</label>
+                            <input type="date" id="attendanceDate" class="form-control" value="${getTodayYMD()}">
+                        </div>
+                        <div class="attendance-actions">
+                            <button class="btn btn-success" onclick="addClassDayWithDate()">
+                                <i class="fas fa-plus"></i> Add Class Day
+                            </button>
+                            <button class="btn btn-primary" onclick="showNewMonthModal('${targetUsername}')">
+                                <i class="fas fa-calendar-plus"></i> Start New Month
+                            </button>
+                            ${attendance.currentMonthNumber ? `
+                                <button class="btn btn-warning" style="background: var(--warning); color: #000;" onclick="endMonthFromUI()">
+                                    <i class="fas fa-calendar-times"></i> End Month
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+                
+                if (months.length === 0) {
+                    content += `
+                        <div class="empty-state" style="padding: 20px;">
+                            <div class="empty-icon">
+                                <i class="fas fa-calendar-times"></i>
+                            </div>
+                            <div class="empty-title">No attendance records</div>
+                            <div class="empty-subtitle">Add class days to start tracking attendance</div>
+                        </div>
+                    `;
+                } else {
+                    // Sort months by monthNumber descending (newest first)
+                    const sortedMonths = [...months].sort((a, b) => b.monthNumber - a.monthNumber);
+                    
+                    sortedMonths.forEach(month => {
+                        const isCurrent = month.monthNumber === attendance.currentMonthNumber;
+                        const startDateFormatted = formatYMDToDDMMYYYY(month.startDate);
+                        const endDateFormatted = month.endDate ? formatYMDToDDMMYYYY(month.endDate) : 'Ongoing';
+                        
+                        content += `
+                            <div class="month-card">
+                                <div class="month-header">
+                                    <div class="month-title">Month ${month.monthNumber} ${isCurrent ? '(Current)' : ''}</div>
+                                    <div class="month-status ${isCurrent ? 'status-current' : 'status-ended'}">
+                                        ${isCurrent ? 'Current' : 'Ended'}
+                                    </div>
+                                </div>
+                                <div class="month-dates">
+                                    <div><strong>Start:</strong> ${startDateFormatted}</div>
+                                    ${month.endDate ? `<div><strong>End:</strong> ${endDateFormatted}</div>` : ''}
+                                    <div><strong>Total Classes:</strong> ${month.days.length}</div>
+                                </div>
+                                <div class="month-days">
+                                    ${month.days.map(day => {
+                                        const dateFormatted = formatYMDToDDMMYYYY(day.date);
+                                        return `<span class="day-badge">${day.dayNumber}.${month.monthNumber} (${dateFormatted})</span>`;
+                                    }).join('')}
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                
+                document.getElementById('attendanceContent').innerHTML = content;
+                
+            } catch (error) {
+                console.error('Load attendance error:', error);
+                showAlert(`Failed to load attendance: ${error.message}`, 'error');
+            }
+        }
+
+        // BUG FIX B: Add Class Day with Date Selection
+        async function addClassDayWithDate() {
+            if (!currentAttendanceStudent) {
+                showAlert('No student selected', 'warning');
+                return;
+            }
+            
+            const dateInput = document.getElementById('attendanceDate');
+            const ymdDate = dateInput.value;
+            
+            if (!isValidYMD(ymdDate)) {
+                showAlert('Please select a valid date', 'warning');
+                return;
+            }
+            
+            try {
+                const studentRef = db.collection('students').doc(currentAttendanceStudent);
+                const studentDoc = await studentRef.get();
+                
+                if (!studentDoc.exists) {
+                    throw new Error('Student not found');
+                }
+                
+                const student = studentDoc.data();
+                const attendance = student.attendance || {};
+                
+                // Check if current month exists
+                if (!attendance.currentMonthNumber || !attendance.currentMonthStartDate) {
+                    showAlert('No active month found. Please start a new month first.', 'warning');
+                    showNewMonthModal(currentAttendanceStudent);
+                    return;
+                }
+                
+                const months = attendance.months || [];
+                
+                // Find or create current month
+                let monthIndex = months.findIndex(m => m.monthNumber === attendance.currentMonthNumber);
+                if (monthIndex === -1) {
+                    // Create month entry
+                    months.push({
+                        monthNumber: attendance.currentMonthNumber,
+                        startDate: attendance.currentMonthStartDate,
+                        endDate: null,
+                        endedAt: null,
+                        days: []
+                    });
+                    monthIndex = months.length - 1;
+                }
+                
+                const monthObj = months[monthIndex];
+                
+                // Check if date already exists in this month
+                const existingDay = monthObj.days.find(day => day.date === ymdDate);
+                
+                if (existingDay) {
+                    confirmModal(
+                        'Already Added',
+                        `A class day for ${formatYMDToDDMMYYYY(ymdDate)} already exists in Month ${monthObj.monthNumber}. Add another entry?`,
+                        async () => {
+                            await addDayToMonth(studentRef, attendance, months, monthObj, ymdDate);
+                        }
+                    );
+                } else {
+                    await addDayToMonth(studentRef, attendance, months, monthObj, ymdDate);
+                }
+                
+            } catch (error) {
+                console.error('Add class day error:', error);
+                showAlert(`Failed to add class day: ${error.message}`, 'error');
+            }
+        }
+
+        async function addDayToMonth(studentRef, attendance, months, monthObj, ymdDate) {
+            const dayNumber = monthObj.days.length + 1;
+            
+            monthObj.days.push({
+                dayNumber,
+                date: ymdDate,
+                addedAt: new Date().toISOString()
+            });
+            
+            // Update in Firestore - BUG FIX A: Write the actual months array
+            await studentRef.update({
+                'attendance.months': months,
+                updatedAt: new Date().toISOString()
+            });
+            
+            showAlert(`Day ${dayNumber} added to Month ${monthObj.monthNumber} on ${formatYMDToDDMMYYYY(ymdDate)}`, 'success');
+            loadAttendanceForStudent(currentAttendanceStudent);
+        }
+
+        // BUG FIX B: Show New Month Modal
+        function showNewMonthModal(username) {
+            currentAttendanceStudent = username;
+            
+            // Get current attendance to suggest next month number
+            const student = students.find(s => s.username === username);
+            let nextMonthNumber = 1;
+            
+            if (student && student.attendance) {
+                const attendance = student.attendance;
+                if (attendance.currentMonthNumber) {
+                    nextMonthNumber = attendance.currentMonthNumber + 1;
+                } else {
+                    // Find highest month number
+                    const months = attendance.months || [];
+                    if (months.length > 0) {
+                        const highestMonth = Math.max(...months.map(m => m.monthNumber));
+                        nextMonthNumber = highestMonth + 1;
+                    }
+                }
+            }
+            
+            const dateInput = document.getElementById('attendanceDate');
+            const defaultStartDate = dateInput ? dateInput.value : getTodayYMD();
+            
+            document.getElementById('newMonthNumber').value = nextMonthNumber;
+            document.getElementById('newMonthStartDate').value = defaultStartDate;
+            document.getElementById('newMonthDateDisplay').textContent = formatYMDToDDMMYYYY(defaultStartDate);
+            
+            showModal('newMonthModal');
+        }
+
+        // BUG FIX B: Start New Month from Modal
+        function startNewMonthFromModal() {
+            const monthNumber = parseInt(document.getElementById('newMonthNumber').value);
+            const startDateYMD = document.getElementById('newMonthStartDate').value;
+            
+            if (!monthNumber || monthNumber < 1) {
+                showAlert('Please enter a valid month number (1 or higher)', 'warning');
+                return;
+            }
+            
+            if (!isValidYMD(startDateYMD)) {
+                showAlert('Please select a valid start date', 'warning');
+                return;
+            }
+            
+            if (!currentAttendanceStudent) {
+                showAlert('No student selected', 'warning');
+                return;
+            }
+            
+            startNewMonth(currentAttendanceStudent, monthNumber, startDateYMD);
+        }
+
+        async function startNewMonth(username, monthNumber, startDateYMD) {
+            try {
+                const studentRef = db.collection('students').doc(username);
+                const studentDoc = await studentRef.get();
+                
+                if (!studentDoc.exists) {
+                    throw new Error('Student not found');
+                }
+                
+                const student = studentDoc.data();
+                const attendance = student.attendance || {};
+                const months = attendance.months || [];
+                
+                // Check if there's an active current month
+                if (attendance.currentMonthNumber && attendance.currentMonthStartDate) {
+                    const currentMonth = months.find(m => m.monthNumber === attendance.currentMonthNumber);
+                    if (currentMonth && !currentMonth.endDate) {
+                        confirmModal(
+                            'Active Month Exists',
+                            `Month ${attendance.currentMonthNumber} is still active. End it first?`,
+                            async () => {
+                                await endMonth(username, startDateYMD);
+                                await startNewMonthAfterEnd(username, monthNumber, startDateYMD);
+                            }
+                        );
+                        return;
+                    }
+                }
+                
+                await startNewMonthAfterEnd(username, monthNumber, startDateYMD);
+                
+            } catch (error) {
+                console.error('Start new month error:', error);
+                showAlert(`Failed to start new month: ${error.message}`, 'error');
+            }
+        }
+
+        async function startNewMonthAfterEnd(username, monthNumber, startDateYMD) {
+            try {
+                const studentRef = db.collection('students').doc(username);
+                const studentDoc = await studentRef.get();
+                const student = studentDoc.data();
+                const attendance = student.attendance || {};
+                const months = attendance.months || [];
+                
+                // Create new month
+                const newMonth = {
+                    monthNumber: monthNumber,
+                    startDate: startDateYMD,
+                    endDate: null,
+                    endedAt: null,
+                    days: []
+                };
+                
+                months.push(newMonth);
+                
+                // Update student
+                await studentRef.update({
+                    'attendance.months': months,
+                    'attendance.currentMonthNumber': monthNumber,
+                    'attendance.currentMonthStartDate': startDateYMD,
+                    updatedAt: new Date().toISOString()
+                });
+                
+                closeModal('newMonthModal');
+                
+                // Build WhatsApp message
+                const message = `Assalamu Alaikum,\n\nStudent: ${student.studentName} (${student.username})\n Month ${monthNumber} started.\nStart date: ${formatYMDToDDMMYYYY(startDateYMD)}\nClass: ${student.className}\nDashboard: ${student.dashboardLink}\n\n- Fardin (DU Physics)`;
+                
+                // Send WhatsApp notification
+                openWhatsAppWithCopy(student.guardianNumber, message);
+                
+                showAlert(`Month ${monthNumber} started successfully`, 'success');
+                loadAttendanceForStudent(username);
+                
+            } catch (error) {
+                console.error('Start new month after end error:', error);
+                showAlert(`Failed to start new month: ${error.message}`, 'error');
+            }
+        }
+
+        function endMonthFromUI() {
+            if (!currentAttendanceStudent) {
+                showAlert('No student selected', 'warning');
+                return;
+            }
+            
+            const dateInput = document.getElementById('attendanceDate');
+            const endDateYMD = dateInput ? dateInput.value : getTodayYMD();
+            
+            if (!isValidYMD(endDateYMD)) {
+                showAlert('Please select a valid end date', 'warning');
+                return;
+            }
+            
+            confirmModal(
+                'End Current Month',
+                `End the current month on ${formatYMDToDDMMYYYY(endDateYMD)}?`,
+                () => endMonth(currentAttendanceStudent, endDateYMD)
+            );
+        }
+
+        async function endMonth(username, endDateYMD) {
+            try {
+                const studentRef = db.collection('students').doc(username);
+                const studentDoc = await studentRef.get();
+                
+                if (!studentDoc.exists) {
+                    throw new Error('Student not found');
+                }
+                
+                const student = studentDoc.data();
+                const attendance = student.attendance || {};
+                const months = attendance.months || [];
+                
+                if (!attendance.currentMonthNumber) {
+                    throw new Error('No active month to end');
+                }
+                
+                // Find current month
+                const monthIndex = months.findIndex(m => m.monthNumber === attendance.currentMonthNumber);
+                if (monthIndex === -1) {
+                    throw new Error('Current month not found in months array');
+                }
+                
+                const monthObj = months[monthIndex];
+                
+                // Update month with end date
+                monthObj.endDate = endDateYMD;
+                monthObj.endedAt = new Date().toISOString();
+                
+                // Update student
+                await studentRef.update({
+                    'attendance.months': months,
+                    'attendance.currentMonthNumber': null,
+                    'attendance.currentMonthStartDate': null,
+                    updatedAt: new Date().toISOString()
+                });
+                
+                // Build WhatsApp message
+                const dateList = monthObj.days
+                    .slice(0, 12)
+                    .map(day => formatYMDToDDMMYYYY(day.date))
+                    .join(', ');
+                
+                const ellipsis = monthObj.days.length > 12 ? '...' : '';
+                
+                const message = `Assalamu Alaikum,\n\nStudent: ${student.studentName} (${student.username})\nMonth ${monthObj.monthNumber} ended.\nStart: ${formatYMDToDDMMYYYY(monthObj.startDate)}\nEnd: ${formatYMDToDDMMYYYY(endDateYMD)}\nTotal classes: ${monthObj.days.length}\nDates: ${dateList}${ellipsis}\nDashboard: ${student.dashboardLink}\n\n- Fardin (DU Physics)`;
+                
+                // Send WhatsApp notification
+                openWhatsAppWithCopy(student.guardianNumber, message);
+                
+                showAlert(`Month ${monthObj.monthNumber} ended successfully`, 'success');
+                loadAttendanceForStudent(username);
+                
+            } catch (error) {
+                console.error('End month error:', error);
+                showAlert(`Failed to end month: ${error.message}`, 'error');
+            }
+        }
+
+        // ==================== SUBMISSIONS FUNCTIONS ====================
+        function renderSubmissions(submissionList) {
+            if (submissionList.length === 0) {
+                renderEmptyState(submissionGrid, 'file-upload', 'No submissions found', 'Students need to submit exams first');
+                return;
+            }
+            
+            submissionGrid.innerHTML = submissionList.map(sub => {
+                const exam = questionSets.find(e => e.setId === sub.setId);
+                const student = students.find(s => s.username === sub.username);
+                
+                // Calculate exam max total and fix MCQ display
+                const mcqMax = exam?.mcq?.totalQuestions || sub.mcqTotal || 0;
+                const examMaxTotal = exam ? calculateExamMaxTotal(exam) : 0;
+                const overallPercentage = sub.overallPercentage || 
+                    (examMaxTotal > 0 ? Math.round(((sub.finalTotal || sub.mcqScore || 0) / examMaxTotal) * 100) : 0);
+                
+                return `
+                    <div class="submission-card">
+                        <div class="submission-header">
+                            <div>
+                                <div class="submission-student-name">${student ? escapeHTML(student.studentName) : sub.username}</div>
+                                <div style="font-size: 12px; color: var(--text-muted);">${sub.username}</div>
+                            </div>
+                            <div class="status-badge ${sub.status === 'FINAL_PUBLISHED' ? 'status-final' : 'status-pending'}">
+                                ${sub.status.replace('_', ' ')}
+                            </div>
+                        </div>
+                        <div class="submission-meta">
+                            <div><i class="fas fa-file-alt"></i> ${exam ? exam.setName : sub.examName}</div>
+                            <div><i class="fas fa-barcode"></i> ${sub.questionCode}</div>
+                            <div><i class="fas fa-calendar"></i> ${formatDate(sub.submittedAt)}</div>
+                        </div>
+                        ${sub.mcqScore !== undefined ? `
+                            <div class="score-display">
+                                <div class="score-item">
+                                    <div class="score-label">MCQ Score</div>
+                                    <div class="score-value">${sub.mcqScore}/${mcqMax > 0 ? mcqMax : 'N/A'}</div>
+                                </div>
+                                <div class="score-item">
+                                    <div class="score-label">Overall %</div>
+                                    <div class="score-value">${overallPercentage}%</div>
+                                </div>
+                                ${sub.finalTotal !== undefined ? `
+                                    <div class="score-item">
+                                        <div class="score-label">Final Total</div>
+                                        <div class="score-value">${sub.finalTotal}</div>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        ` : ''}
+                        <div class="submission-actions">
+                            <button class="btn btn-secondary btn-sm" onclick="viewSubmission('${sub.id}')">
+                                <i class="fas fa-eye"></i> View
+                            </button>
+                            ${sub.status === 'PENDING_WRITTEN' && exam && exam.writtenConfig && exam.writtenConfig.enabled ? `
+                                <button class="btn btn-success btn-sm" onclick="markWritten('${sub.id}')">
+                                    <i class="fas fa-pen"></i> Mark Written
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function filterSubmissions() {
+            const searchTerm = document.getElementById('submissionSearch').value.toLowerCase();
+            const examFilter = document.getElementById('submissionExamFilter').value;
+            const statusFilter = document.getElementById('submissionStatusFilter').value;
+            
+            let filtered = submissions;
+            
+            if (searchTerm) {
+                filtered = filtered.filter(sub => 
+                    sub.username.toLowerCase().includes(searchTerm) ||
+                    sub.questionCode.toLowerCase().includes(searchTerm) ||
+                    (sub.examName && sub.examName.toLowerCase().includes(searchTerm))
+                );
+            }
+            
+            if (examFilter) {
+                filtered = filtered.filter(sub => sub.setId === examFilter);
+            }
+            
+            if (statusFilter) {
+                filtered = filtered.filter(sub => sub.status === statusFilter);
+            }
+            
+            renderSubmissions(filtered);
+        }
+
+        async function viewSubmission(submissionId) {
+            try {
+                const submissionDoc = await db.collection('submissions').doc(submissionId).get();
+                if (!submissionDoc.exists) {
+                    showAlert('Submission not found', 'error');
+                    return;
+                }
+                
+                const submission = submissionDoc.data();
+                const exam = questionSets.find(e => e.setId === submission.setId);
+                const student = students.find(s => s.username === submission.username);
+                
+                // Calculate exam max total
+                const examMaxTotal = exam ? calculateExamMaxTotal(exam) : 0;
+                const overallPercentage = submission.overallPercentage || 
+                    (examMaxTotal > 0 ? Math.round(((submission.finalTotal || submission.mcqScore || 0) / examMaxTotal) * 100) : 0);
+                
+                let details = `
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="margin-bottom: 10px;">Submission Details</h4>
+                        <p><strong>Student:</strong> ${student ? escapeHTML(student.studentName) : submission.username}</p>
+                        <p><strong>Exam:</strong> ${exam ? exam.setName : submission.examName}</p>
+                        <p><strong>Question Code:</strong> ${submission.questionCode}</p>
+                        <p><strong>Submitted:</strong> ${formatDate(submission.submittedAt)}</p>
+                        <p><strong>Status:</strong> <span class="status-badge ${submission.status === 'FINAL_PUBLISHED' ? 'status-final' : 'status-pending'}">
+                            ${submission.status.replace('_', ' ')}
+                        </span></p>
+                    </div>
+                `;
+                
+                if (submission.mcqScore !== undefined) {
+                    const mcqMax = exam?.mcq?.totalQuestions || submission.mcqTotal || 0;
+                    details += `
+                        <div style="margin-bottom: 20px;">
+                            <h5 style="margin-bottom: 10px;">MCQ Results</h5>
+                            <div class="score-display">
+                                <div class="score-item">
+                                    <div class="score-label">Score</div>
+                                    <div class="score-value">${submission.mcqScore}/${mcqMax > 0 ? mcqMax : 'N/A'}</div>
+                                </div>
+                                <div class="score-item">
+                                    <div class="score-label">Percentage</div>
+                                    <div class="score-value">${submission.mcqPercentage || 0}%</div>
+                                </div>
+                                <div class="score-item">
+                                    <div class="score-label">Correct</div>
+                                    <div class="score-value">${submission.mcqCorrect || 0}</div>
+                                </div>
+                                <div class="score-item">
+                                    <div class="score-label">Wrong</div>
+                                    <div class="score-value">${submission.mcqWrong || 0}</div>
+                                </div>
+                                <div class="score-item">
+                                    <div class="score-label">Unmarked</div>
+                                    <div class="score-value">${submission.mcqUnmarked || 0}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                if (submission.writtenTotal !== undefined) {
+                    details += `
+                        <div style="margin-bottom: 20px;">
+                            <h5 style="margin-bottom: 10px;">Written Results</h5>
+                            <div style="font-size: 24px; color: var(--success); font-weight: bold;">
+                                ${submission.writtenTotal} marks
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                if (submission.finalTotal !== undefined) {
+                    details += `
+                        <div style="margin-bottom: 20px; padding: 15px; background: rgba(42, 157, 143, 0.1); border-radius: 8px;">
+                            <h5 style="margin-bottom: 10px; color: var(--success);">Final Results</h5>
+                            <div style="font-size: 32px; color: var(--success); font-weight: bold; text-align: center;">
+                                ${submission.finalTotal} marks
+                            </div>
+                            <div style="text-align: center; color: var(--text-muted); margin-top: 10px;">
+                                Overall Percentage: <strong>${overallPercentage}%</strong> out of ${examMaxTotal} total marks
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                document.getElementById('submissionDetails').innerHTML = details;
+                showModal('viewSubmissionModal');
+                
+            } catch (error) {
+                console.error('View submission error:', error);
+                showAlert(`Failed to load submission: ${error.message}`, 'error');
+            }
+        }
+
+        async function markWritten(submissionId) {
+            try {
+                const submissionDoc = await db.collection('submissions').doc(submissionId).get();
+                if (!submissionDoc.exists) {
+                    showAlert('Submission not found', 'error');
+                    return;
+                }
+                
+                const submission = submissionDoc.data();
+                const exam = questionSets.find(e => e.setId === submission.setId);
+                const student = students.find(s => s.username === submission.username);
+                
+                if (!exam || !exam.writtenConfig || !exam.writtenConfig.enabled) {
+                    showAlert('This exam does not have written questions enabled', 'warning');
+                    return;
+                }
+                
+                if (!student) {
+                    showAlert('Student not found', 'error');
+                    return;
+                }
+                
+                // Build marking interface
+                let content = `
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="margin-bottom: 10px;">${escapeHTML(student.studentName)} (${student.username})</h4>
+                        <p><strong>Exam:</strong> ${exam.setName} (${exam.questionCode})</p>
+                        ${submission.mcqScore !== undefined ? `<p><strong>MCQ Score:</strong> ${submission.mcqScore}/${exam.mcq.totalQuestions}</p>` : ''}
+                    </div>
+                    
+                    <div id="writtenMarkingForm">
+                        ${buildWrittenInputsFromConfig(exam.writtenConfig, submission.writtenMarks)}
+                    </div>
+                    
+                    <div class="total-box">
+                        <div class="total-label">Written Total</div>
+                        <div class="total-value" id="writtenTotalPreview">0</div>
+                        ${submission.mcqScore !== undefined ? `
+                            <div style="margin-top: 10px;">
+                                <div style="color: var(--text-muted);">Final Total:</div>
+                                <div style="font-size: 24px; font-weight: bold; color: var(--success);" id="finalTotalPreview">${submission.mcqScore}</div>
+                            </div>
+                            <div style="margin-top: 5px; color: var(--text-muted); font-size: 14px;">
+                                Overall Percentage: <span id="overallPercentagePreview">0%</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                    
+                    <input type="hidden" id="markingSubmissionId" value="${submissionId}">
+                    <input type="hidden" id="markingExamId" value="${exam.id}">
+                `;
+                
+                document.getElementById('markWrittenTitle').textContent = `Mark Written: ${exam.setName} (${exam.questionCode})`;
+                document.getElementById('markWrittenContent').innerHTML = content;
+                
+                // Add event listeners for live calculation
+                addMarkingEventListeners(exam, submission.mcqScore || 0);
+                
+                // Calculate initial totals
+                calculateWrittenTotalAndUpdate(exam, submission.mcqScore || 0);
+                
+                showModal('markWrittenModal');
+                
+            } catch (error) {
+                console.error('Mark written error:', error);
+                showAlert(`Failed to load marking interface: ${error.message}`, 'error');
+            }
+        }
+
+        function buildWrittenInputsFromConfig(config, existingMarks = null) {
+            if (!config || !config.enabled) return '';
+            
+            let html = '';
+            
+            // Short Questions
+            if (config.shortQ && config.shortQ.count > 0) {
+                html += `
+                    <div class="written-section">
+                        <div class="section-title-small">Short Questions (${config.shortQ.count} × 2 marks)</div>
+                        ${Array.from({ length: config.shortQ.count }, (_, i) => {
+                            const existingMark = existingMarks?.shortQ?.[i] || 0;
+                            return `
+                                <div class="question-row">
+                                    <div class="question-label">SQ${i + 1}</div>
+                                    <input type="number" class="mark-input short-mark" data-index="${i}" 
+                                           min="0" max="2" step="0.5" value="${existingMark}">
+                                    <div class="mark-range">Range: 0 - 2</div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+            }
+            
+            // Broad Questions
+            if (config.broadQ && config.broadQ.count > 0) {
+                const maxMark = config.broadQ.maxMarkPerQ || 10;
+                html += `
+                    <div class="written-section">
+                        <div class="section-title-small">Broad Questions (${config.broadQ.count} × max ${maxMark} marks)</div>
+                        ${Array.from({ length: config.broadQ.count }, (_, i) => {
+                            const existingMark = existingMarks?.broadQ?.[i] || 0;
+                            return `
+                                <div class="question-row">
+                                    <div class="question-label">BQ${i + 1}</div>
+                                    <input type="number" class="mark-input broad-mark" data-index="${i}" 
+                                           min="0" max="${maxMark}" step="0.5" value="${existingMark}">
+                                    <div class="mark-range">Range: 0 - ${maxMark}</div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+            }
+            
+            // CQ Math
+            if (config.cqMath && config.cqMath.count > 0) {
+                html += `
+                    <div class="written-section">
+                        <div class="section-title-small">CQ Math (${config.cqMath.count} × 2+4+4 marks)</div>
+                        ${Array.from({ length: config.cqMath.count }, (_, i) => {
+                            const existing = existingMarks?.cqMath?.[i] || { p1: 0, p2: 0, p3: 0 };
+                            return `
+                                <div class="question-row">
+                                    <div class="question-label">CQ Math ${i + 1}</div>
+                                    <div style="display: flex; gap: 10px; flex: 1;">
+                                        <div style="flex: 1;">
+                                            <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">Part A</div>
+                                            <input type="number" class="mark-input cqmath-a" data-index="${i}" 
+                                                   min="0" max="2" step="0.5" value="${existing.p1}">
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">Part B</div>
+                                            <input type="number" class="mark-input cqmath-b" data-index="${i}" 
+                                                   min="0" max="4" step="0.5" value="${existing.p2}">
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">Part C</div>
+                                            <input type="number" class="mark-input cqmath-c" data-index="${i}" 
+                                                   min="0" max="4" step="0.5" value="${existing.p3}">
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+            }
+            
+            // CQ
+            if (config.cq && config.cq.count > 0) {
+                html += `
+                    <div class="written-section">
+                        <div class="section-title-small">CQ (${config.cq.count} × 1+2+3+4 marks)</div>
+                        ${Array.from({ length: config.cq.count }, (_, i) => {
+                            const existing = existingMarks?.cq?.[i] || { p1: 0, p2: 0, p3: 0, p4: 0 };
+                            return `
+                                <div class="question-row">
+                                    <div class="question-label">CQ ${i + 1}</div>
+                                    <div style="display: flex; gap: 10px; flex: 1;">
+                                        <div style="flex: 1;">
+                                            <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">Part A</div>
+                                            <input type="number" class="mark-input cq-a" data-index="${i}" 
+                                                   min="0" max="1" step="0.5" value="${existing.p1}">
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">Part B</div>
+                                            <input type="number" class="mark-input cq-b" data-index="${i}" 
+                                                   min="0" max="2" step="0.5" value="${existing.p2}">
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">Part C</div>
+                                            <input type="number" class="mark-input cq-c" data-index="${i}" 
+                                                   min="0" max="3" step="0.5" value="${existing.p3}">
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">Part D</div>
+                                            <input type="number" class="mark-input cq-d" data-index="${i}" 
+                                                   min="0" max="4" step="0.5" value="${existing.p4}">
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+            }
+            
+            return html;
+        }
+
+        function addMarkingEventListeners(exam, mcqScore) {
+            const inputs = document.querySelectorAll('#writtenMarkingForm input');
+            inputs.forEach(input => {
+                input.addEventListener('input', () => {
+                    calculateWrittenTotalAndUpdate(exam, mcqScore);
+                });
+            });
+        }
+
+        function calculateWrittenTotalAndUpdate(exam, mcqScore) {
+            let writtenTotal = 0;
+            
+            // Short questions
+            document.querySelectorAll('.short-mark').forEach(input => {
+                writtenTotal += parseFloat(input.value) || 0;
+            });
+            
+            // Broad questions
+            document.querySelectorAll('.broad-mark').forEach(input => {
+                writtenTotal += parseFloat(input.value) || 0;
+            });
+            
+            // CQ Math
+            document.querySelectorAll('.cqmath-a').forEach((input, index) => {
+                const a = parseFloat(input.value) || 0;
+                const b = parseFloat(document.querySelector(`.cqmath-b[data-index="${index}"]`)?.value) || 0;
+                const c = parseFloat(document.querySelector(`.cqmath-c[data-index="${index}"]`)?.value) || 0;
+                writtenTotal += a + b + c;
+            });
+            
+            // CQ
+            document.querySelectorAll('.cq-a').forEach((input, index) => {
+                const a = parseFloat(input.value) || 0;
+                const b = parseFloat(document.querySelector(`.cq-b[data-index="${index}"]`)?.value) || 0;
+                const c = parseFloat(document.querySelector(`.cq-c[data-index="${index}"]`)?.value) || 0;
+                const d = parseFloat(document.querySelector(`.cq-d[data-index="${index}"]`)?.value) || 0;
+                writtenTotal += a + b + c + d;
+            });
+            
+            const finalTotal = mcqScore + writtenTotal;
+            const examMaxTotal = calculateExamMaxTotal(exam);
+            const overallPercentage = examMaxTotal > 0 ? Math.round((finalTotal / examMaxTotal) * 100) : 0;
+            
+            document.getElementById('writtenTotalPreview').textContent = writtenTotal.toFixed(1);
+            if (mcqScore !== undefined) {
+                document.getElementById('finalTotalPreview').textContent = finalTotal.toFixed(1);
+                document.getElementById('overallPercentagePreview').textContent = `${overallPercentage}%`;
+            }
+            
+            return { writtenTotal, finalTotal, overallPercentage };
+        }
+
+        function validateWrittenMarks(config, marks) {
+            // Validate short questions
+            if (config.shortQ && config.shortQ.count > 0) {
+                if (!marks.shortQ || marks.shortQ.length !== config.shortQ.count) {
+                    throw new Error(`Please enter marks for all ${config.shortQ.count} short questions`);
+                }
+                for (let i = 0; i < config.shortQ.count; i++) {
+                    if (marks.shortQ[i] < 0 || marks.shortQ[i] > 2) {
+                        throw new Error(`Short question ${i + 1} marks must be between 0 and 2`);
+                    }
+                }
+            }
+            
+            // Validate broad questions
+            if (config.broadQ && config.broadQ.count > 0) {
+                if (!marks.broadQ || marks.broadQ.length !== config.broadQ.count) {
+                    throw new Error(`Please enter marks for all ${config.broadQ.count} broad questions`);
+                }
+                for (let i = 0; i < config.broadQ.count; i++) {
+                    if (marks.broadQ[i] < 0 || marks.broadQ[i] > config.broadQ.maxMarkPerQ) {
+                        throw new Error(`Broad question ${i + 1} marks must be between 0 and ${config.broadQ.maxMarkPerQ}`);
+                    }
+                }
+            }
+            
+            // Validate CQ Math
+            if (config.cqMath && config.cqMath.count > 0) {
+                if (!marks.cqMath || marks.cqMath.length !== config.cqMath.count) {
+                    throw new Error(`Please enter marks for all ${config.cqMath.count} CQ Math questions`);
+                }
+                for (let i = 0; i < config.cqMath.count; i++) {
+                    const cq = marks.cqMath[i];
+                    if (cq.p1 < 0 || cq.p1 > 2) throw new Error(`CQ Math ${i + 1} Part A must be between 0 and 2`);
+                    if (cq.p2 < 0 || cq.p2 > 4) throw new Error(`CQ Math ${i + 1} Part B must be between 0 and 4`);
+                    if (cq.p3 < 0 || cq.p3 > 4) throw new Error(`CQ Math ${i + 1} Part C must be between 0 and 4`);
+                }
+            }
+            
+            // Validate CQ
+            if (config.cq && config.cq.count > 0) {
+                if (!marks.cq || marks.cq.length !== config.cq.count) {
+                    throw new Error(`Please enter marks for all ${config.cq.count} CQ questions`);
+                }
+                for (let i = 0; i < config.cq.count; i++) {
+                    const cq = marks.cq[i];
+                    if (cq.p1 < 0 || cq.p1 > 1) throw new Error(`CQ ${i + 1} Part A must be between 0 and 1`);
+                    if (cq.p2 < 0 || cq.p2 > 2) throw new Error(`CQ ${i + 1} Part B must be between 0 and 2`);
+                    if (cq.p3 < 0 || cq.p3 > 3) throw new Error(`CQ ${i + 1} Part C must be between 0 and 3`);
+                    if (cq.p4 < 0 || cq.p4 > 4) throw new Error(`CQ ${i + 1} Part D must be between 0 and 4`);
+                }
+            }
+            
+            return true;
+        }
+
+        async function saveWrittenMarks() {
+            const submissionId = document.getElementById('markingSubmissionId').value;
+            const examId = document.getElementById('markingExamId').value;
+            
+            const exam = questionSets.find(e => e.id === examId);
+            if (!exam || !exam.writtenConfig) {
+                showAlert('Exam configuration not found', 'error');
+                return;
+            }
+            
+            try {
+                // Collect marks
+                const marks = {};
+                
+                // Short questions
+                if (exam.writtenConfig.shortQ && exam.writtenConfig.shortQ.count > 0) {
+                    marks.shortQ = [];
+                    for (let i = 0; i < exam.writtenConfig.shortQ.count; i++) {
+                        const input = document.querySelector(`.short-mark[data-index="${i}"]`);
+                        marks.shortQ.push(parseFloat(input.value) || 0);
+                    }
+                }
+                
+                // Broad questions
+                if (exam.writtenConfig.broadQ && exam.writtenConfig.broadQ.count > 0) {
+                    marks.broadQ = [];
+                    for (let i = 0; i < exam.writtenConfig.broadQ.count; i++) {
+                        const input = document.querySelector(`.broad-mark[data-index="${i}"]`);
+                        marks.broadQ.push(parseFloat(input.value) || 0);
+                    }
+                }
+                
+                // CQ Math
+                if (exam.writtenConfig.cqMath && exam.writtenConfig.cqMath.count > 0) {
+                    marks.cqMath = [];
+                    for (let i = 0; i < exam.writtenConfig.cqMath.count; i++) {
+                        marks.cqMath.push({
+                            p1: parseFloat(document.querySelector(`.cqmath-a[data-index="${i}"]`)?.value) || 0,
+                            p2: parseFloat(document.querySelector(`.cqmath-b[data-index="${i}"]`)?.value) || 0,
+                            p3: parseFloat(document.querySelector(`.cqmath-c[data-index="${i}"]`)?.value) || 0
+                        });
+                    }
+                }
+                
+                // CQ
+                if (exam.writtenConfig.cq && exam.writtenConfig.cq.count > 0) {
+                    marks.cq = [];
+                    for (let i = 0; i < exam.writtenConfig.cq.count; i++) {
+                        marks.cq.push({
+                            p1: parseFloat(document.querySelector(`.cq-a[data-index="${i}"]`)?.value) || 0,
+                            p2: parseFloat(document.querySelector(`.cq-b[data-index="${i}"]`)?.value) || 0,
+                            p3: parseFloat(document.querySelector(`.cq-c[data-index="${i}"]`)?.value) || 0,
+                            p4: parseFloat(document.querySelector(`.cq-d[data-index="${i}"]`)?.value) || 0
+                        });
+                    }
+                }
+                
+                // Validate marks
+                validateWrittenMarks(exam.writtenConfig, marks);
+                
+                // Get submission data
+                const submissionDoc = await db.collection('submissions').doc(submissionId).get();
+                const submission = submissionDoc.data();
+                
+                // Calculate totals
+                let writtenTotal = 0;
+                if (marks.shortQ) writtenTotal += marks.shortQ.reduce((sum, mark) => sum + mark, 0);
+                if (marks.broadQ) writtenTotal += marks.broadQ.reduce((sum, mark) => sum + mark, 0);
+                if (marks.cqMath) {
+                    marks.cqMath.forEach(cq => {
+                        writtenTotal += (cq.p1 || 0) + (cq.p2 || 0) + (cq.p3 || 0);
+                    });
+                }
+                if (marks.cq) {
+                    marks.cq.forEach(cq => {
+                        writtenTotal += (cq.p1 || 0) + (cq.p2 || 0) + (cq.p3 || 0) + (cq.p4 || 0);
+                    });
+                }
+                
+                const mcqScore = submission.mcqScore || 0;
+                const finalTotal = mcqScore + writtenTotal;
+                
+                // Calculate exam max total and overall percentage
+                const examMaxTotal = calculateExamMaxTotal(exam);
+                const overallPercentage = examMaxTotal > 0 ? Math.round((finalTotal / examMaxTotal) * 100) : 0;
+                
+                // Update submission
+                await db.collection('submissions').doc(submissionId).update({
+                    writtenMarks: marks,
+                    writtenTotal,
+                    finalTotal,
+                    overallPercentage,
+                    status: 'FINAL_PUBLISHED',
+                    updatedAt: new Date().toISOString()
+                });
+                
+                // Get student for WhatsApp notification
+                const student = students.find(s => s.username === submission.username);
+                if (student) {
+                    const message = `Assalamu Alaikum,\n\nStudent: ${student.studentName}\nExam: ${exam.setName}\nCode: ${exam.questionCode}\n\nMCQ Score: ${mcqScore}/${exam.mcq?.totalQuestions || 0}\nWritten Score: ${writtenTotal}\nFinal Total: ${finalTotal}/${examMaxTotal}\nOverall Percentage: ${overallPercentage}%\n\nDashboard link:\n${student.dashboardLink}\n\n- Fardin (DU Physics)`;
+                    
+                    // Copy and open WhatsApp
+                    try {
+                        await navigator.clipboard.writeText(message);
+                        const waNumber = waDigits(student.guardianNumber);
+                        window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`, '_blank');
+                    } catch (waError) {
+                        console.error('WhatsApp redirect error:', waError);
+                        showAlert('Marks saved! Could not open WhatsApp. Message copied to clipboard.', 'warning');
+                    }
+                }
+                
+                showAlert('Written marks saved successfully!', 'success');
+                closeModal('markWrittenModal');
+                
+                // Reload submissions
+                await loadSubmissions();
+                
+            } catch (error) {
+                console.error('Save written marks error:', error);
+                showAlert(`Failed to save marks: ${error.message}`, 'error');
+            }
+        }
+
+        // ==================== MODAL FUNCTIONS ====================
+        function showAddClassModal() {
+            showModal('addClassModal');
+        }
+
+        function showAddSubjectModal() {
+            showModal('addSubjectModal');
+        }
+
+        async function saveNewClass() {
+            const className = document.getElementById('newClassName').value.trim();
+            const classCode = document.getElementById('newClassCode').value.trim();
+            
+            if (!className || !classCode) {
+                showAlert('Please enter both class name and code', 'warning');
+                return;
+            }
+            
+            if (!/^\d{2}$/.test(classCode)) {
+                showAlert('Class code must be 2 digits', 'warning');
+                return;
+            }
+            
+            // Check if class code already exists
+            const existingClass = classes.find(c => c.classCode === classCode);
+            if (existingClass) {
+                showAlert(`Class code ${classCode} already exists`, 'error');
+                return;
+            }
+            
+            try {
+                await db.collection('classes').doc(classCode).set({
+                    className,
+                    classCode,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                });
+                
+                showAlert(`Class "${className}" added successfully!`, 'success');
+                closeModal('addClassModal');
+                
+                // Reset inputs
+                document.getElementById('newClassName').value = '';
+                document.getElementById('newClassCode').value = '';
+                
+                // Reload classes
+                await loadClasses();
+                
+            } catch (error) {
+                console.error('Save class error:', error);
+                showAlert(`Failed to add class: ${error.message}`, 'error');
+            }
+        }
+
+        async function saveNewSubject() {
+            const subjectName = document.getElementById('newSubjectName').value.trim();
+            const subjectCode = document.getElementById('newSubjectCode').value.trim();
+            
+            if (!subjectName || !subjectCode) {
+                showAlert('Please enter both subject name and code', 'warning');
+                return;
+            }
+            
+            if (!/^\d{2}$/.test(subjectCode)) {
+                showAlert('Subject code must be 2 digits', 'warning');
+                return;
+            }
+            
+            // Check if subject code already exists
+            const existingSubject = subjects.find(s => s.subjectCode === subjectCode);
+            if (existingSubject) {
+                showAlert(`Subject code ${subjectCode} already exists`, 'error');
+                return;
+            }
+            
+            try {
+                await db.collection('subjects').doc(subjectCode).set({
+                    subjectName,
+                    subjectCode,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                });
+                
+                showAlert(`Subject "${subjectName}" added successfully!`, 'success');
+                closeModal('addSubjectModal');
+                
+                // Reset inputs
+                document.getElementById('newSubjectName').value = '';
+                document.getElementById('newSubjectCode').value = '';
+                
+                // Reload subjects
+                await loadSubjects();
+                
+            } catch (error) {
+                console.error('Save subject error:', error);
+                showAlert(`Failed to add subject: ${error.message}`, 'error');
+            }
+        }
+    </script>
+</body>
+</html>
