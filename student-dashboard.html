@@ -996,7 +996,7 @@
                                 const dayStr = String(date.getDate()).padStart(2, '0');
                                 const monthStr = String(date.getMonth() + 1).padStart(2, '0');
                                 const yearStr = date.getFullYear().toString().slice(-2);
-                                return `<span class="day-badge">${month.monthNumber}.${day.dayNumber}(${dayStr}.${monthStr}.${yearStr})</span>`;
+                                return `<span class="day-badge">${month.monthNumber}.${day.dayNumber} (${dayStr}.${monthStr}.${yearStr})</span>`;
                             }).join('')}
                         </div>
                     </div>
@@ -1492,4 +1492,5 @@
     </script>
 </body>
 </html>
+
 
