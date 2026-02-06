@@ -3134,7 +3134,7 @@
                                 <div class="month-days">
                                     ${month.days.map(day => {
                                         const dateFormatted = formatYMDToDDMMYYYY(day.date);
-                                        return `<span class="day-badge">${day.dayNumber}.${month.monthNumber} (${dateFormatted})</span>`;
+                                        return `<span class="day-badge">${month.monthNumber}.${day.dayNumber} (${dateFormatted})</span>`;
                                     }).join('')}
                                 </div>
                             </div>
@@ -4168,3 +4168,4 @@
 </body>
 
 </html>
+
