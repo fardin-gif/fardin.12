@@ -1020,6 +1020,31 @@
     <!-- Main Content -->
     <main>
         <div class="container">
+            <!-- Section D: Attendance Manager -->
+            <section class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-calendar-check"></i> Attendance Manager</h3>
+                </div>
+                <div class="card-body">
+                    <div class="attendance-controls">
+                        <select id="attendanceStudentSelect" class="form-control" style="max-width: 300px;">
+                            <option value="">Select a student...</option>
+                        </select>
+                        <button class="btn btn-secondary" onclick="loadAttendanceForStudent()">
+                            <i class="fas fa-search"></i> Load
+                        </button>
+                    </div>
+                    <div id="attendanceContent">
+                        <div class="empty-state">
+                            <div class="empty-icon">
+                                <i class="fas fa-user-graduate"></i>
+                            </div>
+                            <div class="empty-title">Select a student to manage attendance</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
             <!-- Section A: Create New Exam -->
             <section class="card">
                 <div class="card-header">
@@ -1312,31 +1337,6 @@
                                 <div class="spinner"></div>
                                 <div class="empty-title">Loading students...</div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Section D: Attendance Manager -->
-            <section class="card">
-                <div class="card-header">
-                    <h3><i class="fas fa-calendar-check"></i> Attendance Manager</h3>
-                </div>
-                <div class="card-body">
-                    <div class="attendance-controls">
-                        <select id="attendanceStudentSelect" class="form-control" style="max-width: 300px;">
-                            <option value="">Select a student...</option>
-                        </select>
-                        <button class="btn btn-secondary" onclick="loadAttendanceForStudent()">
-                            <i class="fas fa-search"></i> Load
-                        </button>
-                    </div>
-                    <div id="attendanceContent">
-                        <div class="empty-state">
-                            <div class="empty-icon">
-                                <i class="fas fa-user-graduate"></i>
-                            </div>
-                            <div class="empty-title">Select a student to manage attendance</div>
                         </div>
                     </div>
                 </div>
@@ -4168,4 +4168,5 @@
 </body>
 
 </html>
+
 
