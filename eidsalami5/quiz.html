@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Eid Salami Quiz - Student Zone</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="quiz-page">
+    <div class="floating-elements">
+        <div class="moon"></div>
+        <div class="stars"></div>
+    </div>
+
+<!-- Instruction Modal -->
+<div id="instructionModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Eid Salami Quiz Instructions</h2>
+        </div>
+        
+        <div class="modal-body">
+            <div class="instruction-card">
+                <div class="instruction-icon">📚</div>
+                <div class="instruction-text">
+                    <h3>Quiz Syllabus</h3>
+                    <p><span class="badge science">Science</span> Chapter 1, 2, 5</p>
+                    <p><span class="badge math">Math</span> Chapter 1, 2, 3 (up to LCM)</p>
+                </div>
+            </div>
+
+            <div class="instruction-card">
+                <div class="instruction-icon">💰</div>
+                <div class="instruction-text">
+                    <h3>Starting Balance</h3>
+                    <p>You begin with <span class="eidi-amou">৳ 20</span> Salami bonus</p>
+                    <p class="note">Salami never goes below ৳ 20</p>
+                </div>
+            </div>
+
+            <div class="instruction-card">
+                <div class="instruction-icon">⚖️</div>
+                <div class="instruction-text">
+                    <h3>Scoring Rule</h3>
+                    <p><span class="correct">✓ Correct: +5</span> <span class="wrong">✗ Wrong: -3</span></p>
+                    <p><span class="timeout">⏰ No answer: No change</span></p>
+                </div>
+            </div>
+
+            <div class="instruction-card">
+                <div class="instruction-icon">⚠️</div>
+                <div class="instruction-text">
+                    <h3>Important Notes</h3>
+                    <ul class="instruction-list">
+                        <li>⏱️ Each question has a fixed timer</li>
+                        <li>🚫 Cannot go back to previous questions</li>
+                        <li>💡 Read carefully before answering</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="blessing-message">
+                <p>Stay confident, think smart, and enjoy the game!</p>
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <button id="continueToQuiz" class="continue-btn">
+                Continue to Quiz
+                <i class="fas fa-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+    <div class="container">
+        <!-- Name Entry Screen -->
+        <div id="nameEntry" class="name-entry-screen">
+            <div class="festive-header">
+                <h1>🌙</h1>
+                <h1>Eid Salami Quiz!</h1>
+            </div>
+            <div class="name-card">
+                <h2>Enter your name</h2>
+                <input type="text" id="studentName" placeholder="Enter your name" class="name-input">
+                <button id="startQuizBtn" class="start-btn" disabled>Start Quiz ➡️</button>
+            </div>
+        </div>
+
+        <!-- Quiz Screen (Hidden by default) -->
+        <div id="quizScreen" class="quiz-screen hidden">
+            <!-- Top Bar -->
+            <div class="quiz-header">
+                <div class="eidi-balance" id="balanceDisplay">
+                    <i class="fas fa-gift"></i> 
+                    <span id="balanceValue">20</span> taka
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar"></div>
+                <span id="questionCount">1/5</span>
+            </div>
+
+            <!-- Question Card -->
+            <div class="question-card" id="questionCard">
+                <div class="question-header">
+                    <span class="question-number" id="questionNumber">Q1</span>
+                    <span class="subject-badge" id="subjectBadge">Science</span>
+                    <div class="timer-container">
+                        <span id="timerBox" class="timer-box">⏰ 30s</span>
+                    </div>
+                </div>
+
+                <div class="question-text" id="questionText">
+                    Loading question...
+                </div>
+
+                <!-- Options -->
+                <div class="options-container" id="optionsContainer"></div>
+
+                <!-- Next Button (Hidden initially) -->
+                <button id="nextBtn" class="next-btn pulse hidden">Next Question ➡️</button>
+            </div>
+        </div>
+
+        <!-- Loading Spinner -->
+        <div id="loadingSpinner" class="loading-spinner hidden">
+            <div class="spinner"></div>
+            <p>Loading...</p>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
+    <script type="module" src="firebase.js"></script>
+    <script type="module" src="quiz.js"></script>
+</body>
+</html>
