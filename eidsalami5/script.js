@@ -157,7 +157,7 @@ async function createQuiz() {
         });
         
         // Generate and display URL
-        const url = `${window.location.origin}/quiz.html?id=${quizId}`;
+        const url = `${window.location.origin}/eidsalami5/quiz.html?id=${quizId}`;
         quizUrl.value = url;
         
         // Show URL section
