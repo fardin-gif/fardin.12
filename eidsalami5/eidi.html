@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Eid Mubarak - Your Salami!</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="result-page">
+    <div class="confetti-container" id="confettiContainer"></div>
+    
+    <div class="container result-container">
+        <div class="moon-ornament">🌙</div>
+            <div class="lantern-ornament">🏮</div>
+        <div class="result-card glow-card">
+            <h1 class="eid-title">🎁 Eid Mubarak!</h1>
+            
+            <div class="name-greeting" id="nameGreeting"></div>
+            
+            <div class="eidi-display">
+                <p class="eidi-amount" id="eidiAmount">0</p>
+                <div class="eidi-label">Salami</div>
+            </div>
+            
+            <div class="love-message" id="loveMessage"></div>
+            
+            <div class="action-buttons">
+                <button id="copyLinkBtn" class="action-btn bounce">
+                    <i class="fa-regular fa-copy"></i> Copy your 'Salami Page'
+                </button>
+                <button id="whatsappShareBtn" class="action-btn pulse">
+                    <i class="fa-brands fa-whatsapp"></i> Share the Salami Quiz
+                </button>
+                <button id="playAgainBtn" class="action-btn glow">
+                    <i class="fa-solid fa-pen-to-square"></i> Take Salami Quiz
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
+    <script type="module" src="firebase.js"></script>
+    <script type="module" src="result.js"></script>
+</body>
+</html>
