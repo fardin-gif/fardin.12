@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firestore Explorer + Attempts Table</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #0e1217;
+            color: #e8eef2;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* App bar */
+        .app-bar {
+            background: #1a1f26;
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            border-bottom: 1px solid #2c333d;
+            flex-wrap: wrap;
+        }
+        .app-bar h1 {
+            font-size: 1.5rem;
+            font-weight: 400;
+            color: #bdd3e8;
+        }
+        .app-bar .badge {
+            background: #2a3744;
+            color: #8bb3d4;
+            padding: 0.2rem 0.8rem;
+            border-radius: 30px;
+            font-size: 0.8rem;
+        }
+        .view-toggle {
+            margin-left: auto;
+            display: flex;
+            gap: 0.5rem;
+        }
+        .view-toggle button {
+            background: #2b3a47;
+            border: none;
+            color: #cbd5e0;
+            padding: 0.5rem 1.5rem;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: 0.2s;
+        }
+        .view-toggle button.active {
+            background: #2b5270;
+            color: white;
+        }
+
+        /* Main container – switches between views */
+        #mainView {
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* Explorer view (3‑column layout) */
+        .explorer-view {
+            display: flex;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        /* Collections sidebar */
+        .collections-panel {
+            width: 260px;
+            background: #151b23;
+            border-right: 1px solid #2c333d;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .panel-header {
+            padding: 1.2rem 1rem;
+            border-bottom: 1px solid #2c333d;
+            font-weight: 500;
+            color: #b0c5d9;
+        }
+        .collection-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.5rem;
+        }
+        .collection-item {
+            padding: 0.7rem 1rem;
+            margin-bottom: 0.3rem;
+            border-radius: 8px;
+            cursor: pointer;
+            color: #cbd5e0;
+            transition: 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .collection-item:hover {
+            background: #2a333e;
+        }
+        .collection-item.active {
+            background: #1e3a5f;
+            color: white;
+        }
+        .add-collection-area {
+            padding: 1rem;
+            border-top: 1px solid #2c333d;
+        }
+        .add-collection-area input {
+            width: 100%;
+            padding: 0.7rem;
+            background: #1f2a33;
+            border: 1px solid #3a4552;
+            border-radius: 30px;
+            color: white;
+            margin-bottom: 0.5rem;
+        }
+        .add-collection-area button {
+            width: 100%;
+            padding: 0.7rem;
+            background: #2b5270;
+            border: none;
+            border-radius: 30px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .add-collection-area button:hover {
+            background: #1f3f5a;
+        }
+
+        /* Documents panel (middle) */
+        .documents-panel {
+            width: 300px;
+            background: #10161d;
+            border-right: 1px solid #2c333d;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .documents-header {
+            padding: 1.2rem 1rem;
+            border-bottom: 1px solid #2c333d;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .documents-header button {
+            background: #2b5270;
+            border: none;
+            color: white;
+            padding: 0.4rem 1rem;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .documents-header button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .documents-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.5rem;
+        }
+        .document-item {
+            padding: 0.7rem 1rem;
+            margin-bottom: 0.3rem;
+            border-radius: 8px;
+            background: #1b232c;
+            cursor: pointer;
+            font-family: 'SF Mono', monospace;
+            font-size: 0.9rem;
+            word-break: break-all;
+            border-left: 3px solid transparent;
+            transition: 0.1s;
+        }
+        .document-item:hover {
+            background: #25313d;
+        }
+        .document-item.active {
+            background: #1a3a4e;
+            border-left-color: #4b9cd3;
+        }
+        .empty-documents {
+            color: #6f7e8f;
+            text-align: center;
+            padding: 2rem;
+            font-style: italic;
+        }
+
+        /* Editor panel (right) */
+        .editor-panel {
+            flex: 1;
+            background: #0e1217;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .editor-header {
+            padding: 1.2rem 2rem;
+            border-bottom: 1px solid #2c333d;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .editor-header .doc-id {
+            font-family: monospace;
+            background: #1b2630;
+            padding: 0.3rem 1rem;
+            border-radius: 30px;
+            font-size: 0.9rem;
+        }
+        .editor-actions button {
+            background: #2b5270;
+            border: none;
+            color: white;
+            padding: 0.5rem 1.2rem;
+            border-radius: 30px;
+            margin-left: 0.5rem;
+            cursor: pointer;
+        }
+        .editor-actions .delete {
+            background: #9e3b2c;
+        }
+        .editor-actions .delete:hover {
+            background: #7a2e22;
+        }
+        .editor-fields {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+        .field-row {
+            margin-bottom: 1.5rem;
+        }
+        .field-label {
+            font-size: 0.9rem;
+            color: #a5b9ce;
+            margin-bottom: 0.3rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .field-label code {
+            background: #1f2a33;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: #b5d0ff;
+        }
+        .field-input {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            background: #1b2630;
+            border: 1px solid #3a4a5a;
+            border-radius: 12px;
+            color: white;
+            font-family: 'SF Mono', monospace;
+            font-size: 0.95rem;
+        }
+        .field-input:focus {
+            outline: none;
+            border-color: #4b9cd3;
+        }
+        .no-document-selected {
+            color: #6a7c8f;
+            text-align: center;
+            margin-top: 4rem;
+            font-size: 1.2rem;
+        }
+
+        /* ========== ATTEMPTS TABLE VIEW ========== */
+        .attempts-view {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            padding: 1.5rem;
+        }
+        .attempts-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .attempts-header h2 {
+            font-weight: 400;
+            color: #b0c5d9;
+        }
+        .attempts-header h2 span {
+            color: #4b9cd3;
+            font-weight: 500;
+        }
+        .attempts-header button {
+            background: #2b5270;
+            border: none;
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 30px;
+            cursor: pointer;
+        }
+        .attempts-table-wrapper {
+            flex: 1;
+            overflow: auto;
+            border: 1px solid #2c333d;
+            border-radius: 16px;
+            background: #151b23;
+        }
+        .attempts-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+        .attempts-table th {
+            position: sticky;
+            top: 0;
+            background: #1f2a33;
+            color: #b5d0ff;
+            font-weight: 500;
+            padding: 1rem 1rem;
+            text-align: left;
+            border-bottom: 2px solid #3a4a5a;
+            white-space: nowrap;
+        }
+        .attempts-table td {
+            padding: 1rem 1rem;
+            border-bottom: 1px solid #2a3542;
+            color: #d3dce6;
+        }
+        .attempts-table tr:hover td {
+            background: #1e2935;
+        }
+        .attempts-table .timestamp-cell {
+            font-family: monospace;
+            font-size: 0.9rem;
+            color: #9ac7ff;
+        }
+        .attempts-table .balance-cell {
+            font-weight: 600;
+            color: #6fcf97;
+        }
+        .attempts-table .correct-cell {
+            color: #f2c94c;
+        }
+        .table-actions button {
+            background: #2b5270;
+            border: none;
+            color: white;
+            padding: 0.3rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin: 0.2rem;
+            cursor: pointer;
+        }
+        .table-actions .delete-btn {
+            background: #9e3b2c;
+        }
+        .empty-attempts {
+            text-align: center;
+            padding: 3rem;
+            color: #6f7e8f;
+            font-style: italic;
+        }
+
+        /* Loading spinner */
+        .loader {
+            border: 3px solid #2c3e50;
+            border-top: 3px solid #4b9cd3;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 2rem auto;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .hidden { display: none; }
+        .text-small { font-size: 0.85rem; color: #7b8b9f; }
+    </style>
+</head>
+<body>
+    <div class="app-bar">
+        <h1>🔥 Firestore Explorer</h1>
+        <div class="view-toggle">
+            <button id="explorerViewBtn" class="active">📂 Document View</button>
+            <button id="attemptsViewBtn">📊 Attempts Table</button>
+        </div>
+    </div>
+
+    <!-- Main view container -->
+    <div id="mainView">
+        <!-- Explorer View (3‑column) -->
+        <div id="explorerView" class="explorer-view">
+            <!-- Collections sidebar -->
+            <div class="collections-panel">
+                <div class="panel-header">📁 Your Collections</div>
+                <div id="collectionList" class="collection-list">
+                    <!-- dynamically filled -->
+                </div>
+                <div class="add-collection-area">
+                    <input type="text" id="newCollectionInput" placeholder="e.g. users" />
+                    <button id="addCollectionBtn">➕ Add collection</button>
+                </div>
+            </div>
+
+            <!-- Documents panel -->
+            <div class="documents-panel">
+                <div class="documents-header">
+                    <span id="selectedCollectionName">Select a collection</span>
+                    <button id="addDocumentBtn" disabled>+ New</button>
+                </div>
+                <div id="documentsList" class="documents-list">
+                    <div class="empty-documents">← Choose a collection</div>
+                </div>
+            </div>
+
+            <!-- Editor panel -->
+            <div class="editor-panel">
+                <div class="editor-header">
+                    <span id="selectedDocId" class="doc-id">No document selected</span>
+                    <div class="editor-actions">
+                        <button id="saveDocBtn" disabled>💾 Save</button>
+                        <button id="deleteDocBtn" class="delete" disabled>🗑️ Delete</button>
+                    </div>
+                </div>
+                <div id="editorFields" class="editor-fields">
+                    <div class="no-document-selected">← Select a document to edit</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Attempts Table View (hidden by default) -->
+        <div id="attemptsView" class="attempts-view hidden">
+            <div class="attempts-header">
+                <h2>📋 Attempts Data</h2>
+                <button id="refreshAttemptsBtn">🔄 Refresh Attempts</button>
+            </div>
+            <div class="attempts-table-wrapper" id="attemptsTableWrapper">
+                <div class="loader" id="attemptsLoader"></div>
+                <table class="attempts-table" id="attemptsTable">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Student Name</th>
+                            <th>Correct Answers</th>
+                            <th>Final Balance</th>
+                            <th>Document ID</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="attemptsTableBody">
+                        <!-- dynamic rows -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // -------------------- Firebase Init --------------------
+        const firebaseConfig = {
+            apiKey: "AIzaSyBXS0LqYP8lILEeWCf9mg2pbTeDGWg5aJc",
+            authDomain: "salami-80fe9.firebaseapp.com",
+            projectId: "salami-80fe9",
+            storageBucket: "salami-80fe9.firebasestorage.app",
+            messagingSenderId: "393304304767",
+            appId: "1:393304304767:web:504b0dd92ad23eef2aa34a"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // -------------------- State --------------------
+        let collections = [];                 // array of { name, documents, loading }
+        let activeCollection = null;           // name of selected collection
+        let activeDocument = null;             // { id, data } or null
+        let activeDocumentRef = null;          // Firestore document reference
+
+        // For attempts table: cache
+        let attemptsCache = [];                 // array of { id, timestamp, correctAnswers, studentName, finalBalance }
+
+        // UI state
+        let currentView = 'explorer'; // 'explorer' or 'attempts'
+
+        // Load saved collection names from localStorage
+        function loadCollections() {
+            const saved = localStorage.getItem('firestore_collections_dark');
+            if (saved) {
+                try {
+                    collections = JSON.parse(saved).map(name => ({ name, documents: [], loading: false }));
+                } catch (e) {
+                    collections = [];
+                }
+            } else {
+                collections = [];
+            }
+        }
+
+        // Save collection names to localStorage
+        function saveCollections() {
+            const names = collections.map(c => c.name);
+            localStorage.setItem('firestore_collections_dark', JSON.stringify(names));
+        }
+
+        // Add a new collection
+        function addCollection(name) {
+            if (!name) return;
+            if (collections.some(c => c.name === name)) {
+                alert('Collection already exists');
+                return;
+            }
+            collections.push({ name, documents: [], loading: false });
+            saveCollections();
+            renderCollections();
+        }
+
+        // Remove collection from view (does NOT delete from Firestore)
+        function removeCollection(name) {
+            collections = collections.filter(c => c.name !== name);
+            if (activeCollection === name) {
+                activeCollection = null;
+                activeDocument = null;
+                updateDocumentsPanel();
+                updateEditorPanel();
+            }
+            saveCollections();
+            renderCollections();
+        }
+
+        // Render the collection list in sidebar
+        function renderCollections() {
+            const container = document.getElementById('collectionList');
+            if (collections.length === 0) {
+                container.innerHTML = '<div class="empty-documents">No collections added.<br>Add one below.</div>';
+                return;
+            }
+
+            let html = '';
+            collections.forEach(col => {
+                const activeClass = (activeCollection === col.name) ? 'active' : '';
+                html += `<div class="collection-item ${activeClass}" data-collection="${col.name}">
+                    📁 ${escapeHtml(col.name)}
+                </div>`;
+            });
+            container.innerHTML = html;
+
+            // Attach click handlers
+            document.querySelectorAll('.collection-item').forEach(el => {
+                el.addEventListener('click', () => {
+                    const colName = el.dataset.collection;
+                    selectCollection(colName);
+                });
+            });
+        }
+
+        // Select a collection: load documents, update UI
+        async function selectCollection(name) {
+            activeCollection = name;
+            activeDocument = null;
+            activeDocumentRef = null;
+            renderCollections();  // updates active class
+            updateDocumentsPanel();
+            updateEditorPanel();
+
+            const collection = collections.find(c => c.name === name);
+            if (!collection) return;
+
+            // Load documents if not already loaded
+            if (collection.documents.length === 0 && !collection.loading) {
+                await loadDocuments(name);
+            } else {
+                // Already have docs, just display them
+                updateDocumentsPanel();
+            }
+        }
+
+        // Load documents for a collection
+        async function loadDocuments(collectionName) {
+            const colIndex = collections.findIndex(c => c.name === collectionName);
+            if (colIndex === -1) return;
+
+            collections[colIndex].loading = true;
+            updateDocumentsPanel(); // shows loader
+
+            try {
+                const snapshot = await db.collection(collectionName).get();
+                const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                collections[colIndex].documents = docs;
+            } catch (error) {
+                alert('Error loading documents: ' + error.message);
+            } finally {
+                collections[colIndex].loading = false;
+                updateDocumentsPanel();
+            }
+        }
+
+        // Update the documents list panel
+        function updateDocumentsPanel() {
+            const headerSpan = document.getElementById('selectedCollectionName');
+            const addDocBtn = document.getElementById('addDocumentBtn');
+            const docsContainer = document.getElementById('documentsList');
+
+            if (!activeCollection) {
+                headerSpan.innerText = 'Select a collection';
+                addDocBtn.disabled = true;
+                docsContainer.innerHTML = '<div class="empty-documents">← Choose a collection</div>';
+                return;
+            }
+
+            headerSpan.innerText = activeCollection;
+            addDocBtn.disabled = false;
+
+            const collection = collections.find(c => c.name === activeCollection);
+            if (!collection) return;
+
+            if (collection.loading) {
+                docsContainer.innerHTML = '<div class="loader"></div>';
+                return;
+            }
+
+            if (collection.documents.length === 0) {
+                docsContainer.innerHTML = '<div class="empty-documents">No documents in this collection</div>';
+                return;
+            }
+
+            let html = '';
+            collection.documents.forEach(doc => {
+                const activeClass = (activeDocument && activeDocument.id === doc.id) ? 'active' : '';
+                html += `<div class="document-item ${activeClass}" data-docid="${doc.id}">${escapeHtml(doc.id)}</div>`;
+            });
+            docsContainer.innerHTML = html;
+
+            // Attach click handlers
+            document.querySelectorAll('.document-item').forEach(el => {
+                el.addEventListener('click', () => {
+                    const docId = el.dataset.docid;
+                    selectDocument(docId);
+                });
+            });
+        }
+
+        // Select a document: fetch full data and show editor
+        async function selectDocument(docId) {
+            if (!activeCollection) return;
+
+            const collection = collections.find(c => c.name === activeCollection);
+            if (!collection) return;
+
+            try {
+                const docRef = db.collection(activeCollection).doc(docId);
+                const docSnap = await docRef.get();
+                if (!docSnap.exists) {
+                    alert('Document no longer exists');
+                    collection.documents = collection.documents.filter(d => d.id !== docId);
+                    updateDocumentsPanel();
+                    return;
+                }
+                activeDocument = { id: docId, data: docSnap.data() };
+                activeDocumentRef = docRef;
+            } catch (error) {
+                alert('Error fetching document: ' + error.message);
+                return;
+            }
+
+            updateDocumentsPanel();  // to highlight active document
+            updateEditorPanel();
+        }
+
+        // Render the editor with fields
+        function updateEditorPanel() {
+            const docIdSpan = document.getElementById('selectedDocId');
+            const saveBtn = document.getElementById('saveDocBtn');
+            const deleteBtn = document.getElementById('deleteDocBtn');
+            const editorFields = document.getElementById('editorFields');
+
+            if (!activeDocument) {
+                docIdSpan.innerText = 'No document selected';
+                saveBtn.disabled = true;
+                deleteBtn.disabled = true;
+                editorFields.innerHTML = '<div class="no-document-selected">← Select a document to edit</div>';
+                return;
+            }
+
+            docIdSpan.innerText = activeDocument.id;
+            saveBtn.disabled = false;
+            deleteBtn.disabled = false;
+
+            const data = activeDocument.data;
+            const fields = Object.keys(data).sort();
+
+            let html = '';
+            fields.forEach(field => {
+                const value = data[field];
+                let displayValue = '';
+                let isComplex = false;
+
+                if (value === null) displayValue = 'null';
+                else if (typeof value === 'object') {
+                    displayValue = JSON.stringify(value, null, 2);
+                    isComplex = true;
+                } else {
+                    displayValue = String(value);
+                }
+
+                html += `
+                    <div class="field-row">
+                        <div class="field-label">
+                            <span>${escapeHtml(field)}</span>
+                            <code>${typeof value === 'object' ? 'json' : typeof value}</code>
+                        </div>
+                        ${isComplex ?
+                            `<textarea class="field-input" data-field="${field}" rows="4">${escapeHtml(displayValue)}</textarea>` :
+                            `<input type="text" class="field-input" data-field="${field}" value="${escapeHtml(displayValue)}" />`
+                        }
+                    </div>
+                `;
+            });
+            editorFields.innerHTML = html;
+        }
+
+        // Save the active document
+        async function saveDocument() {
+            if (!activeDocument || !activeDocumentRef) return;
+
+            const fields = document.querySelectorAll('.field-input');
+            const updatedData = {};
+
+            fields.forEach(input => {
+                const field = input.dataset.field;
+                let value = input.value;
+                if (value.trim().startsWith('{') || value.trim().startsWith('[')) {
+                    try {
+                        value = JSON.parse(value);
+                    } catch (e) {}
+                }
+                updatedData[field] = value;
+            });
+
+            try {
+                await activeDocumentRef.update(updatedData);
+                alert('Document updated');
+                const snap = await activeDocumentRef.get();
+                activeDocument.data = snap.data();
+                // Update cache
+                const col = collections.find(c => c.name === activeCollection);
+                if (col) {
+                    const docIndex = col.documents.findIndex(d => d.id === activeDocument.id);
+                    if (docIndex !== -1) {
+                        col.documents[docIndex] = { id: activeDocument.id, ...activeDocument.data };
+                    }
+                }
+                // If we're in attempts view and this is an attempts document, refresh
+                if (currentView === 'attempts') {
+                    await loadAttemptsData();
+                }
+                updateEditorPanel();
+            } catch (error) {
+                alert('Error saving: ' + error.message);
+            }
+        }
+
+        // Delete the active document
+        async function deleteDocument() {
+            if (!activeDocument || !activeDocumentRef) return;
+            if (!confirm('Delete this document permanently?')) return;
+
+            try {
+                await activeDocumentRef.delete();
+                alert('Document deleted');
+                const col = collections.find(c => c.name === activeCollection);
+                if (col) {
+                    col.documents = col.documents.filter(d => d.id !== activeDocument.id);
+                }
+                activeDocument = null;
+                activeDocumentRef = null;
+                updateDocumentsPanel();
+                updateEditorPanel();
+                if (currentView === 'attempts') {
+                    await loadAttemptsData();
+                }
+            } catch (error) {
+                alert('Error deleting: ' + error.message);
+            }
+        }
+
+        // Add a new document (simple prompt)
+        async function addDocument() {
+            if (!activeCollection) return;
+
+            const fieldsInput = prompt('Enter field names separated by commas (e.g., name,age,email):');
+            if (!fieldsInput) return;
+
+            const fieldNames = fieldsInput.split(',').map(f => f.trim());
+            const newData = {};
+
+            for (let field of fieldNames) {
+                let value = prompt(`Enter value for "${field}" (use JSON for objects/arrays):`, '');
+                if (value === null) return;
+                if (value.trim().startsWith('{') || value.trim().startsWith('[')) {
+                    try {
+                        value = JSON.parse(value);
+                    } catch (e) {}
+                }
+                newData[field] = value;
+            }
+
+            try {
+                const docRef = await db.collection(activeCollection).add(newData);
+                alert('Document added with ID: ' + docRef.id);
+                await loadDocuments(activeCollection);
+                selectDocument(docRef.id);
+                if (currentView === 'attempts') {
+                    await loadAttemptsData();
+                }
+            } catch (error) {
+                alert('Error adding: ' + error.message);
+            }
+        }
+
+        // -------------------- ATTEMPTS TABLE FUNCTIONS --------------------
+        async function loadAttemptsData() {
+            const loader = document.getElementById('attemptsLoader');
+            const table = document.getElementById('attemptsTable');
+            const tbody = document.getElementById('attemptsTableBody');
+
+            loader.classList.remove('hidden');
+            if (table) table.style.opacity = '0.5';
+
+            attemptsCache = [];
+
+            try {
+                // Look for 'attempts' collection specifically
+                const snapshot = await db.collection('attempts').get();
+                
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    // Only include if it has at least one of our fields
+                    attemptsCache.push({
+                        id: doc.id,
+                        timestamp: data.timestamp || null,
+                        correctAnswers: data.correctAnswers || data.correct_answers || null,
+                        studentName: data.studentName || data.student_name || data.name || null,
+                        finalBalance: data.finalBalance || data.final_balance || data.balance || null
+                    });
+                });
+
+                renderAttemptsTable();
+            } catch (error) {
+                console.error('Error loading attempts:', error);
+                tbody.innerHTML = `<tr><td colspan="6" class="empty-attempts">Error loading attempts: ${error.message}</td></tr>`;
+            } finally {
+                loader.classList.add('hidden');
+                if (table) table.style.opacity = '1';
+            }
+        }
+
+        function renderAttemptsTable() {
+            const tbody = document.getElementById('attemptsTableBody');
+            
+            if (attemptsCache.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="empty-attempts">No attempts found in the "attempts" collection</td></tr>';
+                return;
+            }
+
+            let html = '';
+            attemptsCache.forEach(attempt => {
+                // Format timestamp if it's a Firestore timestamp
+                let timestampDisplay = '';
+                if (attempt.timestamp) {
+                    if (attempt.timestamp.toDate) {
+                        // It's a Firestore Timestamp
+                        timestampDisplay = attempt.timestamp.toDate().toLocaleString();
+                    } else if (attempt.timestamp.seconds) {
+                        // It's a timestamp object
+                        timestampDisplay = new Date(attempt.timestamp.seconds * 1000).toLocaleString();
+                    } else {
+                        timestampDisplay = String(attempt.timestamp);
+                    }
+                } else {
+                    timestampDisplay = '<span class="text-small">—</span>';
+                }
+
+                html += '<tr>';
+                html += `<td class="timestamp-cell">${timestampDisplay}</td>`;
+                html += `<td>${escapeHtml(attempt.studentName || '—')}</td>`;
+                html += `<td class="correct-cell">${escapeHtml(attempt.correctAnswers ?? '—')}</td>`;
+                html += `<td class="balance-cell">${escapeHtml(attempt.finalBalance ?? '—')}</td>`;
+                html += `<td class="doc-id-cell text-small">${escapeHtml(attempt.id)}</td>`;
+                html += `<td class="table-actions">
+                    <button onclick="quickEditAttempt('${attempt.id}')">✏️ Edit</button>
+                    <button class="delete-btn" onclick="quickDeleteAttempt('${attempt.id}')">🗑️</button>
+                </td>`;
+                html += '</tr>';
+            });
+            tbody.innerHTML = html;
+        }
+
+        // Quick edit: switch to explorer and load this attempt
+        window.quickEditAttempt = async function(docId) {
+            // Switch to explorer view
+            document.getElementById('explorerViewBtn').click();
+            
+            // Ensure 'attempts' collection is in our list
+            if (!collections.some(c => c.name === 'attempts')) {
+                addCollection('attempts');
+            }
+            
+            // Select the attempts collection and then the document
+            await selectCollection('attempts');
+            // Wait a moment for documents to load
+            setTimeout(() => {
+                selectDocument(docId);
+            }, 500);
+        };
+
+        window.quickDeleteAttempt = async function(docId) {
+            if (!confirm(`Delete attempt ${docId}?`)) return;
+            try {
+                await db.collection('attempts').doc(docId).delete();
+                alert('Deleted');
+                // Refresh attempts table
+                await loadAttemptsData();
+                // Also refresh in explorer if needed
+                const col = collections.find(c => c.name === 'attempts');
+                if (col) {
+                    col.documents = col.documents.filter(d => d.id !== docId);
+                }
+                if (activeDocument && activeDocument.id === docId && activeCollection === 'attempts') {
+                    activeDocument = null;
+                    activeDocumentRef = null;
+                    updateDocumentsPanel();
+                    updateEditorPanel();
+                }
+            } catch (error) {
+                alert('Error deleting: ' + error.message);
+            }
+        };
+
+        // -------------------- VIEW TOGGLING --------------------
+        function showExplorerView() {
+            document.getElementById('explorerView').classList.remove('hidden');
+            document.getElementById('attemptsView').classList.add('hidden');
+            document.getElementById('explorerViewBtn').classList.add('active');
+            document.getElementById('attemptsViewBtn').classList.remove('active');
+            currentView = 'explorer';
+        }
+
+        function showAttemptsView() {
+            document.getElementById('explorerView').classList.add('hidden');
+            document.getElementById('attemptsView').classList.remove('hidden');
+            document.getElementById('explorerViewBtn').classList.remove('active');
+            document.getElementById('attemptsViewBtn').classList.add('active');
+            currentView = 'attempts';
+            loadAttemptsData();
+        }
+
+        // -------------------- HELPER --------------------
+        function escapeHtml(unsafe) {
+            if (unsafe === undefined || unsafe === null) return '';
+            return String(unsafe).replace(/[&<>"]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                if (m === '"') return '&quot;';
+                return m;
+            });
+        }
+
+        // -------------------- INITIALIZATION --------------------
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCollections();
+            renderCollections();
+
+            // Add collection button
+            document.getElementById('addCollectionBtn').addEventListener('click', () => {
+                const input = document.getElementById('newCollectionInput');
+                const name = input.value.trim();
+                if (name) {
+                    addCollection(name);
+                    input.value = '';
+                }
+            });
+
+            // Add document button
+            document.getElementById('addDocumentBtn').addEventListener('click', addDocument);
+
+            // Save button
+            document.getElementById('saveDocBtn').addEventListener('click', saveDocument);
+
+            // Delete button
+            document.getElementById('deleteDocBtn').addEventListener('click', deleteDocument);
+
+            // View toggle
+            document.getElementById('explorerViewBtn').addEventListener('click', showExplorerView);
+            document.getElementById('attemptsViewBtn').addEventListener('click', showAttemptsView);
+
+            // Refresh attempts button
+            document.getElementById('refreshAttemptsBtn').addEventListener('click', loadAttemptsData);
+
+            // Allow Enter in new collection input
+            document.getElementById('newCollectionInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    document.getElementById('addCollectionBtn').click();
+                }
+            });
+
+            // Auto-load attempts if that's the first view? No, start with explorer.
+        });
+
+        // Expose removeCollection for debugging
+        window.removeCollection = removeCollection;
+    </script>
+</body>
+</html>
