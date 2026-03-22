@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Eid Salami Quiz - Teacher Panel</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <!-- MathJax for LaTeX preview -->
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" id="MathJax-script" async></script>
+</head>
+<body class="teacher-panel">
+    <div class="moon-decoration"></div>
+    <div class="lantern-decoration"></div>
+    
+    <div class="container">
+        <!-- Password Protection Section -->
+        <div id="passwordSection" class="password-section">
+            <div class="festive-header">
+                <h1>Teacher's Panel</h1>
+            </div>
+            <div class="password-card">
+                <div class="lock-icon">🔐</div>
+                <input type="password" id="passwordInput" placeholder="Enter Password" class="password-input">
+                <button id="submitPassword" class="glow-button">Unlock Panel</button>
+                <div id="passwordError" class="error-message"></div>
+            </div>
+        </div>
+
+        <!-- Teacher Panel Content (Hidden by default) -->
+        <div id="teacherPanel" class="teacher-panel-content hidden">
+            <div class="panel-header">
+                <h1><a href="data.html" style="color:#4A1D6D; text-decoration:none;">📝</a> Create Your Math Quiz</h1>
+                <div class="eidi-badge">Salami Maker ✨</div>
+            </div>
+
+            <!-- Quiz Setup Form -->
+            <div id="quizBuilder">
+                <div id="questionsContainer"></div>
+                
+                <button id="addQuestionBtn" class="add-question-btn">
+                    <span class="plus-icon">➕</span> Add New Question
+                </button>
+
+                <button id="createQuizBtn" class="create-quiz-btn">
+                    🎯 Create Quiz Page
+                </button>
+            </div>
+
+            <!-- Quiz URL Display (Hidden initially) -->
+            <div id="quizUrlSection" class="quiz-url-section hidden">
+                <h3>✨ Your Quiz is Ready! ✨</h3>
+                <div class="url-display">
+                    <input type="text" id="quizUrl" readonly>
+                    <button id="copyUrlBtn" class="copy-btn">📋 Copy</button>
+                </div>
+                <p class="share-note">Share this link with your students!</p>
+                <button id="createAnotherBtn" class="secondary-btn">Create Another Quiz</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="loading-spinner hidden">
+        <div class="spinner"></div>
+        <p>Loading...</p>
+    </div>
+
+    <script type="module" src="firebase.js"></script>
+    <script type="module" src="script.js"></script>
+</body>
+</html>
