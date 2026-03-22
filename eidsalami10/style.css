@@ -1,0 +1,1416 @@
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&display=swap');
+
+:root {
+    /* Dark theme colors - Gen Z vibe */
+    --bg-dark: #0a0a0f;
+    --bg-darker: #050507;
+    --bg-card: #1a1a24;
+    --bg-card-hover: #252530;
+    --primary-neon: #9146ff;
+    --secondary-neon: #ff4d6d;
+    --accent-electric: #00f5d4;
+    --accent-gold: #ffd700;
+    --correct-green: #00ff9d;
+    --wrong-red: #ff3860;
+    --text-primary: #ffffff;
+    --text-secondary: #b8b8d0;
+    --text-dim: #8a8aa8;
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --shadow-neon: 0 0 20px rgba(145, 70, 255, 0.5);
+    --shadow-gold: 0 0 30px rgba(255, 215, 0, 0.4);
+    --transition: all 0.2s ease;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Quicksand', sans-serif;
+    min-height: 100vh;
+    background: var(--bg-dark);
+    position: relative;
+    overflow-x: hidden;
+    color: var(--text-primary);
+    transition: background-color 0.2s ease;
+}
+
+/* Decorative Elements - Eid themed */
+.moon-decoration {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 80px;
+    height: 80px;
+    background: radial-gradient(circle at 30% 30%, #fff5e6, #ffe4b5);
+    border-radius: 50%;
+    box-shadow: 0 0 50px #fff5e6;
+    animation: float 6s ease-in-out infinite;
+    z-index: 0;
+    opacity: 0.8;
+}
+
+.moon-decoration::before {
+    content: "🌙";
+    position: absolute;
+    font-size: 60px;
+    top: -10px;
+    left: -10px;
+}
+
+.lantern-decoration {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    font-size: 50px;
+    animation: swing 4s ease-in-out infinite;
+    z-index: 0;
+    opacity: 0.8;
+}
+
+/* Floating elements */
+.floating-elements {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.moon {
+    position: absolute;
+    top: 50px;
+    right: 50px;
+    font-size: 80px;
+    animation: float 6s ease-in-out infinite;
+    opacity: 0.6;
+}
+
+.stars {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at 20% 20%, white 1px, transparent 1px),
+                radial-gradient(circle at 80% 40%, white 1px, transparent 1px),
+                radial-gradient(circle at 40% 70%, white 1px, transparent 1px),
+                radial-gradient(circle at 70% 90%, white 1px, transparent 1px);
+    background-size: 200px 200px;
+    opacity: 0.15;
+    animation: twinkle 3s ease-in-out infinite;
+}
+
+@keyframes twinkle {
+    0%, 100% { opacity: 0.15; }
+    50% { opacity: 0.3; }
+}
+
+/* Keyframe Animations */
+@keyframes float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(5deg); }
+}
+
+@keyframes swing {
+    0%, 100% { transform: rotate(-10deg); }
+    50% { transform: rotate(10deg); }
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes popIn {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+/* Neon glow animation */
+@keyframes neonGlow { 
+    0% { filter: drop-shadow(0 0 5px var(--primary-neon)); } 
+    50% { filter: drop-shadow(0 0 20px var(--primary-neon)); } 
+}
+
+/* Bounce animation */
+@keyframes bounce { 
+    0%, 100% { transform: scale(1); } 
+    50% { transform: scale(1.05); } 
+}
+
+/* Pulse animation */
+@keyframes pulse { 
+    0% { transform: scale(1); } 
+    50% { transform: scale(1.05); } 
+}
+
+/* Tick tock animation */
+@keyframes ticktock { 
+    0% { opacity: 1; } 
+    50% { opacity: 0.5; transform: scale(0.98); } 
+}
+
+/* Balance pop animation */
+@keyframes balancePop {
+    0% { transform: scale(0.5); opacity: 0; }
+    80% { transform: scale(1.2); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* Container */
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    position: relative;
+    z-index: 10;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+/* Password Section */
+.password-section {
+    background: var(--bg-card);
+    border-radius: 30px;
+    padding: 40px 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    animation: slideUp 0.5s ease;
+}
+
+.festive-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-bottom: 30px;
+    position: relative;
+}
+
+.festive-header h1 {
+    font-size: 3rem;
+    color: var(--text-primary);
+    text-shadow: 0 0 5px var(--primary-neon);
+}
+
+.password-card {
+    text-align: center;
+}
+
+.lock-icon {
+    font-size: 50px;
+    margin-bottom: 20px;
+    animation: shake 3s ease-in-out infinite;
+    filter: drop-shadow(0 0 10px var(--primary-neon));
+}
+
+.password-input {
+    width: 100%;
+    max-width: 300px;
+    padding: 15px 20px;
+    font-size: 1.1rem;
+    background: var(--bg-darker);
+    border: 2px solid var(--glass-border);
+    color: var(--text-primary);
+    border-radius: 50px;
+    margin-bottom: 20px;
+    font-family: 'Quicksand', sans-serif;
+    transition: all 0.3s;
+}
+
+.password-input:focus {
+    outline: none;
+    border-color: var(--primary-neon);
+    box-shadow: var(--shadow-neon);
+    transform: scale(1.02);
+}
+
+.glow-button {
+    background: linear-gradient(45deg, var(--primary-neon), var(--secondary-neon));
+    color: white;
+    border: none;
+    padding: 15px 40px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 0 20px var(--primary-neon);
+    font-family: 'Quicksand', sans-serif;
+}
+
+.glow-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 30px var(--primary-neon);
+}
+
+.error-message {
+    color: var(--wrong-red);
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+/* Teacher Panel */
+.teacher-panel-content {
+    background: var(--bg-card);
+    border-radius: 30px;
+    padding: 30px;
+    border: 1px solid var(--glass-border);
+    animation: slideUp 0.5s ease;
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+}
+
+.panel-header h1 a {
+    color: var(--text-primary);
+    text-decoration: none;
+}
+
+.eidi-badge {
+    background: linear-gradient(45deg, var(--accent-gold), var(--secondary-neon));
+    padding: 10px 20px;
+    border-radius: 50px;
+    font-weight: bold;
+    color: var(--bg-darker);
+    animation: pulse 2s infinite;
+}
+
+/* Question Blocks */
+.question-block {
+    background: var(--bg-darker);
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 2px solid var(--glass-border);
+    position: relative;
+    animation: slideIn 0.3s ease;
+}
+
+.question-block:hover {
+    border-color: var(--primary-neon);
+    box-shadow: var(--shadow-neon);
+}
+
+.question-header {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.question-number-label {
+    font-weight: bold;
+    color: var(--primary-neon);
+    font-size: 1.1rem;
+    min-width: 100px;
+}
+
+.timer-input {
+    padding: 10px;
+    background: var(--bg-card);
+    border: 2px solid var(--glass-border);
+    color: var(--text-primary);
+    border-radius: 10px;
+    font-family: 'Quicksand', sans-serif;
+    width: 120px;
+}
+
+.math-input-group {
+    margin-bottom: 15px;
+}
+
+.math-input-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--text-secondary);
+}
+
+.question-text-input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 10px;
+    background: var(--bg-card);
+    border: 2px solid var(--glass-border);
+    color: var(--text-primary);
+    border-radius: 10px;
+    font-family: 'Quicksand', sans-serif;
+    resize: vertical;
+}
+
+.preview-area {
+    background: var(--bg-card);
+    border-radius: 10px;
+    padding: 15px;
+    margin-top: 10px;
+    border-left: 4px solid var(--primary-neon);
+    min-height: 50px;
+    color: var(--text-secondary);
+}
+
+.options-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.option-input {
+    padding: 10px;
+    background: var(--bg-card);
+    border: 2px solid var(--glass-border);
+    color: var(--text-primary);
+    border-radius: 10px;
+    font-family: 'Quicksand', sans-serif;
+}
+
+.correct-option {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-top: 10px;
+    padding: 10px;
+    background: rgba(0, 255, 157, 0.1);
+    border: 1px solid var(--correct-green);
+    border-radius: 10px;
+    flex-wrap: wrap;
+    color: var(--text-secondary);
+}
+
+.correct-option label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    color: var(--text-primary);
+}
+
+.remove-question {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: var(--wrong-red);
+    color: white;
+    border: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s;
+}
+
+.remove-question:hover {
+    transform: scale(1.1);
+}
+
+.add-question-btn {
+    width: 100%;
+    padding: 15px;
+    background: transparent;
+    border: 2px dashed var(--primary-neon);
+    color: var(--primary-neon);
+    border-radius: 50px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    margin: 20px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.3s;
+}
+
+.add-question-btn:hover {
+    background: var(--primary-neon);
+    color: white;
+}
+
+.create-quiz-btn {
+    width: 100%;
+    padding: 20px;
+    background: linear-gradient(45deg, var(--primary-neon), var(--secondary-neon));
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-size: 1.3rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: var(--shadow-neon);
+}
+
+.create-quiz-btn:hover {
+    transform: scale(1.02);
+    box-shadow: 0 0 30px var(--primary-neon);
+}
+
+/* Quiz URL Section */
+.quiz-url-section {
+    text-align: center;
+    animation: popIn 0.5s ease;
+    margin-top: 30px;
+}
+
+.url-display {
+    display: flex;
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.url-display input {
+    flex: 1;
+    padding: 15px;
+    background: var(--bg-darker);
+    border: 2px solid var(--glass-border);
+    color: var(--text-primary);
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-family: 'Quicksand', sans-serif;
+}
+
+.copy-btn {
+    padding: 15px 30px;
+    background: var(--primary-neon);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 1.2rem;
+    color: white;
+    transition: all 0.3s;
+}
+
+.copy-btn:hover {
+    transform: scale(1.05);
+    background: var(--secondary-neon);
+}
+
+.share-note {
+    color: var(--text-dim);
+    margin-top: 10px;
+    font-style: italic;
+}
+
+.secondary-btn {
+    padding: 15px 30px;
+    background: transparent;
+    border: 2px solid var(--primary-neon);
+    color: var(--primary-neon);
+    border-radius: 50px;
+    cursor: pointer;
+    font-size: 1rem;
+    margin-top: 20px;
+    transition: all 0.3s;
+}
+
+.secondary-btn:hover {
+    background: var(--primary-neon);
+    color: white;
+}
+
+/* Student Quiz Page */
+.name-entry-screen,
+.quiz-screen {
+    background: var(--bg-card);
+    border-radius: 30px;
+    padding: 40px 20px;
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.name-card {
+    text-align: center;
+}
+
+.name-card h2 {
+    margin-bottom: 20px;
+    color: var(--text-primary);
+}
+
+.name-input {
+    width: 100%;
+    max-width: 300px;
+    padding: 15px;
+    font-size: 1.1rem;
+    background: var(--bg-darker);
+    border: 2px solid var(--glass-border);
+    color: var(--text-primary);
+    border-radius: 50px;
+    margin-bottom: 20px;
+    font-family: 'Quicksand', sans-serif;
+    text-align: center;
+}
+
+.start-btn {
+    background: linear-gradient(45deg, var(--primary-neon), var(--secondary-neon));
+    color: white;
+    border: none;
+    padding: 15px 50px;
+    font-size: 1.3rem;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s;
+    opacity: 0.5;
+}
+
+.start-btn:enabled {
+    opacity: 1;
+    animation: bounce 2s infinite;
+}
+
+.start-btn:enabled:hover {
+    transform: scale(1.05);
+}
+
+/* Quiz Header */
+.quiz-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+/* Eidi Balance */
+.eidi-balance {
+    background: linear-gradient(135deg, var(--primary-neon), var(--secondary-neon));
+    padding: 10px 25px;
+    border-radius: 50px;
+    font-size: 1.3rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 0 10px var(--primary-neon);
+    color: white;
+}
+
+#balanceValue {
+    font-size: 1.8rem;
+    margin: 0 5px;
+}
+
+/* Glow animation for balance when correct */
+.glow { 
+    animation: neonGlow 2s infinite; 
+}
+
+/* Progress Bar */
+.progress-container {
+    background: var(--bg-darker);
+    height: 10px;
+    border-radius: 5px;
+    margin-bottom: 30px;
+    position: relative;
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-neon), var(--accent-electric));
+    border-radius: 5px;
+    transition: width 0.5s ease;
+    width: 0%;
+}
+
+#questionCount {
+    position: absolute;
+    right: 0;
+    top: -25px;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    font-weight: bold;
+}
+
+/* Question Card */
+.question-card {
+    background: var(--bg-darker);
+    border-radius: 20px;
+    padding: 25px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--glass-border);
+    transition: all 0.3s;
+}
+
+.question-card:hover {
+    border-color: var(--primary-neon);
+}
+
+.question-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.question-number {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: var(--primary-neon);
+}
+
+.timer-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.timer-box {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border: 2px solid var(--primary-neon);
+    padding: 12px 20px;
+    border-radius: 60px;
+    font-size: 1.6rem;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    min-width: 80px;
+    text-align: center;
+}
+
+/* Timeout animation */
+.timeout-animation {
+    animation: ticktock 0.8s infinite;
+    background: var(--wrong-red) !important;
+    border-color: var(--wrong-red) !important;
+    color: white !important;
+}
+
+.question-text {
+    font-size: 1.3rem;
+    margin-bottom: 25px;
+    line-height: 1.4;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* Options Container */
+.options-container {
+    display: grid;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.option {
+    background: var(--bg-card);
+    border: 2px solid var(--glass-border);
+    border-radius: 15px;
+    padding: 15px 20px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: left;
+    width: 100%;
+    font-family: 'Quicksand', sans-serif;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.option:hover:not(:disabled) {
+    transform: scale(1.02);
+    background: var(--bg-card-hover);
+    border-color: var(--primary-neon);
+    box-shadow: var(--shadow-neon);
+}
+
+/* Correct answer feedback animation */
+.correct-feedback {
+    background: rgba(0, 255, 157, 0.2) !important;
+    border-color: var(--correct-green) !important;
+    color: var(--correct-green) !important;
+    animation: bounce 0.4s;
+}
+
+/* Wrong answer feedback animation */
+.wrong-feedback {
+    background: rgba(255, 56, 96, 0.2) !important;
+    border-color: var(--wrong-red) !important;
+    color: var(--wrong-red) !important;
+    animation: shake 0.3s;
+}
+
+.option:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* Next Button */
+.next-btn {
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(45deg, var(--primary-neon), var(--secondary-neon));
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    animation: slideUp 0.3s ease;
+}
+
+.next-btn:hover:not(:disabled) {
+    transform: scale(1.02);
+    box-shadow: var(--shadow-neon);
+}
+
+.next-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Pulse animation for buttons */
+.pulse { 
+    animation: pulse 1.5s infinite; 
+}
+
+/* Loading Spinner */
+.loading-spinner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid var(--bg-card);
+    border-top: 5px solid var(--primary-neon);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.loading-spinner p {
+    color: var(--text-primary);
+    margin-top: 20px;
+    font-size: 1.2rem;
+}
+
+/* RESULT PAGE STYLES - Dark Theme for Gen-Z */
+.result-page {
+    background: linear-gradient(135deg, #0a0a0f 0%, #1a1a24 100%);
+    position: relative;
+    overflow: hidden;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+}
+
+.confetti-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Hide scrollbar for all browsers on result page */
+body.result-page {
+    overflow-y: auto;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+body.result-page::-webkit-scrollbar {
+    display: none;
+}
+
+.result-container {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.moon-ornament {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 60px;
+    animation: float 6s ease-in-out infinite;
+    z-index: 1000;
+    filter: drop-shadow(0 0 20px var(--accent-gold));
+}
+
+.lantern-ornament {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    font-size: 50px;
+    animation: swing 4s ease-in-out infinite;
+    z-index: 1000;
+    filter: drop-shadow(0 0 20px var(--primary-neon));
+}
+
+.result-card {
+    background: var(--bg-card);
+    backdrop-filter: blur(10px);
+    border: 2px solid var(--glass-border);
+    border-radius: 40px;
+    padding: 50px 30px;
+    text-align: center;
+    position: relative;
+    box-shadow: 0 0 50px var(--primary-neon);
+    animation: glowRotate 4s linear infinite;
+    max-width: 600px;
+    width: 90%;
+    margin: 20px auto;
+    max-height: 90vh;
+    overflow-y: auto;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.result-card::-webkit-scrollbar {
+    display: none;
+}
+
+@keyframes glowRotate {
+    0%, 100% { box-shadow: 0 0 50px var(--primary-neon); }
+    50% { box-shadow: 0 0 80px var(--secondary-neon); }
+}
+
+.eid-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 3rem;
+    color: var(--text-primary);
+    margin-bottom: 20px;
+    text-shadow: 0 0 5px var(--accent-gold);
+    animation: bounceText 2s ease infinite;
+}
+
+@keyframes bounceText {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+.name-greeting {
+    font-size: 2rem;
+    color: var(--accent-electric);
+    margin-bottom: 30px;
+    font-weight: bold;
+    text-shadow: 0 0 10px var(--accent-electric);
+}
+
+.eidi-display {
+    background: linear-gradient(135deg, var(--primary-neon), var(--secondary-neon));
+    border-radius: 100px;
+    padding: 30px;
+    margin: 30px 0;
+    animation: scalePulse 2s infinite;
+}
+
+@keyframes scalePulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.eidi-amount {
+    font-size: 5rem;
+    font-weight: bold;
+    color: white;
+    line-height: 1;
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+}
+
+.eidi-amount::before {
+    content: "৳";
+    margin-right: 10px;
+    font-size: 4rem;
+}
+
+.eidi-label {
+    font-size: 1.5rem;
+    color: rgba(255, 255, 255, 0.9);
+    margin-top: 10px;
+    letter-spacing: 2px;
+}
+
+.love-message {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    margin: 30px 0;
+    font-style: italic;
+    line-height: 1.6;
+    padding: 0 20px;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.action-btn {
+    padding: 15px 30px;
+    border: none;
+    border-radius: 50px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: 'Quicksand', sans-serif;
+    min-width: 140px;
+}
+
+.action-btn.bounce {
+    background: var(--primary-neon);
+    color: white;
+    animation: bounce 2s infinite;
+    box-shadow: 0 0 10px var(--primary-neon);
+}
+
+.action-btn.pulse {
+    background: #25D366;
+    color: white;
+    animation: pulse 2s infinite;
+    box-shadow: 0 0 10px #25D366;
+}
+
+.action-btn.glow {
+    background: linear-gradient(45deg, var(--accent-gold), var(--secondary-neon));
+    color: var(--bg-darker);
+    animation: glow 2s infinite;
+    font-weight: 700;
+}
+
+.action-btn:hover {
+    transform: scale(1.05);
+    filter: brightness(1.2);
+}
+
+/* Instruction Modal Styles */
+.modal {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(8px);
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease;
+}
+
+.modal-content {
+    background: var(--bg-card);
+    max-width: 500px;
+    width: 90%;
+    border-radius: 24px;
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    animation: slideUp 0.4s ease;
+}
+
+.modal-header {
+    text-align: center;
+    padding: 24px 24px 16px;
+    background: var(--bg-darker);
+    border-bottom: 3px solid var(--primary-neon);
+    border-radius: 24px 24px 0 0;
+}
+
+.modal-header h2 {
+    color: var(--text-primary);
+    font-size: 1.6rem;
+    margin: 8px 0 4px;
+    font-weight: 600;
+}
+
+.modal-body {
+    padding: 20px 24px;
+    background: var(--bg-card);
+}
+
+.instruction-card {
+    background: var(--bg-darker);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 12px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    border: 1px solid var(--glass-border);
+    transition: all 0.2s ease;
+}
+
+.instruction-card:hover {
+    border-color: var(--primary-neon);
+    box-shadow: var(--shadow-neon);
+}
+
+.instruction-icon {
+    font-size: 1.8rem;
+    min-width: 48px;
+    height: 48px;
+    background: var(--bg-card);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--glass-border);
+    color: var(--primary-neon);
+}
+
+.instruction-text {
+    flex: 1;
+}
+
+.instruction-text h3 {
+    color: var(--text-primary);
+    font-size: 1.1rem;
+    margin: 0 0 8px;
+    font-weight: 600;
+}
+
+.instruction-text p {
+    margin: 4px 0;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+.eidi-amount-modal {
+    color: var(--accent-electric);
+    font-weight: 700;
+    font-size: 1.2rem;
+}
+
+.correct {
+    color: var(--correct-green);
+    font-weight: 600;
+    margin-right: 12px;
+}
+
+.wrong {
+    color: var(--wrong-red);
+    font-weight: 600;
+}
+
+.timeout {
+    color: var(--text-dim);
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.blessing-message {
+    text-align: center;
+    margin-top: 20px;
+    padding: 16px;
+    background: var(--bg-darker);
+    border-radius: 12px;
+    border: 1px solid var(--primary-neon);
+}
+
+.blessing-message p {
+    color: var(--text-primary);
+    font-weight: 500;
+    margin: 4px 0;
+}
+
+.modal-footer {
+    padding: 20px 24px;
+    text-align: center;
+    background: var(--bg-darker);
+    border-top: 1px solid var(--glass-border);
+    border-radius: 0 0 24px 24px;
+}
+
+.continue-btn {
+    background: linear-gradient(45deg, var(--primary-neon), var(--secondary-neon));
+    color: white;
+    border: none;
+    padding: 12px 32px;
+    font-size: 1.1rem;
+    font-weight: 500;
+    border-radius: 50px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+    box-shadow: 0 0 20px var(--primary-neon);
+}
+
+.continue-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 30px var(--primary-neon);
+}
+
+/* Utility Classes */
+.hidden {
+    display: none !important;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 600px) {
+    .container {
+        padding: 10px;
+    }
+    
+    .festive-header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .question-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .options-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .result-card {
+        padding: 30px 20px;
+    }
+    
+    .eid-title {
+        font-size: 2.2rem;
+    }
+    
+    .eidi-amount {
+        font-size: 3.5rem;
+    }
+    
+    .eidi-amount::before {
+        font-size: 2.8rem;
+    }
+    
+    .name-greeting {
+        font-size: 1.5rem;
+    }
+    
+    .love-message {
+        font-size: 1rem;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .action-btn {
+        width: 100%;
+        max-width: 250px;
+    }
+    
+    .moon-decoration {
+        width: 50px;
+        height: 50px;
+        font-size: 40px;
+    }
+    
+    .lantern-decoration {
+        font-size: 30px;
+    }
+    
+    .eidi-display {
+        padding: 25px;
+    }
+    
+    .timer-box {
+        font-size: 1.3rem;
+        padding: 8px 15px;
+    }
+    
+    .question-text {
+        font-size: 1.1rem;
+    }
+}
+
+/* Touch-friendly improvements */
+@media (hover: none) {
+    .option:hover:not(:disabled) {
+        transform: none;
+    }
+    
+    .glow-button:hover,
+    .action-btn:hover,
+    .start-btn:enabled:hover {
+        transform: none;
+    }
+}
+
+/* Print styles */
+@media print {
+    .moon-decoration,
+    .lantern-decoration,
+    .confetti-container,
+    .action-btn {
+        display: none;
+    }
+}
+
+
+/* Modal Scrollable Styles */
+.modal-content {
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-body {
+    overflow-y: auto;
+    padding: 20px 24px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary-neon) var(--bg-darker);
+}
+
+/* Custom scrollbar for WebKit browsers */
+.modal-body::-webkit-scrollbar {
+    width: 8px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+    background: var(--bg-darker);
+    border-radius: 10px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+    background: var(--primary-neon);
+    border-radius: 10px;
+    border: 2px solid var(--bg-darker);
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+    background: var(--secondary-neon);
+}
+
+/* Syllabus Cards */
+.syllabus-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.syllabus-card {
+    background: linear-gradient(135deg, var(--bg-darker), var(--bg-card));
+    border: 2px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 16px;
+    transition: all 0.3s ease;
+}
+
+.syllabus-card:hover {
+    border-color: var(--primary-neon);
+    box-shadow: var(--shadow-neon);
+    transform: translateY(-2px);
+}
+
+.syllabus-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+
+.syllabus-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.syllabus-chapters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding-left: 60px;
+}
+
+.chapter-badge {
+    background: linear-gradient(135deg, var(--primary-neon), var(--secondary-neon));
+    color: white;
+    padding: 6px 16px;
+    border-radius: 30px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.chapter-badge.general {
+    background: linear-gradient(135deg, var(--accent-electric), var(--primary-neon));
+}
+
+/* Update instruction cards for better spacing */
+.instruction-card {
+    margin-bottom: 12px;
+}
+
+/* Ensure modal header is fixed */
+.modal-header {
+    flex-shrink: 0;
+}
+
+/* Ensure modal footer is fixed */
+.modal-footer {
+    flex-shrink: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+    .modal-content {
+        max-height: 90vh;
+    }
+    
+    .syllabus-chapters {
+        padding-left: 0;
+        margin-top: 10px;
+    }
+    
+    .chapter-badge {
+        font-size: 0.8rem;
+        padding: 4px 12px;
+    }
+}
