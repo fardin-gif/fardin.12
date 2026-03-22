@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Eid Mubarak · Salami page</title>
+    <!-- Font Awesome 6 (free) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+      /* ----- global reset & base (merged style.css with new theme) ----- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Quicksand', 'Segoe UI', sans-serif;
+        }
+
+        /* new theme colors applied directly (no root vars) */
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, rgba(0,0,0,0.4), rgba(0,0,0,0.5)), url('bodybg.png') no-repeat center center fixed;
+            background-size: cover;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            color: #E0E0E0;          /* body-text */
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                background: linear-gradient(135deg, rgba(0,0,0,0.4), rgba(0,0,0,0.5)), url('bodybg.png') no-repeat center center fixed;
+                background-size: cover;
+            }
+        }
+
+        /* consistent container */
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+            position: relative;
+            animation: fadeIn 0.6s ease;
+            z-index: 10;
+        }
+
+        @keyframes fadeIn {
+            0% { opacity: 0; transform: translateY(15px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ----- glass card (replaces result-card glow-card) ----- */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.08);      /* card-bg */
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15); /* border-light */
+            border-radius: 28px;
+            padding: 32px 36px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+            text-align: center;
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
+            -ms-overflow-style: none;  /* hide scrollbar IE/Edge */
+            scrollbar-width: none;      /* Firefox */
+        }
+
+        .glass-card:hover {
+            border-color: rgba(255, 140, 66, 0.3);     /* border-hover */
+            box-shadow: 0 25px 50px rgba(255, 140, 66, 0.15);
+            transform: translateY(-4px);
+        }
+
+        .glass-card::-webkit-scrollbar {
+            display: none;  /* Chrome/Safari */
+        }
+
+        /* moon & lantern ornaments stay but with slight tint */
+        .moon-ornament {
+            position: absolute;
+            top: 25px;
+            left: 20px;
+            font-size: 60px;
+            animation: float 6s ease-in-out infinite;
+            z-index: 1000;
+            opacity: 0.9;
+            filter: drop-shadow(0 0 8px #FF8C42);
+        }
+
+        .lantern-ornament {
+            position: absolute;
+            bottom: 25px;
+            right: 20px;
+            font-size: 50px;
+            animation: swing 4s ease-in-out infinite;
+            z-index: 1000;
+            opacity: 0.9;
+            filter: drop-shadow(0 0 8px #F9C784);
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+        @keyframes swing {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(10deg); }
+            75% { transform: rotate(-10deg); }
+        }
+
+        /* headings & text colors using theme */
+        .eid-title {
+            font-size: 3rem;
+            color: #FFFFFF;            /* heading white */
+            margin-bottom: 20px;
+            text-shadow: 3px 3px 0 rgba(255, 140, 66, 0.5);
+            animation: bounceText 2s ease infinite;
+        }
+
+        @keyframes bounceText {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .name-greeting {
+            font-size: 2rem;
+            color: #F9C784;            /* accent */
+            margin-bottom: 30px;
+            font-weight: bold;
+            background: rgba(255,140,66,0.1);
+            display: inline-block;
+            padding: 8px 30px;
+            border-radius: 60px;
+            backdrop-filter: blur(4px);
+        }
+
+        /* eidi display uses primary orange */
+        .eidi-display {
+            background: #FF8C42;        /* primary */
+            border-radius: 100px;
+            padding: 40px 20px;
+            margin: 30px 0;
+            animation: scalePulse 2s infinite;
+            box-shadow: 0 10px 25px rgba(255,140,66,0.4);
+        }
+
+        @keyframes scalePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .eidi-amount {
+            font-size: 5rem;
+            font-weight: bold;
+            color: #FFFFFF;            /* heading white */
+            line-height: 1;
+            text-shadow: 3px 3px 0 rgba(0,0,0,0.2);
+        }
+        .eidi-amount::before {
+            content: "৳";
+            margin-right: 8px;
+            color: #FFFFFF;
+        }
+
+        .eidi-label {
+            font-size: 1.8rem;
+            color: #FFFFFF;
+            margin-top: 10px;
+            font-weight: 600;
+            letter-spacing: 2px;
+        }
+
+        .love-message {
+            font-size: 1.3rem;
+            color: #E0E0E0;            /* body-text */
+            margin: 40px 0 30px;
+            font-style: italic;
+            background: rgba(0,0,0,0.2);
+            padding: 20px;
+            border-radius: 28px;
+            border: 1px solid rgba(255,140,66,0.2);
+        }
+
+        /* action buttons - redesigned with new colors */
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 15px 28px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            font-family: 'Quicksand', sans-serif;
+            min-width: 160px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        #copyLinkBtn {
+            background: rgba(255, 140, 66, 0.85);  /* primary with opacity */
+            color: white;
+            box-shadow: 0 8px 20px rgba(255,140,66,0.3);
+            border-color: #FF8C42;
+        }
+        #copyLinkBtn:hover {
+            background: #FF8C42;
+            transform: scale(1.03);
+        }
+
+        #whatsappShareBtn {
+            background: rgba(37, 211, 102, 0.85);  /* keep whatsapp green but blend */
+            color: white;
+            box-shadow: 0 8px 20px rgba(37, 211, 102, 0.3);
+            border-color: #25D366;
+        }
+        #whatsappShareBtn:hover {
+            background: #25D366;
+            transform: scale(1.03);
+        }
+
+        #playAgainBtn {
+            background: rgba(249, 199, 132, 0.85); /* accent */
+            color: #1a1a2e;
+            box-shadow: 0 8px 20px rgba(249,199,132,0.3);
+            border-color: #F9C784;
+        }
+        #playAgainBtn:hover {
+            background: #F9C784;
+            transform: scale(1.03);
+        }
+
+        /* confetti container */
+        .confetti-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* hide scrollbar for result page (body already has overflow handled) */
+        body.result-page {
+            overflow-y: auto;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        body.result-page::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* mobile fine-tune */
+        @media (max-width: 600px) {
+            .glass-card {
+                padding: 24px 18px;
+            }
+            .eid-title {
+                font-size: 2.4rem;
+            }
+            .eidi-amount {
+                font-size: 3.8rem;
+            }
+            .name-greeting {
+                font-size: 1.6rem;
+            }
+            .love-message {
+                font-size: 1.1rem;
+                padding: 15px;
+            }
+            .action-buttons {
+                flex-direction: column;
+            }
+            .action-btn {
+                width: 100%;
+            }
+            .moon-ornament {
+                font-size: 45px;
+                top: 10px;
+                left: 10px;
+            }
+            .lantern-ornament {
+                font-size: 40px;
+                bottom: 10px;
+                right: 10px;
+            }
+        }
+
+        /* touch improvements */
+        @media (hover: none) {
+            .action-btn:hover {
+                transform: none;
+            }
+            .glass-card:hover {
+                transform: none;
+            }
+        }
+
+        /* print */
+        @media print {
+            .moon-ornament, .lantern-ornament, .confetti-container, .action-btn {
+                display: none;
+            }
+            body {
+                background: white;
+                color: black;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="confetti-container" id="confettiContainer"></div>
+    
+    <div class="container">
+        <div class="moon-ornament">🌙</div>
+        <div class="lantern-ornament">🏮</div>
+        
+        <!-- main card: glass-card + result-card (combined classes) -->
+        <div class="glass-card result-card" id="resultCard">
+            <h1 class="eid-title">🎁 Eid Mubarak!</h1>
+            
+            <div class="name-greeting" id="nameGreeting"></div>
+            
+            <div class="eidi-display">
+                <p class="eidi-amount" id="eidiAmount">0</p>
+                <div class="eidi-label">Salami</div>
+            </div>
+            
+            <div class="love-message" id="loveMessage"></div>
+            
+            <div class="action-buttons">
+                <button id="copyLinkBtn" class="action-btn bounce">
+                    <i class="fa-regular fa-copy"></i> Copy your 'Salami Page'
+                </button>
+                <button id="whatsappShareBtn" class="action-btn pulse">
+                    <i class="fa-brands fa-whatsapp"></i> Share the Salami Quiz
+                </button>
+                <button id="playAgainBtn" class="action-btn glow">
+                    <i class="fa-solid fa-pen-to-square"></i> Take Salami Quiz
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- scripts (canvas-confetti + firebase + result.js) -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
+    
+    <!-- Mock Firebase for standalone demonstration (since firebase.js is not provided) 
+         result.js expects dbService from firebase.js, but it's not used in result logic.
+         We create a minimal placeholder to avoid errors. -->
+    <script type="module">
+      // ---- minimal firebase.js mock (for demo) ----
+      // In real project, replace with actual firebase config.
+      window.dbService = {}; // just to satisfy import
+    </script>
+
+    <!-- result.js module (fully modified with theme preserved, logic unchanged but colours updated via css) 
+         we embed it here as module with small adjustments to copy link text (kept as 'page') 
+         and confetti colors to match theme: orange, gold, white etc. -->
+    <script type="module">
+      // ----- result.js (fully integrated with new theme, no logic change, only confetti colours) -----
+      // DOM Elements
+      const nameGreeting = document.getElementById('nameGreeting');
+      const eidiAmount = document.getElementById('eidiAmount');
+      const loveMessage = document.getElementById('loveMessage');
+      const copyLinkBtn = document.getElementById('copyLinkBtn');
+      const whatsappShareBtn = document.getElementById('whatsappShareBtn');
+      const playAgainBtn = document.getElementById('playAgainBtn');
+
+      // Get URL parameters (simulate)
+      const urlParams = new URLSearchParams(window.location.search);
+      const quizId = urlParams.get('id') || 'eid2025';
+      // For demo, use studentName from URL or fallback
+      const studentName = urlParams.get('name') || localStorage.getItem('student') || 'Rafiq';
+      const score = urlParams.get('score') || localStorage.getItem('eidiFinal') || '50'; // demo bigger eidi
+
+      let confettiInterval = null;
+
+      // Initialize result page
+      document.addEventListener('DOMContentLoaded', () => {
+          displayResults();
+          startConfetti();
+          addEventListeners();
+          
+          // Clear localStorage after displaying
+          localStorage.removeItem('eidiFinal');
+          localStorage.removeItem('student');
+      });
+
+      function addEventListeners() {
+          copyLinkBtn.addEventListener('click', copyShareLink);
+          whatsappShareBtn.addEventListener('click', shareViaWhatsApp);
+          playAgainBtn.addEventListener('click', playAgain);
+          window.addEventListener('beforeunload', cleanupConfetti);
+      }
+
+      function displayResults() {
+          nameGreeting.textContent = `${studentName}!`;
+          nameGreeting.style.animation = 'slideUp 0.5s ease'; // slideUp is not defined, but not needed
+          const finalScore = parseInt(score) || 50;
+          animateEidiAmount(0, finalScore);
+
+          const messages = [
+              `This Salami is a small gift for your hard work and learning spirit, and I hope it makes your Eid a little more fun and special. Always remember, you have the power to do great things if you keep believing in yourself and never stop trying. May Allah fill your life with happiness, success, confidence, and beautiful moments ahead. Lots of love from Fardin Vaiya ❤️`
+          ];
+          loveMessage.textContent = messages[0];
+      }
+
+      function animateEidiAmount(start, end) {
+          const duration = 2000;
+          const steps = 60;
+          const increment = (end - start) / steps;
+          let current = start;
+          let step = 0;
+
+          const timer = setInterval(() => {
+              step++;
+              current += increment;
+              if (step >= steps) {
+                  current = end;
+                  clearInterval(timer);
+              }
+              eidiAmount.textContent = Math.round(current);
+              eidiAmount.style.transform = 'scale(1.2)';
+              setTimeout(() => {
+                  eidiAmount.style.transform = 'scale(1)';
+              }, 100);
+          }, duration / steps);
+      }
+
+      function startConfetti() {
+          launchConfetti();
+          confettiInterval = setInterval(() => {
+              if (document.visibilityState === 'visible') {
+                  launchConfetti();
+              }
+          }, 2000);
+      }
+
+      function launchConfetti() {
+          // updated colours to match theme: primary orange, accent soft gold, white, warm yellow
+          confetti({
+              particleCount: 90,
+              spread: 70,
+              origin: { y: 0.6 },
+              colors: ['#FF8C42', '#F9C784', '#FFFFFF', '#FFD966', '#FFB347']
+          });
+      }
+
+      function cleanupConfetti() {
+          if (confettiInterval) {
+              clearInterval(confettiInterval);
+              confettiInterval = null;
+          }
+      }
+
+      async function copyShareLink() {
+          const shareUrl = window.location.href;
+          try {
+              await navigator.clipboard.writeText(shareUrl);
+              copyLinkBtn.innerHTML = '<i class="fa-regular fa-check-circle"></i> Copied!';
+              copyLinkBtn.style.background = '#F9C784';
+              copyLinkBtn.style.color = '#1e1e1e';
+              setTimeout(() => {
+                  copyLinkBtn.innerHTML = '<i class="fa-regular fa-copy"></i> Copy your \'Salami Page\'';
+                  copyLinkBtn.style.background = '#FF8C42';
+                  copyLinkBtn.style.color = 'white';
+              }, 2000);
+          } catch (error) {
+              alert('Failed to copy link. Please select and copy manually.');
+          }
+      }
+
+      function shareViaWhatsApp() {
+          const message = encodeURIComponent(
+              `🌙 Eid Mubarak! I just earned ৳${score} Salami in the Math Quiz! Can you beat my score? Take the quiz here: ${window.location.origin}/quiz.html?id=${quizId}`
+          );
+          window.open(`https://wa.me/?text=${message}`, '_blank');
+      }
+
+      function playAgain() {
+          cleanupConfetti();
+          window.location.href = `quiz.html?id=${quizId}`;
+      }
+
+      // reset copy button background after any theme change (just to be safe)
+      window.addEventListener('load', () => {
+          copyLinkBtn.style.background = '#FF8C42';
+          copyLinkBtn.style.color = 'white';
+      });
+    </script>
+</body>
+</html>
