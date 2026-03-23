@@ -239,7 +239,7 @@ function selectOption(e, selectedIndex) {
         setTimeout(() => balanceDisplay.classList.remove('glow'), 400);
     } else {
         // WRONG ANSWER
-        balance = Math.max(20, balance - 3);
+        balance = Math.max(20, balance - 2);
         e.currentTarget.classList.add('wrong-feedback');
         document.querySelectorAll('.option')[question.correctIndex].classList.add('correct-feedback');
         document.body.style.backgroundColor = '#ffcccb';
