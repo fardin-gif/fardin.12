@@ -128,7 +128,7 @@ async function copyShareLink() {
 // Share via WhatsApp
 function shareViaWhatsApp() {
     const message = encodeURIComponent(
-        `${window.location.origin}/quiz.html?id=${quizId}`
+        `Hey! I just took part in Fardin Bhaiya’s 'Eid Salami Quiz', and it’s actually pretty cool—the questions are straight from our textbooks!\n\nYou can check out my awesome Salami card here: ${window.location.href}\n\n If you want your Salami card too, join your quiz here: ${window.location.origin}/fardin.12/eidsalami5/quiz.html?id=${quizId}`
     );
     window.open(`https://wa.me/?text=${message}`, '_blank');
 }
