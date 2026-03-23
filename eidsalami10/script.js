@@ -171,7 +171,7 @@ async function createQuiz() {
         });
         
         // Generate and display URL
-        const url = `${window.location.origin}/eidsalami10/quiz.html?id=${quizId}`;
+        const url = `${window.location.origin}/fardin.12/eidsalami10/quiz.html?id=${quizId}`;
         quizUrl.value = url;
         
         // Show URL section
