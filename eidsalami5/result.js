@@ -42,7 +42,7 @@ function displayResults() {
 
     // Set love message
     const messages = [
-        `This Salami is a small gift for your hard work and learning spirit, and I hope it makes your Eid a little more fun and special. Always remember, you have the power to do great things if you keep believing in yourself and never stop trying. May Allah fill your life with happiness, success, confidence, and beautiful moments ahead. Lots of love from Fardin Vaiya ❤️`
+        `This Salami is a small gift for your hard work and learning spirit, and I hope it makes your Eid a little more fun and special. May Allah fill your life with happiness, success, confidence, and beautiful moments ahead. Lots of love from Fardin Vaiya ❤️`
     ];
     const randomMessage = messages[Math.floor(Math.random() * messages.length)];
     loveMessage.textContent = randomMessage;
