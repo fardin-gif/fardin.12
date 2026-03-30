@@ -514,6 +514,104 @@ body {
     text-align: center;
 }
 
+/* Additional CSS for phone number field – add to your style.css */
+.phone-field {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: #fff;
+    border: 3px solid var(--primary-gold);
+    border-radius: 50px;
+    padding: 0 15px;
+    margin-bottom: 20px;
+    transition: all 0.3s;
+    width: 100%;
+    max-width: 350px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.phone-prefix {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #4A1D6D;
+    background: #f8f3e6;
+    padding: 10px 8px;
+    border-radius: 50px 0 0 50px;
+    font-family: monospace;
+}
+
+.phone-input {
+    flex: 1;
+    border: none;
+    padding: 14px 0;
+    font-size: 1rem;
+    font-family: 'Quicksand', sans-serif;
+    background: transparent;
+    outline: none;
+    text-align: left;
+    letter-spacing: 1px;
+}
+
+.whatsapp-icon {
+    font-size: 1.4rem;
+    color: #25D366;
+    transition: transform 0.2s;
+    cursor: help;
+}
+
+.whatsapp-icon:hover {
+    transform: scale(1.1);
+}
+
+.phone-error {
+    color: #dc3545;
+    font-size: 0.85rem;
+    margin-top: -12px;
+    margin-bottom: 15px;
+    text-align: center;
+    font-weight: 500;
+}
+
+.phone-error.hidden {
+    display: none;
+}
+
+/* Adjust name input to match consistent width */
+.name-input {
+    width: 100%;
+    max-width: 350px;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+}
+
+/* Make name-card layout consistent */
+.name-card h2 {
+    margin-bottom: 20px;
+    font-size: 1.6rem;
+}
+
+/* Responsive touch */
+@media (max-width: 480px) {
+    .phone-field {
+        max-width: 280px;
+        padding: 0 10px;
+    }
+    .phone-prefix {
+        font-size: 1rem;
+        padding: 8px 5px;
+    }
+    .phone-input {
+        font-size: 0.9rem;
+        padding: 12px 0;
+    }
+    .whatsapp-icon {
+        font-size: 1.2rem;
+    }
+}
+
 .start-btn {
     background: linear-gradient(45deg, #4CAF50, #45a049);
     color: white;
