@@ -1000,6 +1000,103 @@ body.result-page::-webkit-scrollbar {
     min-width: 140px;
 }
 
+/* Phone number field styles */
+.phone-field {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: var(--bg-darker);
+    border: 2px solid var(--glass-border);
+    border-radius: 50px;
+    padding: 0 15px;
+    margin-bottom: 20px;
+    transition: all 0.3s;
+    width: 100%;
+    max-width: 350px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.phone-prefix {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    background: rgba(255,255,255,0.05);
+    padding: 10px 8px;
+    border-radius: 50px 0 0 50px;
+    font-family: monospace;
+}
+
+.phone-input {
+    flex: 1;
+    border: none;
+    padding: 14px 0;
+    font-size: 1rem;
+    font-family: 'Quicksand', sans-serif;
+    background: transparent;
+    color: var(--text-primary);
+    outline: none;
+    text-align: left;
+    letter-spacing: 1px;
+}
+
+.phone-input::placeholder {
+    color: rgba(255,255,255,0.5);
+}
+
+.whatsapp-icon {
+    font-size: 1.4rem;
+    color: #25D366;
+    transition: transform 0.2s;
+    cursor: help;
+}
+
+.whatsapp-icon:hover {
+    transform: scale(1.1);
+}
+
+.phone-error {
+    color: #ff6b6b;
+    font-size: 0.85rem;
+    margin-top: -12px;
+    margin-bottom: 15px;
+    text-align: center;
+    font-weight: 500;
+}
+
+.phone-error.hidden {
+    display: none;
+}
+
+/* Adjust name input to match consistent width */
+.name-input {
+    width: 100%;
+    max-width: 350px;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+}
+
+/* Responsive touch */
+@media (max-width: 480px) {
+    .phone-field {
+        max-width: 280px;
+        padding: 0 10px;
+    }
+    .phone-prefix {
+        font-size: 1rem;
+        padding: 8px 5px;
+    }
+    .phone-input {
+        font-size: 0.9rem;
+        padding: 12px 0;
+    }
+    .whatsapp-icon {
+        font-size: 1.2rem;
+    }
+}
+
 .action-btn.bounce {
     background: var(--primary-neon);
     color: white;
