@@ -4,6 +4,7 @@ let quizData = null;
 let currentIndex = 0;
 let balance = 20;
 let studentName = '';
+let studentPhone = '';           // full number including +88
 let timer = null;
 let timeLeft = 0;
 let canAnswer = true;
@@ -14,6 +15,8 @@ let answers = [];
 const nameEntry = document.getElementById('nameEntry');
 const quizScreen = document.getElementById('quizScreen');
 const studentNameInput = document.getElementById('studentName');
+const studentPhoneInput = document.getElementById('studentPhone');
+const phoneError = document.getElementById('phoneError');
 const startBtn = document.getElementById('startQuizBtn');
 const balanceValue = document.getElementById('balanceValue');
 const progressBar = document.getElementById('progressBar');
@@ -36,6 +39,7 @@ function saveProgress() {
     localStorage.setItem(getStorageKey(), JSON.stringify({
         quizId: quizData.id,
         studentName,
+        studentPhone,
         currentIndex,
         balance,
         answers,
@@ -53,6 +57,38 @@ function clearProgress() {
     localStorage.removeItem(getStorageKey());
 }
 
+// Phone validation: expects 11 digits starting with "01"
+function isValidPhone(phoneDigits) {
+    return /^01\d{9}$/.test(phoneDigits);
+}
+
+// Update start button state based on name and phone
+function updateStartButtonState() {
+    const nameValid = studentNameInput.value.trim().length > 0;
+    const phoneDigits = studentPhoneInput.value.trim();
+    const phoneValid = isValidPhone(phoneDigits);
+    
+    if (nameValid && phoneValid) {
+        startBtn.disabled = false;
+        if (phoneError) phoneError.classList.add('hidden');
+    } else {
+        startBtn.disabled = true;
+        if (phoneError && phoneDigits.length > 0 && !isValidPhone(phoneDigits)) {
+            phoneError.classList.remove('hidden');
+        } else if (phoneError) {
+            phoneError.classList.add('hidden');
+        }
+    }
+}
+
+// Format and sanitize phone input (allow only digits, enforce max 11)
+function sanitizePhoneInput(e) {
+    let val = e.target.value.replace(/\D/g, ''); // remove non-digits
+    if (val.length > 11) val = val.slice(0, 11);
+    e.target.value = val;
+    updateStartButtonState();
+}
+
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
     const params = new URLSearchParams(window.location.search);
@@ -67,7 +103,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Modal handling
         if (modal) modal.style.display = 'flex';
         
-        // Add click outside to close? No, require button click
         if (continueBtn) {
             continueBtn.addEventListener('click', () => {
                 modal.style.display = 'none';
@@ -79,6 +114,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const saved = loadProgress();
         if (saved && saved.quizId === quizId) {
             studentName = saved.studentName;
+            studentPhone = saved.studentPhone || '';   // handle older saved data
             balance = saved.balance;
             answers = saved.answers;
             
@@ -102,10 +138,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 loadQuestion();
             }
         } else {
-            studentNameInput.addEventListener('input', () => {
-                startBtn.disabled = !studentNameInput.value.trim();
-            });
+            // No saved progress – set up input validation
+            studentNameInput.addEventListener('input', updateStartButtonState);
+            studentPhoneInput.addEventListener('input', sanitizePhoneInput);
             startBtn.addEventListener('click', startQuiz);
+            updateStartButtonState(); // initial disabled state
         }
 
         nextBtn.addEventListener('click', moveToNext);
@@ -120,7 +157,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 function startQuiz() {
     studentName = studentNameInput.value.trim();
-    if (!studentName) return;
+    const phoneDigits = studentPhoneInput.value.trim();
+    
+    if (!studentName || !isValidPhone(phoneDigits)) return;
+    
+    // Store full phone number with prefix
+    studentPhone = `+88${phoneDigits}`;
     
     currentIndex = 0;
     balance = 20;
@@ -214,7 +256,6 @@ function selectOption(e, selectedIdx) {
     if (correct) {
         balance += 10;
         e.currentTarget.classList.add('correct-feedback');
-        // Show correct option highlight
         document.querySelectorAll('.option')[q.correctIndex].classList.add('correct-feedback');
         confetti({ 
             particleCount: 50, 
@@ -225,7 +266,6 @@ function selectOption(e, selectedIdx) {
     } else {
         balance = Math.max(20, balance - 5);
         e.currentTarget.classList.add('wrong-feedback');
-        // Highlight correct answer for learning
         document.querySelectorAll('.option')[q.correctIndex].classList.add('correct-feedback');
     }
     
@@ -301,6 +341,7 @@ async function endQuiz() {
         await dbService.saveAttempt({
             quizId: quizData.id,
             studentName,
+            studentPhone: studentPhone || '',   // include phone number
             finalBalance: balance,
             answers,
             totalQuestions: quizData.questions.length,
@@ -372,11 +413,3 @@ function showLoading(show) {
         }
     }
 }
-
-// Handle page visibility change to pause timer? Optional
-document.addEventListener('visibilitychange', () => {
-    if (document.hidden && timer) {
-        // Page hidden, maybe pause timer? For fairness, we won't pause
-        // But we can add a warning
-    }
-});
