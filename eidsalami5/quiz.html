@@ -1,3 +1,4 @@
+<!-- quiz.html (updated) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -13,66 +14,66 @@
         <div class="stars"></div>
     </div>
 
-<!-- Instruction Modal -->
-<div id="instructionModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2>Eid Salami Quiz Instructions</h2>
-        </div>
-        
-        <div class="modal-body">
-            <div class="instruction-card">
-                <div class="instruction-icon">📚</div>
-                <div class="instruction-text">
-                    <h3>Quiz Syllabus</h3>
-                    <p><span class="badge science">Science</span> Chapter 1, 2, 5</p>
-                    <p><span class="badge math">Math</span> Chapter 1, 2, 3 (up to LCM)</p>
+    <!-- Instruction Modal -->
+    <div id="instructionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Eid Salami Quiz Instructions</h2>
+            </div>
+            
+            <div class="modal-body">
+                <div class="instruction-card">
+                    <div class="instruction-icon">📚</div>
+                    <div class="instruction-text">
+                        <h3>Quiz Syllabus</h3>
+                        <p><span class="badge science">Science</span> Chapter 1, 2, 5</p>
+                        <p><span class="badge math">Math</span> Chapter 1, 2, 3 (up to LCM)</p>
+                    </div>
+                </div>
+
+                <div class="instruction-card">
+                    <div class="instruction-icon">💰</div>
+                    <div class="instruction-text">
+                        <h3>Starting Balance</h3>
+                        <p>You begin with <span class="eidi-amou">৳ 20</span> Salami bonus</p>
+                        <p class="note">Salami never goes below ৳ 20</p>
+                    </div>
+                </div>
+
+                <div class="instruction-card">
+                    <div class="instruction-icon">⚖️</div>
+                    <div class="instruction-text">
+                        <h3>Scoring Rule</h3>
+                        <p><span class="correct">✓ Correct: +5</span> <span class="wrong">✗ Wrong: -2</span></p>
+                        <p><span class="timeout">⏰ No answer: No change</span></p>
+                    </div>
+                </div>
+
+                <div class="instruction-card">
+                    <div class="instruction-icon">⚠️</div>
+                    <div class="instruction-text">
+                        <h3>Important Notes</h3>
+                        <ul class="instruction-list">
+                            <li>⏱️ Each question has a fixed timer</li>
+                            <li>🚫 Cannot go back to previous questions</li>
+                            <li>💡 Read carefully before answering</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="blessing-message">
+                    <p>Stay confident, think smart, and enjoy the game!</p>
                 </div>
             </div>
 
-            <div class="instruction-card">
-                <div class="instruction-icon">💰</div>
-                <div class="instruction-text">
-                    <h3>Starting Balance</h3>
-                    <p>You begin with <span class="eidi-amou">৳ 20</span> Salami bonus</p>
-                    <p class="note">Salami never goes below ৳ 20</p>
-                </div>
+            <div class="modal-footer">
+                <button id="continueToQuiz" class="continue-btn">
+                    Continue to Quiz
+                    <i class="fas fa-arrow-right"></i>
+                </button>
             </div>
-
-            <div class="instruction-card">
-                <div class="instruction-icon">⚖️</div>
-                <div class="instruction-text">
-                    <h3>Scoring Rule</h3>
-                    <p><span class="correct">✓ Correct: +5</span> <span class="wrong">✗ Wrong: -2</span></p>
-                    <p><span class="timeout">⏰ No answer: No change</span></p>
-                </div>
-            </div>
-
-            <div class="instruction-card">
-                <div class="instruction-icon">⚠️</div>
-                <div class="instruction-text">
-                    <h3>Important Notes</h3>
-                    <ul class="instruction-list">
-                        <li>⏱️ Each question has a fixed timer</li>
-                        <li>🚫 Cannot go back to previous questions</li>
-                        <li>💡 Read carefully before answering</li>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="blessing-message">
-                <p>Stay confident, think smart, and enjoy the game!</p>
-            </div>
-        </div>
-
-        <div class="modal-footer">
-            <button id="continueToQuiz" class="continue-btn">
-                Continue to Quiz
-                <i class="fas fa-arrow-right"></i>
-            </button>
         </div>
     </div>
-</div>
 
     <div class="container">
         <!-- Name Entry Screen -->
@@ -82,8 +83,17 @@
                 <h1>Eid Salami Quiz!</h1>
             </div>
             <div class="name-card">
-                <h2>Enter your name</h2>
+                <h2>Enter your details</h2>
                 <input type="text" id="studentName" placeholder="Enter your name" class="name-input">
+                
+                <!-- Phone Number Field with WhatsApp Icon -->
+                <div class="phone-field">
+                    <span class="phone-prefix">+88</span>
+                    <input type="tel" id="studentPhone" placeholder="01XXXXXXXXX" maxlength="11" class="phone-input" inputmode="numeric">
+                    <i class="fab fa-whatsapp whatsapp-icon" title="Enter your WhatsApp number"></i>
+                </div>
+                <div id="phoneError" class="phone-error hidden">Phone number must start with 01 and be exactly 11 digits</div>
+                
                 <button id="startQuizBtn" class="start-btn" disabled>Start Quiz ➡️</button>
             </div>
         </div>
