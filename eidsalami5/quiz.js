@@ -1,3 +1,4 @@
+// quiz.js (updated)
 import { dbService } from './firebase.js';
 
 // Game state
@@ -5,6 +6,7 @@ let quizData = null;
 let currentQuestionIndex = 0;
 let balance = 20;
 let studentName = '';
+let studentPhone = '';      // store full phone number including +88
 let timer = null;
 let timeLeft = 0;
 let canAnswer = true;
@@ -15,6 +17,8 @@ let answers = [];
 const nameEntry = document.getElementById('nameEntry');
 const quizScreen = document.getElementById('quizScreen');
 const studentNameInput = document.getElementById('studentName');
+const studentPhoneInput = document.getElementById('studentPhone');
+const phoneError = document.getElementById('phoneError');
 const startQuizBtn = document.getElementById('startQuizBtn');
 const balanceDisplay = document.getElementById('balanceDisplay');
 const balanceValue = document.getElementById('balanceValue');
@@ -30,7 +34,6 @@ const questionCard = document.getElementById('questionCard');
 
 // ================== DEVICE‑BASED STORAGE ==================
 function getStorageKey() {
-    // Fixed per quiz – no student name involved
     return `quiz_${quizData.id}_progress`;
 }
 
@@ -39,6 +42,7 @@ function saveProgress() {
     const progress = {
         quizId: quizData.id,
         studentName: studentName,
+        studentPhone: studentPhone,
         currentQuestionIndex: currentQuestionIndex,
         balance: balance,
         answers: answers,
@@ -65,6 +69,38 @@ function clearProgress() {
 }
 // ===========================================================
 
+// Phone validation: expects 11 digits starting with "01"
+function isValidPhone(phoneDigits) {
+    return /^01\d{9}$/.test(phoneDigits);
+}
+
+// Update start button state based on name and phone
+function updateStartButtonState() {
+    const nameValid = studentNameInput.value.trim().length > 0;
+    const phoneDigits = studentPhoneInput.value.trim();
+    const phoneValid = isValidPhone(phoneDigits);
+    
+    if (nameValid && phoneValid) {
+        startQuizBtn.disabled = false;
+        if (phoneError) phoneError.classList.add('hidden');
+    } else {
+        startQuizBtn.disabled = true;
+        if (phoneError && phoneDigits.length > 0 && !isValidPhone(phoneDigits)) {
+            phoneError.classList.remove('hidden');
+        } else if (phoneError) {
+            phoneError.classList.add('hidden');
+        }
+    }
+}
+
+// Format and sanitize phone input (allow only digits, enforce max 11)
+function sanitizePhoneInput(e) {
+    let val = e.target.value.replace(/\D/g, ''); // remove non-digits
+    if (val.length > 11) val = val.slice(0, 11);
+    e.target.value = val;
+    updateStartButtonState();
+}
+
 // Initialize quiz
 document.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -89,23 +125,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (saved) {
             // Restore saved state
             studentName = saved.studentName;
+            studentPhone = saved.studentPhone || '';   // handle older saved data
             balance = saved.balance;
             answers = saved.answers;
             
-            // --- IMPROVED RESUME LOGIC ---
-            // If the current question (saved.currentQuestionIndex) has already been answered,
-            // we move to the next unanswered question.
-            // We know a question is answered if the answers array length is greater than the current index.
+            // Improved resume logic: skip already answered questions
             if (answers.length > saved.currentQuestionIndex) {
-                // The student had already answered the question at saved.currentQuestionIndex
-                // and the "Next" button was visible. Resume at the next question.
-                currentQuestionIndex = answers.length; // this is the next unanswered index
+                currentQuestionIndex = answers.length;
             } else {
-                // No answer recorded for the current question → resume at that question.
                 currentQuestionIndex = saved.currentQuestionIndex;
             }
             
-            // Safety: if the computed index is out of bounds (e.g., quiz was edited), reset.
+            // Safety: if out of bounds, reset
             if (currentQuestionIndex >= quizData.questions.length) {
                 currentQuestionIndex = 0;
                 balance = 20;
@@ -119,11 +150,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 loadQuestion();
             }
         } else {
-            // No saved progress – show name entry
-            studentNameInput.addEventListener('input', () => {
-                startQuizBtn.disabled = !studentNameInput.value.trim();
-            });
+            // No saved progress – set up name entry with phone validation
+            studentNameInput.addEventListener('input', updateStartButtonState);
+            studentPhoneInput.addEventListener('input', sanitizePhoneInput);
             startQuizBtn.addEventListener('click', startQuiz);
+            updateStartButtonState(); // initial disabled state
         }
         
         // Next button listener (always needed)
@@ -140,7 +171,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 // Start quiz (only called when no saved progress)
 function startQuiz() {
     studentName = studentNameInput.value.trim();
-    if (!studentName) return;
+    const phoneDigits = studentPhoneInput.value.trim();
+    
+    if (!studentName || !isValidPhone(phoneDigits)) return;
+    
+    // Store full phone number with prefix for display/record
+    studentPhone = `+88${phoneDigits}`;
     
     // Fresh start
     currentQuestionIndex = 0;
@@ -329,10 +365,11 @@ async function endQuiz() {
         localStorage.setItem('eidiFinal', balance.toString());
         localStorage.setItem('student', studentName);
         
-        // Save attempt to Firestore
+        // Save attempt to Firestore (include phone if available)
         await dbService.saveAttempt({
             quizId: quizData.id,
             studentName: studentName,
+            studentPhone: studentPhone || '',
             finalBalance: balance,
             answers: answers,
             totalQuestions: quizData.questions.length,
@@ -402,7 +439,6 @@ function showLoading(show) {
 document.addEventListener('DOMContentLoaded', function() {
     const modal = document.getElementById('instructionModal');
     const continueBtn = document.getElementById('continueToQuiz');
-    const nameInput = document.getElementById('studentName');
     
     if (modal) modal.style.display = 'flex';
     
@@ -411,7 +447,7 @@ document.addEventListener('DOMContentLoaded', function() {
             modal.style.animation = 'fadeOut 0.3s ease';
             setTimeout(() => {
                 modal.style.display = 'none';
-                if (nameInput) nameInput.focus();
+                if (studentNameInput) studentNameInput.focus();
             }, 280);
         });
     }
