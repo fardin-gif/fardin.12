@@ -156,6 +156,11 @@
             border-radius: 8px;
             padding: 20px;
             margin-bottom: 15px;
+            transition: all 0.2s;
+        }
+
+        .month-card.hidden {
+            display: none;
         }
 
         .month-header {
@@ -184,8 +189,9 @@
             font-size: 13px;
         }
 
-        .see-more-btn {
+        .btn-attendance-more {
             margin-top: 15px;
+            width: 100%;
             text-align: center;
         }
 
@@ -254,14 +260,14 @@
             transform: translateY(-2px);
         }
 
-        .btn-outline {
-            background: transparent;
-            border: 1px solid var(--primary-red);
-            color: var(--primary-red);
+        .btn-success {
+            background: var(--success);
+            color: white;
         }
 
-        .btn-outline:hover {
-            background: rgba(214, 40, 57, 0.1);
+        .btn-success:hover {
+            background: #21867a;
+            transform: translateY(-2px);
         }
 
         .results-grid {
@@ -624,11 +630,6 @@
             font-size: 14px;
         }
 
-        /* Hide extra months initially */
-        .month-card.extra-month {
-            display: none;
-        }
-
         @media (max-width: 768px) {
             .header-content {
                 flex-direction: column;
@@ -661,7 +662,6 @@
     </style>
 </head>
 <body>
-    <!-- Header -->
     <header>
         <div class="container">
             <div class="header-content">
@@ -677,7 +677,6 @@
         </div>
     </header>
 
-    <!-- Main Content -->
     <main>
         <div class="container">
             <!-- Student Information -->
@@ -686,9 +685,7 @@
                     <h2><i class="fas fa-user"></i> Student Information</h2>
                 </div>
                 <div class="card-body">
-                    <div class="info-grid" id="studentInfo">
-                        <!-- Student info will be loaded here -->
-                    </div>
+                    <div class="info-grid" id="studentInfo"></div>
                 </div>
             </section>
 
@@ -698,10 +695,8 @@
                     <h2><i class="fas fa-calendar-check"></i> Attendance</h2>
                 </div>
                 <div class="card-body" id="attendanceContainer">
-                    <div id="attendanceContent">
-                        <div class="spinner"></div>
-                        <div class="empty-title">Loading attendance...</div>
-                    </div>
+                    <div class="spinner"></div>
+                    <div class="empty-title">Loading attendance...</div>
                 </div>
             </section>
 
@@ -715,22 +710,12 @@
                         <input type="text" id="resultSearch" class="search-input" placeholder="Search exams by name or code...">
                     </div>
                     <div class="sort-buttons">
-                        <button class="btn btn-secondary" onclick="sortResults('date')">
-                            <i class="fas fa-calendar"></i> Sort by Date
-                        </button>
-                        <button class="btn btn-secondary" onclick="sortResults('score')">
-                            <i class="fas fa-sort-numeric-down"></i> Sort by Score
-                        </button>
-                        <button class="btn btn-secondary" onclick="sortResults('code')">
-                            <i class="fas fa-barcode"></i> Sort by Code
-                        </button>
+                        <button class="btn btn-secondary" onclick="sortResults('date')"><i class="fas fa-calendar"></i> Sort by Date</button>
+                        <button class="btn btn-secondary" onclick="sortResults('score')"><i class="fas fa-sort-numeric-down"></i> Sort by Score</button>
+                        <button class="btn btn-secondary" onclick="sortResults('code')"><i class="fas fa-barcode"></i> Sort by Code</button>
                     </div>
                     <div class="results-grid" id="resultsGrid">
-                        <!-- Results will be loaded here -->
-                        <div class="empty-state">
-                            <div class="spinner"></div>
-                            <div class="empty-title">Loading results...</div>
-                        </div>
+                        <div class="empty-state"><div class="spinner"></div><div class="empty-title">Loading results...</div></div>
                     </div>
                 </div>
             </section>
@@ -742,863 +727,261 @@
                 </div>
                 <div class="card-body">
                     <div class="stats-row">
-                        <div class="stat-card">
-                            <div class="stat-label">Average Percentage</div>
-                            <div class="stat-value" id="avgPercentage">0%</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Best Percentage</div>
-                            <div class="stat-value" id="bestPercentage">0%</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Total Exams</div>
-                            <div class="stat-value" id="totalExams">0</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Overall Percentage</div>
-                            <div class="stat-value" id="overallPercentage">--</div>
-                        </div>
+                        <div class="stat-card"><div class="stat-label">Average Percentage</div><div class="stat-value" id="avgPercentage">0%</div></div>
+                        <div class="stat-card"><div class="stat-label">Best Percentage</div><div class="stat-value" id="bestPercentage">0%</div></div>
+                        <div class="stat-card"><div class="stat-label">Total Exams</div><div class="stat-value" id="totalExams">0</div></div>
                     </div>
                     <div class="chart-controls">
-                        <div class="filter-group">
-                            <label>Show:</label>
-                            <select id="chartFilter" class="filter-select" onchange="updateChart()">
-                                <option value="finalOnly">Final Results Only</option>
-                                <option value="includePending">Include Pending MCQ</option>
-                            </select>
-                        </div>
-                        <div class="filter-group">
-                            <label>Filter:</label>
-                            <button class="btn btn-secondary" onclick="filterChart('all')">All</button>
-                            <button class="btn btn-secondary" onclick="filterChart('last5')">Last 5</button>
-                            <button class="btn btn-secondary" onclick="filterChart('top5')">Top 5</button>
-                        </div>
+                        <div class="filter-group"><label>Show:</label><select id="chartFilter" class="filter-select" onchange="updateChart()"><option value="finalOnly">Final Results Only</option><option value="includePending">Include Pending MCQ</option></select></div>
+                        <div class="filter-group"><label>Filter:</label><button class="btn btn-secondary" onclick="filterChart('all')">All</button><button class="btn btn-secondary" onclick="filterChart('last5')">Last 5</button><button class="btn btn-secondary" onclick="filterChart('top5')">Top 5</button></div>
                     </div>
-                    <div class="chart-container">
-                        <canvas id="performanceChart"></canvas>
-                    </div>
+                    <div class="chart-container"><canvas id="performanceChart"></canvas></div>
                 </div>
             </section>
         </div>
     </main>
 
-    <!-- Footer -->
-    <footer>
-        <div class="container">
-            <p>© <span id="currentYear"></span> Fardin (DU Physics). All rights reserved.</p>
-        </div>
-    </footer>
+    <footer><div class="container"><p>© <span id="currentYear"></span> Fardin (DU Physics). All rights reserved.</p></div></footer>
 
-    <!-- OMR View Modal -->
-    <div class="modal-overlay" id="omrModal">
-        <div class="modal">
-            <div class="modal-header">
-                <div class="modal-title" id="omrModalTitle">OMR View</div>
-                <button class="modal-close" onclick="closeModal('omrModal')">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div id="omrModalContent">
-                    <!-- OMR view will be loaded here -->
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-primary" onclick="closeModal('omrModal')">Close</button>
-            </div>
-        </div>
-    </div>
+    <!-- OMR Modal -->
+    <div class="modal-overlay" id="omrModal"><div class="modal"><div class="modal-header"><div class="modal-title" id="omrModalTitle">OMR View</div><button class="modal-close" onclick="closeModal('omrModal')">&times;</button></div><div class="modal-body"><div id="omrModalContent"></div></div><div class="modal-footer"><button class="btn btn-primary" onclick="closeModal('omrModal')">Close</button></div></div></div>
 
     <script>
-        // Firebase Configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyAlR-WEX_HZjkE1hzh_rPRYAz7CrjQYB54",
-            authDomain: "exammanagementsystem-a7720.firebaseapp.com",
-            projectId: "exammanagementsystem-a7720",
-            storageBucket: "exammanagementsystem-a7720.firebasestorage.app",
-            messagingSenderId: "269325070232",
-            appId: "1:269325070232:web:79bdf01e4f47ea36bd45ed"
-        };
-
-        // Initialize Firebase
+        const firebaseConfig = { apiKey: "AIzaSyAlR-WEX_HZjkE1hzh_rPRYAz7CrjQYB54", authDomain: "exammanagementsystem-a7720.firebaseapp.com", projectId: "exammanagementsystem-a7720", storageBucket: "exammanagementsystem-a7720.firebasestorage.app", messagingSenderId: "269325070232", appId: "1:269325070232:web:79bdf01e4f47ea36bd45ed" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // Global Variables
-        let currentStudent = null;
-        let studentUsername = null;
-        let submissions = [];
-        let performanceChart = null;
-        let overallPercentageValue = null; // store overall percentage from student doc
+        let currentStudent = null, studentUsername = null, submissions = [], performanceChart = null;
 
-        // Initialize on load
         document.addEventListener('DOMContentLoaded', async () => {
-            // Get username from URL
-            const urlParams = new URLSearchParams(window.location.search);
-            studentUsername = urlParams.get('user');
-
-            if (!studentUsername) {
-                showError('No student specified. Please use a valid dashboard link.');
-                return;
-            }
-
-            // Set current year
+            studentUsername = new URLSearchParams(window.location.search).get('user');
+            if (!studentUsername) { showError('No student specified.'); return; }
             document.getElementById('currentYear').textContent = new Date().getFullYear();
-
-            // Load student data
             await loadStudentData();
-
-            // Load submissions
             await loadSubmissions();
         });
 
-        // Utility Functions
-        function safeNum(v) {
-            const n = Number(v);
-            return Number.isFinite(n) ? n : null;
-        }
+        function safeNum(v) { const n = Number(v); return Number.isFinite(n) ? n : null; }
 
-        // Calculate percentage from submission (same as before)
+        // ✅ PRIORITY: use overallPercentage from Firestore if exists, otherwise fallback to derived
         function getSubmissionPercentage(sub) {
+            if (sub.overallPercentage !== undefined && sub.overallPercentage !== null && !isNaN(Number(sub.overallPercentage))) {
+                const val = Number(sub.overallPercentage);
+                return Math.round(val);
+            }
             const finalTotal = safeNum(sub.finalTotal);
-            const totalMark =
-                safeNum(sub.totalMark) ??
-                safeNum(sub.totalMarks) ??
-                safeNum(sub.finalTotalMax);
-
-            if (finalTotal !== null && totalMark !== null && totalMark > 0) {
-                return Math.round((finalTotal / totalMark) * 100);
-            }
-
-            const mcqScore = safeNum(sub.mcqScore);
-            const mcqTotal = safeNum(sub.mcqTotal);
-
-            if (mcqScore !== null && mcqTotal !== null && mcqTotal > 0) {
-                return Math.round((mcqScore / mcqTotal) * 100);
-            }
-
+            const totalMark = safeNum(sub.totalMark) ?? safeNum(sub.totalMarks) ?? safeNum(sub.finalTotalMax);
+            if (finalTotal !== null && totalMark !== null && totalMark > 0) return Math.round((finalTotal / totalMark) * 100);
+            const mcqScore = safeNum(sub.mcqScore), mcqTotal = safeNum(sub.mcqTotal);
+            if (mcqScore !== null && mcqTotal !== null && mcqTotal > 0) return Math.round((mcqScore / mcqTotal) * 100);
             const storedPct = safeNum(sub.mcqPercentage);
             return storedPct !== null ? storedPct : null;
         }
 
-        function getPercentageClass(pct) {
-            if (pct === null) return '';
-            if (pct >= 80) return 'success';
-            if (pct >= 50) return 'warning';
-            return 'danger';
-        }
+        function getPercentageClass(pct) { if (pct === null) return ''; if (pct >= 80) return 'success'; if (pct >= 50) return 'warning'; return 'danger'; }
+        function formatDateShort(iso) { const d = new Date(iso); return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`; }
+        function formatDate(iso) { return new Date(iso).toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' }); }
+        function maskPhoneNumber(number) { if(!number) return 'N/A'; const digits=String(number).replace(/\D/g,''); if(digits.length<7) return number; return `${digits.substring(0,4)}*****${digits.substring(digits.length-3)}`; }
+        function showModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-        function formatDateShort(iso) {
-            const date = new Date(iso);
-            const day = String(date.getDate()).padStart(2, '0');
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const year = date.getFullYear();
-            return `${day}.${month}.${year}`;
-        }
-
-        function formatDate(iso) {
-            const date = new Date(iso);
-            return date.toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric'
-            });
-        }
-
-        function maskPhoneNumber(number) {
-            if (!number) return 'N/A';
-            const digits = String(number).replace(/\D/g, '');
-            if (digits.length < 7) return number;
-            return `${digits.substring(0, 4)}*****${digits.substring(digits.length - 3)}`;
-        }
-
-        function showModal(modalId) {
-            document.getElementById(modalId).style.display = 'flex';
-        }
-
-        function closeModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
-        }
-
-        // Data Loading
         async function loadStudentData() {
             try {
-                const studentDoc = await db.collection('students').doc(studentUsername).get();
-
-                if (!studentDoc.exists) {
-                    showError('Student not found. Please check your dashboard link.');
-                    return;
-                }
-
-                currentStudent = studentDoc.data();
-                currentStudent.username = studentUsername;
-
-                // Get overall percentage (could be stored or computed)
-                // If the student document has an 'overallPercentage' field, use it.
-                // Otherwise, compute from submissions later.
-                overallPercentageValue = currentStudent.overallPercentage != null ? Number(currentStudent.overallPercentage) : null;
-
-                // Update header
+                const doc = await db.collection('students').doc(studentUsername).get();
+                if (!doc.exists) { showError('Student not found.'); return; }
+                currentStudent = doc.data(); currentStudent.username = studentUsername;
                 document.getElementById('studentName').textContent = currentStudent.studentName || studentUsername;
                 document.getElementById('studentClass').textContent = `Class: ${currentStudent.className || 'N/A'}`;
-
-                // Render student info
                 renderStudentInfo();
-
-                // Load attendance
-                loadAttendance();
-
-            } catch (error) {
-                console.error('Load student error:', error);
-                showError('Failed to load student data.');
-            }
+                renderAttendance();
+            } catch(e) { console.error(e); showError('Failed to load student data.'); }
         }
 
         function renderStudentInfo() {
-            const infoGrid = document.getElementById('studentInfo');
-
             const info = [
-                { label: 'Full Name', value: currentStudent.studentName || 'N/A' },
-                { label: 'Username', value: currentStudent.username || 'N/A' },
-                { label: 'Class', value: currentStudent.className || 'N/A' },
-                { label: 'School', value: currentStudent.studentSchool || 'Not specified' },
-                { label: 'Guardian Number', value: maskPhoneNumber(currentStudent.guardianNumber), class: 'masked-number' },
-                { label: 'Dashboard Link', value: currentStudent.dashboardLink || `${window.location.origin}/student-dashboard.html?user=${currentStudent.username}` }
+                { label:'Full Name', value:currentStudent.studentName || 'N/A' },
+                { label:'Username', value:currentStudent.username || 'N/A' },
+                { label:'Class', value:currentStudent.className || 'N/A' },
+                { label:'School', value:currentStudent.studentSchool || 'Not specified' },
+                { label:'Guardian Number', value:maskPhoneNumber(currentStudent.guardianNumber), class:'masked-number' }
             ];
-
-            infoGrid.innerHTML = info.map(item => `
-                <div class="info-item">
-                    <div class="info-label">${item.label}</div>
-                    <div class="info-value ${item.class || ''}">${item.value}</div>
-                </div>
-            `).join('');
+            document.getElementById('studentInfo').innerHTML = info.map(i => `<div class="info-item"><div class="info-label">${i.label}</div><div class="info-value ${i.class||''}">${i.value}</div></div>`).join('');
         }
 
-        function loadAttendance() {
-            const content = document.getElementById('attendanceContent');
-
+        // Attendance: show current month only, others hidden initially; "Show More" toggles previous months
+        function renderAttendance() {
+            const container = document.getElementById('attendanceContainer');
             if (!currentStudent.attendance || !currentStudent.attendance.months || currentStudent.attendance.months.length === 0) {
-                content.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-icon">
-                            <i class="fas fa-calendar-times"></i>
-                        </div>
-                        <div class="empty-title">No attendance records</div>
-                        <div class="empty-subtitle">Attendance will appear here once recorded by your teacher</div>
-                    </div>
-                `;
+                container.innerHTML = `<div class="empty-state"><div class="empty-icon"><i class="fas fa-calendar-times"></i></div><div class="empty-title">No attendance records</div><div class="empty-subtitle">Attendance will appear here once recorded</div></div>`;
                 return;
             }
-
-            // Reverse to show newest first (as before)
-            const months = [...currentStudent.attendance.months].reverse();
-
-            let html = '';
-            months.forEach((month, index) => {
-                const totalDays = (month.days && month.days.length) ? month.days.length : 0;
+            let months = [...currentStudent.attendance.months];
+            // sort by monthNumber descending (latest first) to easily identify current month
+            months.sort((a,b) => (b.monthNumber || 0) - (a.monthNumber || 0));
+            const currentMonthNum = new Date().getMonth() + 1;
+            let currentIdx = months.findIndex(m => m.monthNumber === currentMonthNum);
+            if (currentIdx === -1) currentIdx = 0; // fallback to most recent month
+            
+            let html = `<div id="attendanceMonthsWrapper">`;
+            months.forEach((month, idx) => {
+                const totalDays = month.days?.length || 0;
                 const startDate = month.startDate ? formatDateShort(month.startDate) : 'N/A';
-
-                const extraClass = index === 0 ? '' : 'extra-month'; // first (newest) is current month
-
-                html += `
-                    <div class="month-card ${extraClass}" data-month-index="${index}">
-                        <div class="month-header">
-                            <div class="month-title">Month ${month.monthNumber || ''}</div>
-                            <div style="color: var(--success);">${totalDays} classes</div>
-                        </div>
-                        <div style="color: var(--text-muted); font-size: 14px; margin-bottom: 10px;">
-                            Started: ${startDate}
-                        </div>
-                        <div class="month-days">
-                            ${(month.days || []).map(day => {
-                                const date = new Date(day.date);
-                                const dayStr = String(date.getDate()).padStart(2, '0');
-                                const monthStr = String(date.getMonth() + 1).padStart(2, '0');
-                                const yearStr = date.getFullYear().toString().slice(-2);
-                                return `<span class="day-badge">${month.monthNumber}.${day.dayNumber} (${dayStr}.${monthStr}.${yearStr})</span>`;
-                            }).join('')}
-                        </div>
-                    </div>
-                `;
+                const hiddenClass = (idx !== currentIdx) ? 'hidden' : '';
+                html += `<div class="month-card ${hiddenClass}" data-month-idx="${idx}">
+                            <div class="month-header"><div class="month-title">Month ${month.monthNumber || ''}</div><div style="color: var(--success);">${totalDays} classes</div></div>
+                            <div style="color: var(--text-muted); font-size: 14px; margin-bottom: 10px;">Started: ${startDate}</div>
+                            <div class="month-days">${(month.days || []).map(day => { const d=new Date(day.date); return `<span class="day-badge">${month.monthNumber}.${day.dayNumber} (${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear().toString().slice(-2)})</span>`; }).join('')}</div>
+                          </div>`;
             });
-
-            // Add "See more" button if there are extra months
-            if (months.length > 1) {
-                html += `
-                    <div class="see-more-btn">
-                        <button class="btn btn-outline" id="seeMoreAttendanceBtn">
-                            <i class="fas fa-chevron-down"></i> See more months
-                        </button>
-                    </div>
-                `;
+            const hasHidden = months.some((_, idx) => idx !== currentIdx);
+            html += `</div>`;
+            if (hasHidden) {
+                html += `<div class="btn-attendance-more"><button id="toggleAttendanceBtn" class="btn btn-secondary"><i class="fas fa-chevron-down"></i> Show More Months</button></div>`;
             }
-
-            content.innerHTML = html;
-
-            // Add event listener to "See more" button
-            const seeMoreBtn = document.getElementById('seeMoreAttendanceBtn');
-            if (seeMoreBtn) {
-                seeMoreBtn.addEventListener('click', () => {
-                    const extraMonths = document.querySelectorAll('.month-card.extra-month');
-                    extraMonths.forEach(month => {
-                        month.style.display = 'block';
-                    });
-                    seeMoreBtn.style.display = 'none';
+            container.innerHTML = html;
+            if (hasHidden) {
+                const toggleBtn = document.getElementById('toggleAttendanceBtn');
+                let expanded = false;
+                toggleBtn.addEventListener('click', () => {
+                    const hiddenCards = document.querySelectorAll('.month-card.hidden');
+                    if (!expanded) {
+                        hiddenCards.forEach(card => card.classList.remove('hidden'));
+                        toggleBtn.innerHTML = '<i class="fas fa-chevron-up"></i> Show Less';
+                        expanded = true;
+                    } else {
+                        hiddenCards.forEach(card => card.classList.add('hidden'));
+                        toggleBtn.innerHTML = '<i class="fas fa-chevron-down"></i> Show More Months';
+                        expanded = false;
+                    }
                 });
             }
         }
 
         async function loadSubmissions() {
             try {
-                const snapshot = await db.collection('submissions')
-                    .where('username', '==', studentUsername)
-                    .orderBy('submittedAt', 'desc')
-                    .get();
-
+                const snapshot = await db.collection('submissions').where('username', '==', studentUsername).orderBy('submittedAt', 'desc').get();
                 submissions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-                // Render results
                 renderResults(submissions);
-
-                // Update stats and chart
-                updateStats();
-                updateChart();
-
-                // If overallPercentage was not set in student doc, compute it now from final results
-                if (overallPercentageValue === null && submissions.length > 0) {
-                    const finalResults = submissions.filter(s => s.status === 'FINAL_PUBLISHED');
-                    const percents = finalResults.map(s => getSubmissionPercentage(s)).filter(p => p !== null);
-                    if (percents.length > 0) {
-                        const total = percents.reduce((sum, p) => sum + p, 0);
-                        overallPercentageValue = Math.round(total / percents.length);
-                        // Optionally update the student doc (requires admin write permission, but we just display)
-                    } else {
-                        overallPercentageValue = null;
-                    }
-                    updateOverallPercentageDisplay();
-                } else {
-                    updateOverallPercentageDisplay();
-                }
-
-            } catch (error) {
-                console.error('Load submissions error:', error);
-                showError('Failed to load exam results.');
-            }
-        }
-
-        function updateOverallPercentageDisplay() {
-            const overallElem = document.getElementById('overallPercentage');
-            if (overallPercentageValue !== null && !isNaN(overallPercentageValue)) {
-                overallElem.textContent = `${overallPercentageValue}%`;
-                // Also add a color class based on value
-                overallElem.style.color = getPercentageColor(overallPercentageValue);
-            } else {
-                overallElem.textContent = '--';
-                overallElem.style.color = '';
-            }
-        }
-
-        function getPercentageColor(pct) {
-            if (pct >= 80) return 'var(--success)';
-            if (pct >= 50) return 'var(--warning)';
-            return 'var(--danger)';
+                updateStatsAndChart();
+            } catch(e) { console.error(e); showError('Failed to load exam results.'); }
         }
 
         function renderResults(results) {
             const grid = document.getElementById('resultsGrid');
-
-            if (!results || results.length === 0) {
-                grid.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-icon">
-                            <i class="fas fa-file-alt"></i>
-                        </div>
-                        <div class="empty-title">No exam results yet</div>
-                        <div class="empty-subtitle">Your exam results will appear here after submission</div>
-                    </div>
-                `;
-                return;
-            }
-
+            if (!results.length) { grid.innerHTML = `<div class="empty-state"><div class="empty-icon"><i class="fas fa-file-alt"></i></div><div class="empty-title">No exam results yet</div><div class="empty-subtitle">Your exam results will appear here after submission</div></div>`; return; }
             grid.innerHTML = results.map(sub => {
                 const pct = getSubmissionPercentage(sub);
-                const percentageClass = getPercentageClass(pct);
-
-                const showPercentage = (pct !== null);
-                const hasMCQ = (sub.mcqScore !== undefined || sub.mcqTotal !== undefined || sub.mcqAnswers || sub.mcqReview);
-
-                return `
-                    <div class="result-card">
-                        <div class="result-header">
-                            <div>
-                                <div class="exam-name">${sub.examName || 'Exam'}</div>
-                                <div class="exam-code">${sub.questionCode || 'N/A'}</div>
-                            </div>
-                        </div>
-
-                        <div class="result-meta">
-                            <span><i class="fas fa-calendar"></i> ${sub.submittedAt ? formatDate(sub.submittedAt) : 'N/A'}</span>
-                            <span class="status-badge ${sub.status === 'FINAL_PUBLISHED' ? 'status-final' : 'status-pending'}">
-                                ${(sub.status || 'UNKNOWN').split('_').join(' ')}
-                            </span>
-                        </div>
-
-                        ${showPercentage ? `
-                            <div class="percentage-big">
-                                <div class="percentage-value ${percentageClass}">${pct}%</div>
-                            </div>
-                        ` : ''}
-
-                        ${hasMCQ ? `
-                            <div class="score-display">
-                                <div class="score-item">
-                                    <div class="score-label">Score</div>
-                                    <div class="score-value">${(sub.mcqScore ?? 0)}/${(sub.mcqTotal ?? '?')}</div>
-                                </div>
-                                <div class="score-item">
-                                    <div class="score-label">Correct</div>
-                                    <div class="score-value">${sub.mcqCorrect ?? 0}</div>
-                                </div>
-                                <div class="score-item">
-                                    <div class="score-label">Wrong</div>
-                                    <div class="score-value">${sub.mcqWrong ?? 0}</div>
-                                </div>
-                                <div class="score-item">
-                                    <div class="score-label">Unmarked</div>
-                                    <div class="score-value">${sub.mcqUnmarked ?? 0}</div>
-                                </div>
-                            </div>
-                        ` : ''}
-
-                        ${sub.writtenTotal !== undefined ? `
-                            <div class="score-display">
-                                <div class="score-item">
-                                    <div class="score-label">Written Score</div>
-                                    <div class="score-value">${sub.writtenTotal}</div>
-                                </div>
-                            </div>
-                        ` : ''}
-
-                        ${sub.finalTotal !== undefined ? `
-                            <div style="text-align: center; margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border-color);">
-                                <div style="font-size: 12px; color: var(--text-muted);">Final Total</div>
-                                <div style="font-size: 24px; font-weight: bold; color: var(--success);">
-                                    ${sub.finalTotal} marks
-                                </div>
-                            </div>
-                        ` : ''}
-
-                        <div class="result-actions">
-                            ${(sub.mcqAnswers || sub.mcqReview) ? `
-                                <button class="btn btn-secondary" onclick="viewOMR('${sub.id}')">
-                                    <i class="fas fa-eye"></i> View OMR
-                                </button>
-                            ` : ''}
-                        </div>
-                    </div>
-                `;
+                const pctClass = getPercentageClass(pct);
+                const hasMCQ = (sub.mcqScore !== undefined || sub.mcqTotal !== undefined);
+                return `<div class="result-card"><div class="result-header"><div><div class="exam-name">${sub.examName || 'Exam'}</div><div class="exam-code">${sub.questionCode || 'N/A'}</div></div></div>
+                        <div class="result-meta"><span><i class="fas fa-calendar"></i> ${sub.submittedAt ? formatDate(sub.submittedAt) : 'N/A'}</span><span class="status-badge ${sub.status === 'FINAL_PUBLISHED' ? 'status-final' : 'status-pending'}">${(sub.status || 'UNKNOWN').split('_').join(' ')}</span></div>
+                        ${pct !== null ? `<div class="percentage-big"><div class="percentage-value ${pctClass}">${pct}%</div></div>` : ''}
+                        ${hasMCQ ? `<div class="score-display"><div class="score-item"><div class="score-label">Score</div><div class="score-value">${sub.mcqScore ?? 0}/${sub.mcqTotal ?? '?'}</div></div><div class="score-item"><div class="score-label">Correct</div><div class="score-value">${sub.mcqCorrect ?? 0}</div></div><div class="score-item"><div class="score-label">Wrong</div><div class="score-value">${sub.mcqWrong ?? 0}</div></div><div class="score-item"><div class="score-label">Unmarked</div><div class="score-value">${sub.mcqUnmarked ?? 0}</div></div></div>` : ''}
+                        ${sub.writtenTotal !== undefined ? `<div class="score-display"><div class="score-item"><div class="score-label">Written Score</div><div class="score-value">${sub.writtenTotal}</div></div></div>` : ''}
+                        ${sub.finalTotal !== undefined ? `<div style="text-align:center; margin-top:15px; padding-top:15px; border-top:1px solid var(--border-color);"><div style="font-size:12px; color:var(--text-muted);">Final Total</div><div style="font-size:24px; font-weight:bold; color:var(--success);">${sub.finalTotal} marks</div></div>` : ''}
+                        <div class="result-actions">${(sub.mcqAnswers || sub.mcqReview) ? `<button class="btn btn-secondary" onclick="viewOMR('${sub.id}')"><i class="fas fa-eye"></i> View OMR</button>` : ''}</div>
+                        </div>`;
             }).join('');
         }
 
-        // Search and Sort
         function sortResults(criteria) {
             let sorted = [...submissions];
-
-            switch (criteria) {
-                case 'date':
-                    sorted.sort((a, b) => new Date(b.submittedAt || 0) - new Date(a.submittedAt || 0));
-                    break;
-                case 'score':
-                    sorted.sort((a, b) => {
-                        const scoreA = getSubmissionPercentage(a) ?? (safeNum(a.finalTotal) ?? 0);
-                        const scoreB = getSubmissionPercentage(b) ?? (safeNum(b.finalTotal) ?? 0);
-                        return scoreB - scoreA;
-                    });
-                    break;
-                case 'code':
-                    sorted.sort((a, b) => String(a.questionCode || '').localeCompare(String(b.questionCode || '')));
-                    break;
-            }
-
+            if (criteria === 'date') sorted.sort((a,b) => new Date(b.submittedAt||0) - new Date(a.submittedAt||0));
+            if (criteria === 'score') sorted.sort((a,b) => (getSubmissionPercentage(b)??0) - (getSubmissionPercentage(a)??0));
+            if (criteria === 'code') sorted.sort((a,b) => String(a.questionCode||'').localeCompare(String(b.questionCode||'')));
             renderResults(sorted);
         }
-
-        // Search functionality
         document.getElementById('resultSearch').addEventListener('input', (e) => {
-            const searchTerm = e.target.value.toLowerCase();
-
-            if (!searchTerm) {
-                renderResults(submissions);
-                return;
-            }
-
-            const filtered = submissions.filter(sub => {
-                const name = String(sub.examName || '').toLowerCase();
-                const code = String(sub.questionCode || '').toLowerCase();
-                return name.includes(searchTerm) || code.includes(searchTerm);
-            });
-
-            renderResults(filtered);
+            const term = e.target.value.toLowerCase();
+            if (!term) renderResults(submissions);
+            else renderResults(submissions.filter(sub => String(sub.examName||'').toLowerCase().includes(term) || String(sub.questionCode||'').toLowerCase().includes(term)));
         });
 
-        // Stats and Chart
+        function updateStatsAndChart() { updateStats(); updateChart(); }
         function updateStats() {
             const finalResults = submissions.filter(s => s.status === 'FINAL_PUBLISHED');
-
-            const percents = finalResults
-                .map(s => getSubmissionPercentage(s))
-                .filter(p => p !== null);
-
-            if (percents.length === 0) {
-                document.getElementById('avgPercentage').textContent = '0%';
-                document.getElementById('bestPercentage').textContent = '0%';
-                document.getElementById('totalExams').textContent = '0';
-                return;
-            }
-
-            const totalPercentage = percents.reduce((sum, p) => sum + p, 0);
-            const avgPercentage = Math.round(totalPercentage / percents.length);
-            const bestPercentage = Math.max(...percents);
-
-            document.getElementById('avgPercentage').textContent = `${avgPercentage}%`;
-            document.getElementById('bestPercentage').textContent = `${bestPercentage}%`;
-            document.getElementById('totalExams').textContent = String(percents.length);
+            const percents = finalResults.map(s => getSubmissionPercentage(s)).filter(p => p !== null);
+            if (!percents.length) { document.getElementById('avgPercentage').textContent='0%'; document.getElementById('bestPercentage').textContent='0%'; document.getElementById('totalExams').textContent='0'; return; }
+            const avg = Math.round(percents.reduce((a,b)=>a+b,0)/percents.length);
+            document.getElementById('avgPercentage').textContent=`${avg}%`;
+            document.getElementById('bestPercentage').textContent=`${Math.max(...percents)}%`;
+            document.getElementById('totalExams').textContent=percents.length;
         }
 
         function updateChart() {
             const filter = document.getElementById('chartFilter').value;
-            let dataToUse = [...submissions];
-
-            if (filter === 'finalOnly') {
-                dataToUse = dataToUse.filter(s => s.status === 'FINAL_PUBLISHED');
-            } else {
-                // includePending: keep all
-                dataToUse = dataToUse.filter(s => (s.mcqScore !== undefined || s.mcqPercentage !== undefined || s.finalTotal !== undefined));
-            }
-
-            // sort by date ASC
-            dataToUse.sort((a, b) => new Date(a.submittedAt || 0) - new Date(b.submittedAt || 0));
-
-            const labels = dataToUse.map(sub => sub.questionCode || 'N/A');
-            const percentages = dataToUse.map(sub => getSubmissionPercentage(sub) ?? 0);
-            const statuses = dataToUse.map(sub => sub.status || 'UNKNOWN');
-
-            const canvas = document.getElementById('performanceChart');
-            if (!canvas) return;
-
-            const ctx = canvas.getContext('2d');
-
-            if (performanceChart) {
-                performanceChart.destroy();
-            }
-
-            // Datasets: main line + overall percentage line (if valid)
-            const datasets = [
-                {
-                    label: 'Performance (%)',
-                    data: percentages,
-                    borderColor: 'rgb(214, 40, 57)',
-                    backgroundColor: 'rgba(214, 40, 57, 0.1)',
-                    borderWidth: 2,
-                    fill: true,
-                    tension: 0.4,
-                    pointBackgroundColor: function(context) {
-                        const index = context.dataIndex;
-                        return statuses[index] === 'FINAL_PUBLISHED' ? 'rgb(42, 157, 143)' : 'rgb(233, 196, 106)';
-                    },
-                    pointBorderColor: 'rgba(255, 255, 255, 0.8)',
-                    pointBorderWidth: 2,
-                    pointRadius: 6,
-                    pointHoverRadius: 8
-                }
-            ];
-
-            // Add overall percentage as a horizontal line if value exists and is valid
-            if (overallPercentageValue !== null && !isNaN(overallPercentageValue) && percentages.length > 0) {
-                const overallLineData = new Array(percentages.length).fill(overallPercentageValue);
-                datasets.push({
-                    label: `Overall (${overallPercentageValue}%)`,
-                    data: overallLineData,
-                    borderColor: 'rgba(233, 196, 106, 0.8)',
-                    backgroundColor: 'transparent',
-                    borderWidth: 2,
-                    borderDash: [5, 5],
-                    pointRadius: 0,
-                    fill: false,
-                    tension: 0
-                });
-            }
-
+            let data = filter === 'finalOnly' ? submissions.filter(s => s.status === 'FINAL_PUBLISHED') : submissions.filter(s => (s.mcqScore !== undefined || s.mcqPercentage !== undefined || s.finalTotal !== undefined));
+            data.sort((a,b) => new Date(a.submittedAt||0) - new Date(b.submittedAt||0));
+            const labels = data.map(s => s.questionCode || 'N/A');
+            const percentages = data.map(s => getSubmissionPercentage(s) ?? 0);
+            const statuses = data.map(s => s.status || 'UNKNOWN');
+            const ctx = document.getElementById('performanceChart').getContext('2d');
+            if (performanceChart) performanceChart.destroy();
             performanceChart = new Chart(ctx, {
                 type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: datasets
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            labels: { color: 'rgb(245, 243, 244)' }
-                        },
-                        tooltip: {
-                            backgroundColor: 'rgba(33, 37, 41, 0.9)',
-                            titleColor: 'rgb(245, 243, 244)',
-                            bodyColor: 'rgb(245, 243, 244)',
-                            borderColor: 'rgb(214, 40, 57)',
-                            borderWidth: 1,
-                            callbacks: {
-                                label: function(context) {
-                                    const index = context.dataIndex;
-                                    const sub = dataToUse[index];
-                                    const pct = getSubmissionPercentage(sub);
-                                    let label = `${pct ?? 0}%`;
-
-                                    if (sub.finalTotal !== undefined) {
-                                        const totalMark = safeNum(sub.totalMark) ?? safeNum(sub.totalMarks) ?? safeNum(sub.finalTotalMax);
-                                        if (totalMark !== null) label += ` (${sub.finalTotal}/${totalMark})`;
-                                        else label += ` (Final: ${sub.finalTotal})`;
-                                    } else if (sub.mcqScore !== undefined && sub.mcqTotal !== undefined) {
-                                        label += ` (${sub.mcqScore}/${sub.mcqTotal})`;
-                                    }
-
-                                    if (sub.status !== 'FINAL_PUBLISHED') label += ' - Pending';
-                                    return label;
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                            ticks: { color: 'rgb(177, 167, 166)', maxRotation: 45 }
-                        },
-                        y: {
-                            beginAtZero: true,
-                            max: 100,
-                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                            ticks: { color: 'rgb(177, 167, 166)' }
-                        }
-                    }
-                }
-            });
+                data: { labels, datasets: [{ label: 'Performance (%)', data: percentages, borderColor: 'rgb(214, 40, 57)', backgroundColor: 'rgba(214, 40, 57, 0.1)', borderWidth: 2, fill: true, tension: 0.4, pointBackgroundColor: (ctx) => statuses[ctx.dataIndex] === 'FINAL_PUBLISHED' ? 'rgb(42, 157, 143)' : 'rgb(233, 196, 106)', pointBorderColor: 'rgba(255,255,255,0.8)', pointBorderWidth: 2, pointRadius: 6 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: 'rgb(245,243,244)' } }, tooltip: { backgroundColor: 'rgba(33,37,41,0.9)', titleColor: '#fff', bodyColor: '#fff', callbacks: { label: (ctx) => { const sub = data[ctx.dataIndex]; const pct = getSubmissionPercentage(sub); let label = `${pct ?? 0}%`; if (sub.finalTotal!==undefined) label += ` (Final: ${sub.finalTotal})`; else if (sub.mcqScore!==undefined) label += ` (MCQ: ${sub.mcqScore}/${sub.mcqTotal})`; if (sub.status !== 'FINAL_PUBLISHED') label += ' - Pending'; return label; } } } }, scales: { x: { grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: 'rgb(177,167,166)', maxRotation: 45 } }, y: { beginAtZero: true, max: 100, grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: 'rgb(177,167,166)' } } } } });
         }
 
         function filterChart(type) {
             if (!performanceChart) return;
-
             const filter = document.getElementById('chartFilter').value;
-            let dataToUse = [...submissions];
-
-            if (filter === 'finalOnly') {
-                dataToUse = dataToUse.filter(s => s.status === 'FINAL_PUBLISHED');
-            }
-
-            dataToUse.sort((a, b) => new Date(a.submittedAt || 0) - new Date(b.submittedAt || 0));
-
-            switch (type) {
-                case 'last5':
-                    dataToUse = dataToUse.slice(-5);
-                    break;
-                case 'top5':
-                    dataToUse.sort((a, b) => (getSubmissionPercentage(b) ?? 0) - (getSubmissionPercentage(a) ?? 0));
-                    dataToUse = dataToUse.slice(0, 5);
-                    dataToUse.sort((a, b) => new Date(a.submittedAt || 0) - new Date(b.submittedAt || 0));
-                    break;
-                // all -> keep all
-            }
-
-            const labels = dataToUse.map(sub => sub.questionCode || 'N/A');
-            const percentages = dataToUse.map(sub => getSubmissionPercentage(sub) ?? 0);
-            const statuses = dataToUse.map(sub => sub.status || 'UNKNOWN');
-
-            // Update main dataset
-            performanceChart.data.labels = labels;
-            performanceChart.data.datasets[0].data = percentages;
-            performanceChart.data.datasets[0].pointBackgroundColor = statuses.map(status =>
-                status === 'FINAL_PUBLISHED' ? 'rgb(42, 157, 143)' : 'rgb(233, 196, 106)'
-            );
-
-            // Update or remove overall line dataset
-            const overallExists = performanceChart.data.datasets.length > 1;
-            if (overallPercentageValue !== null && !isNaN(overallPercentageValue) && percentages.length > 0) {
-                const overallLineData = new Array(percentages.length).fill(overallPercentageValue);
-                if (overallExists) {
-                    performanceChart.data.datasets[1].data = overallLineData;
-                    performanceChart.data.datasets[1].label = `Overall (${overallPercentageValue}%)`;
-                } else {
-                    performanceChart.data.datasets.push({
-                        label: `Overall (${overallPercentageValue}%)`,
-                        data: overallLineData,
-                        borderColor: 'rgba(233, 196, 106, 0.8)',
-                        backgroundColor: 'transparent',
-                        borderWidth: 2,
-                        borderDash: [5, 5],
-                        pointRadius: 0,
-                        fill: false,
-                        tension: 0
-                    });
-                }
-            } else if (overallExists) {
-                // Remove overall dataset
-                performanceChart.data.datasets.pop();
-            }
-
+            let data = filter === 'finalOnly' ? submissions.filter(s => s.status === 'FINAL_PUBLISHED') : submissions.filter(s => (s.mcqScore !== undefined || s.mcqPercentage !== undefined || s.finalTotal !== undefined));
+            data.sort((a,b) => new Date(a.submittedAt||0) - new Date(b.submittedAt||0));
+            if (type === 'last5') data = data.slice(-5);
+            if (type === 'top5') { data.sort((a,b) => (getSubmissionPercentage(b)??0) - (getSubmissionPercentage(a)??0)); data = data.slice(0,5); data.sort((a,b) => new Date(a.submittedAt||0) - new Date(b.submittedAt||0)); }
+            performanceChart.data.labels = data.map(s => s.questionCode || 'N/A');
+            performanceChart.data.datasets[0].data = data.map(s => getSubmissionPercentage(s) ?? 0);
+            performanceChart.data.datasets[0].pointBackgroundColor = data.map(s => s.status === 'FINAL_PUBLISHED' ? 'rgb(42,157,143)' : 'rgb(233,196,106)');
             performanceChart.update();
         }
 
-        // OMR View (unchanged)
         async function viewOMR(submissionId) {
             try {
-                const submissionDoc = await db.collection('submissions').doc(submissionId).get();
-                if (!submissionDoc.exists) {
-                    showError('Submission not found');
-                    return;
-                }
-
-                const submission = submissionDoc.data();
-
-                const pct = getSubmissionPercentage(submission);
-                const pctText = (pct !== null) ? `${pct}%` : 'N/A';
-
-                let totalQuestions = safeNum(submission.mcqTotal) ?? null;
+                const doc = await db.collection('submissions').doc(submissionId).get();
+                if (!doc.exists) { showError('Submission not found'); return; }
+                const sub = doc.data();
+                const pct = getSubmissionPercentage(sub);
+                let totalQuestions = safeNum(sub.mcqTotal) ?? null;
+                let reviewByQuestion = sub.mcqReview?.byQuestion || null;
+                let studentAnswers = sub.mcqAnswers || null;
                 let correctAnswers = null;
-                let studentAnswers = submission.mcqAnswers || null;
-                let reviewByQuestion = submission.mcqReview && submission.mcqReview.byQuestion ? submission.mcqReview.byQuestion : null;
-
-                if (!reviewByQuestion) {
-                    if (!submission.setId) {
-                        showError('Exam set not found for this submission');
-                        return;
-                    }
-                    const examDoc = await db.collection('questionSets').doc(submission.setId).get();
-                    if (!examDoc.exists) {
-                        showError('Exam data not found');
-                        return;
-                    }
-                    const exam = examDoc.data();
-                    if (!exam.mcq || !exam.mcq.totalQuestions) {
-                        showError('This exam has no MCQ configuration');
-                        return;
-                    }
-                    totalQuestions = safeNum(exam.mcq.totalQuestions) ?? totalQuestions;
-                    correctAnswers = exam.mcq.answers || null;
+                if (!reviewByQuestion && sub.setId) {
+                    const examDoc = await db.collection('questionSets').doc(sub.setId).get();
+                    if (examDoc.exists && examDoc.data().mcq?.answers) correctAnswers = examDoc.data().mcq.answers;
+                    if (!totalQuestions && examDoc.exists) totalQuestions = safeNum(examDoc.data().mcq?.totalQuestions) ?? totalQuestions;
                 }
-
-                let content = `
-                    <div style="margin-bottom: 20px;">
-                        <h4 style="margin-bottom: 10px;">
-                            ${(submission.examName || 'Exam')} (${submission.questionCode || 'N/A'})
-                        </h4>
-                        <div class="score-display">
-                            <div class="score-item">
-                                <div class="score-label">Score</div>
-                                <div class="score-value">${(submission.mcqScore ?? 0)}/${(submission.mcqTotal ?? '?')}</div>
-                            </div>
-                            <div class="score-item">
-                                <div class="score-label">Percentage</div>
-                                <div class="score-value">${pctText}</div>
-                            </div>
-                            <div class="score-item">
-                                <div class="score-label">Correct</div>
-                                <div class="score-value">${submission.mcqCorrect ?? 0}</div>
-                            </div>
-                            <div class="score-item">
-                                <div class="score-label">Wrong</div>
-                                <div class="score-value">${submission.mcqWrong ?? 0}</div>
-                            </div>
-                            <div class="score-item">
-                                <div class="score-label">Unmarked</div>
-                                <div class="score-value">${submission.mcqUnmarked ?? 0}</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="omr-view-grid" id="omrViewGrid">
-                        <!-- OMR items will be generated here -->
-                    </div>
-                `;
-
-                document.getElementById('omrModalTitle').textContent = `OMR View - ${submission.examName || 'Exam'}`;
+                let content = `<div style="margin-bottom:20px;"><h4>${sub.examName || 'Exam'} (${sub.questionCode || 'N/A'})</h4><div class="score-display"><div class="score-item"><div class="score-label">Score</div><div class="score-value">${sub.mcqScore ?? 0}/${sub.mcqTotal ?? '?'}</div></div><div class="score-item"><div class="score-label">Percentage</div><div class="score-value">${pct !== null ? pct+'%' : 'N/A'}</div></div><div class="score-item"><div class="score-label">Correct</div><div class="score-value">${sub.mcqCorrect ?? 0}</div></div><div class="score-item"><div class="score-label">Wrong</div><div class="score-value">${sub.mcqWrong ?? 0}</div></div><div class="score-item"><div class="score-label">Unmarked</div><div class="score-value">${sub.mcqUnmarked ?? 0}</div></div></div></div><div class="omr-view-grid" id="omrViewGrid"></div>`;
+                document.getElementById('omrModalTitle').textContent = `OMR View - ${sub.examName || 'Exam'}`;
                 document.getElementById('omrModalContent').innerHTML = content;
-
                 const grid = document.getElementById('omrViewGrid');
-
                 const tq = totalQuestions ?? 0;
-                if (!tq) {
-                    grid.innerHTML = `
-                        <div class="empty-state" style="grid-column: 1 / -1;">
-                            <div class="empty-icon"><i class="fas fa-circle-exclamation"></i></div>
-                            <div class="empty-title">No MCQ questions found</div>
-                            <div class="empty-subtitle">This submission doesn’t have a valid MCQ total.</div>
-                        </div>
-                    `;
-                    showModal('omrModal');
-                    return;
-                }
-
-                for (let i = 1; i <= tq; i++) {
+                if (!tq) { grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="empty-icon"><i class="fas fa-circle-exclamation"></i></div><div class="empty-title">No MCQ questions found</div></div>`; showModal('omrModal'); return; }
+                for (let i=1; i<=tq; i++) {
                     const qNum = i.toString();
-
-                    let correctAns = null;
-                    let studentAns = null;
-
-                    if (reviewByQuestion && reviewByQuestion[qNum]) {
-                        correctAns = (reviewByQuestion[qNum].correct != null) ? reviewByQuestion[qNum].correct : null;
-                        studentAns = (reviewByQuestion[qNum].student != null) ? reviewByQuestion[qNum].student : null;
-                    } else {
-                        correctAns = (correctAnswers && correctAnswers[qNum] != null) ? correctAnswers[qNum] : null;
-                        studentAns = (studentAnswers && studentAnswers[qNum] != null) ? studentAnswers[qNum] : null;
-                    }
-
+                    let correctAns = null, studentAns = null;
+                    if (reviewByQuestion && reviewByQuestion[qNum]) { correctAns = reviewByQuestion[qNum].correct; studentAns = reviewByQuestion[qNum].student; }
+                    else { correctAns = correctAnswers?.[qNum] ?? null; studentAns = studentAnswers?.[qNum] ?? null; }
                     let itemClass = 'omr-view-item';
                     if (studentAns == null) itemClass += ' unmarked';
                     else if (correctAns != null && studentAns === correctAns) itemClass += ' correct';
                     else if (correctAns != null && studentAns !== correctAns) itemClass += ' wrong';
-
-                    let optionsHTML = '';
-                    ['A', 'B', 'C', 'D'].forEach(option => {
-                        let optionClass = 'omr-view-option';
-
-                        if (correctAns != null && option === correctAns) optionClass += ' correct';
-                        if (studentAns != null && option === studentAns) optionClass += ' selected';
-                        if (studentAns != null && correctAns != null && option === studentAns && studentAns !== correctAns) {
-                            optionClass += ' wrong';
-                        }
-
-                        optionsHTML += `<div class="${optionClass}">${option}</div>`;
+                    let optsHTML = '';
+                    ['A','B','C','D'].forEach(opt => {
+                        let optClass = 'omr-view-option';
+                        if (correctAns != null && opt === correctAns) optClass += ' correct';
+                        if (studentAns != null && opt === studentAns) optClass += ' selected';
+                        if (studentAns != null && correctAns != null && opt === studentAns && studentAns !== correctAns) optClass += ' wrong';
+                        optsHTML += `<div class="${optClass}">${opt}</div>`;
                     });
-
-                    grid.innerHTML += `
-                        <div class="${itemClass}">
-                            <div class="omr-view-number">Q${i}</div>
-                            <div class="omr-view-options">
-                                ${optionsHTML}
-                            </div>
-                        </div>
-                    `;
+                    grid.innerHTML += `<div class="${itemClass}"><div class="omr-view-number">Q${i}</div><div class="omr-view-options">${optsHTML}</div></div>`;
                 }
-
                 showModal('omrModal');
-
-            } catch (error) {
-                console.error('View OMR error:', error);
-                showError('Failed to load OMR view');
-            }
+            } catch(e) { console.error(e); showError('Failed to load OMR view'); }
         }
 
-        function showError(message) {
-            console.error('Dashboard error:', message);
-            alert(`Error: ${message}`);
-        }
-
-        // Modal close on outside click
-        document.querySelectorAll('.modal-overlay').forEach(overlay => {
-            overlay.addEventListener('click', (e) => {
-                if (e.target === overlay) {
-                    overlay.style.display = 'none';
-                }
-            });
-        });
+        function showError(msg) { alert(`Error: ${msg}`); }
+        document.querySelectorAll('.modal-overlay').forEach(overlay => overlay.addEventListener('click', (e) => { if(e.target === overlay) overlay.style.display = 'none'; }));
     </script>
 </body>
 </html>
