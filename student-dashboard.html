@@ -149,7 +149,7 @@
             letter-spacing: 1px;
         }
 
-        /* Attendance */
+        /* Attendance - refined for show more/less */
         .month-card {
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid var(--border-color);
@@ -189,7 +189,7 @@
             font-size: 13px;
         }
 
-        .btn-attendance-more {
+        .btn-attendance-toggle {
             margin-top: 15px;
             width: 100%;
             text-align: center;
@@ -689,7 +689,7 @@
                 </div>
             </section>
 
-            <!-- Attendance -->
+            <!-- Attendance - refined show more/less -->
             <section class="card">
                 <div class="card-header">
                     <h2><i class="fas fa-calendar-check"></i> Attendance</h2>
@@ -763,11 +763,10 @@
 
         function safeNum(v) { const n = Number(v); return Number.isFinite(n) ? n : null; }
 
-        // ✅ PRIORITY: use overallPercentage from Firestore if exists, otherwise fallback to derived
+        // Priority: overallPercentage from Firestore (as requested) else fallback to derived
         function getSubmissionPercentage(sub) {
             if (sub.overallPercentage !== undefined && sub.overallPercentage !== null && !isNaN(Number(sub.overallPercentage))) {
-                const val = Number(sub.overallPercentage);
-                return Math.round(val);
+                return Math.round(Number(sub.overallPercentage));
             }
             const finalTotal = safeNum(sub.finalTotal);
             const totalMark = safeNum(sub.totalMark) ?? safeNum(sub.totalMarks) ?? safeNum(sub.finalTotalMax);
@@ -808,53 +807,70 @@
             document.getElementById('studentInfo').innerHTML = info.map(i => `<div class="info-item"><div class="info-label">${i.label}</div><div class="info-value ${i.class||''}">${i.value}</div></div>`).join('');
         }
 
-        // Attendance: show current month only, others hidden initially; "Show More" toggles previous months
+        // Attendance: show only the most recent month (highest monthNumber) directly.
+        // All other months are hidden initially. Toggle button shows/hides all previous months.
         function renderAttendance() {
             const container = document.getElementById('attendanceContainer');
             if (!currentStudent.attendance || !currentStudent.attendance.months || currentStudent.attendance.months.length === 0) {
                 container.innerHTML = `<div class="empty-state"><div class="empty-icon"><i class="fas fa-calendar-times"></i></div><div class="empty-title">No attendance records</div><div class="empty-subtitle">Attendance will appear here once recorded</div></div>`;
                 return;
             }
+            // Clone and sort descending by monthNumber (highest first)
             let months = [...currentStudent.attendance.months];
-            // sort by monthNumber descending (latest first) to easily identify current month
-            months.sort((a,b) => (b.monthNumber || 0) - (a.monthNumber || 0));
-            const currentMonthNum = new Date().getMonth() + 1;
-            let currentIdx = months.findIndex(m => m.monthNumber === currentMonthNum);
-            if (currentIdx === -1) currentIdx = 0; // fallback to most recent month
+            months.sort((a, b) => (b.monthNumber || 0) - (a.monthNumber || 0));
+            
+            const mostRecentMonth = months[0];
+            const previousMonths = months.slice(1);
             
             let html = `<div id="attendanceMonthsWrapper">`;
-            months.forEach((month, idx) => {
-                const totalDays = month.days?.length || 0;
-                const startDate = month.startDate ? formatDateShort(month.startDate) : 'N/A';
-                const hiddenClass = (idx !== currentIdx) ? 'hidden' : '';
-                html += `<div class="month-card ${hiddenClass}" data-month-idx="${idx}">
-                            <div class="month-header"><div class="month-title">Month ${month.monthNumber || ''}</div><div style="color: var(--success);">${totalDays} classes</div></div>
-                            <div style="color: var(--text-muted); font-size: 14px; margin-bottom: 10px;">Started: ${startDate}</div>
-                            <div class="month-days">${(month.days || []).map(day => { const d=new Date(day.date); return `<span class="day-badge">${month.monthNumber}.${day.dayNumber} (${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear().toString().slice(-2)})</span>`; }).join('')}</div>
-                          </div>`;
+            // Render most recent month (always visible)
+            html += renderMonthCard(mostRecentMonth, false);
+            // Render previous months with hidden class
+            previousMonths.forEach(month => {
+                html += renderMonthCard(month, true);
             });
-            const hasHidden = months.some((_, idx) => idx !== currentIdx);
             html += `</div>`;
-            if (hasHidden) {
-                html += `<div class="btn-attendance-more"><button id="toggleAttendanceBtn" class="btn btn-secondary"><i class="fas fa-chevron-down"></i> Show More Months</button></div>`;
+            
+            // Add toggle button only if there are previous months
+            if (previousMonths.length > 0) {
+                html += `<div class="btn-attendance-toggle"><button id="toggleAttendanceBtn" class="btn btn-secondary"><i class="fas fa-chevron-down"></i> Show More Months (${previousMonths.length})</button></div>`;
             }
             container.innerHTML = html;
-            if (hasHidden) {
+            
+            if (previousMonths.length > 0) {
                 const toggleBtn = document.getElementById('toggleAttendanceBtn');
                 let expanded = false;
                 toggleBtn.addEventListener('click', () => {
                     const hiddenCards = document.querySelectorAll('.month-card.hidden');
                     if (!expanded) {
                         hiddenCards.forEach(card => card.classList.remove('hidden'));
-                        toggleBtn.innerHTML = '<i class="fas fa-chevron-up"></i> Show Less';
+                        toggleBtn.innerHTML = `<i class="fas fa-chevron-up"></i> Show Less Months`;
                         expanded = true;
                     } else {
                         hiddenCards.forEach(card => card.classList.add('hidden'));
-                        toggleBtn.innerHTML = '<i class="fas fa-chevron-down"></i> Show More Months';
+                        toggleBtn.innerHTML = `<i class="fas fa-chevron-down"></i> Show More Months (${previousMonths.length})`;
                         expanded = false;
                     }
                 });
             }
+        }
+        
+        function renderMonthCard(month, isHidden) {
+            const totalDays = month.days?.length || 0;
+            const startDate = month.startDate ? formatDateShort(month.startDate) : 'N/A';
+            const hiddenClass = isHidden ? 'hidden' : '';
+            const daysHtml = (month.days || []).map(day => {
+                const d = new Date(day.date);
+                return `<span class="day-badge">${month.monthNumber}.${day.dayNumber} (${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear().toString().slice(-2)})</span>`;
+            }).join('');
+            return `<div class="month-card ${hiddenClass}">
+                        <div class="month-header">
+                            <div class="month-title">Month ${month.monthNumber || ''}</div>
+                            <div style="color: var(--success);">${totalDays} classes</div>
+                        </div>
+                        <div style="color: var(--text-muted); font-size: 14px; margin-bottom: 10px;">Started: ${startDate}</div>
+                        <div class="month-days">${daysHtml}</div>
+                    </div>`;
         }
 
         async function loadSubmissions() {
