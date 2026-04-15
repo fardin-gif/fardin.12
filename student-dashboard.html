@@ -47,7 +47,6 @@
             padding: 0 20px;
         }
 
-        /* Header */
         header {
             background: var(--card-bg);
             border-bottom: 1px solid var(--border-color);
@@ -90,7 +89,6 @@
             font-size: 14px;
         }
 
-        /* Card Styles */
         .card {
             background: var(--card-bg);
             border-radius: var(--radius);
@@ -118,7 +116,6 @@
             padding: 20px;
         }
 
-        /* Student Info */
         .info-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -149,7 +146,6 @@
             letter-spacing: 1px;
         }
 
-        /* Attendance */
         .month-card {
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid var(--border-color);
@@ -184,7 +180,6 @@
             font-size: 13px;
         }
 
-        /* Exam Results */
         .search-box {
             margin-bottom: 20px;
         }
@@ -239,7 +234,6 @@
             border-color: var(--text-muted);
         }
 
-        /* ✅ Added: missing btn-primary (used in modal footer) */
         .btn-primary {
             background: var(--primary-red);
             color: white;
@@ -250,14 +244,14 @@
             transform: translateY(-2px);
         }
 
-        .btn-success {
-            background: var(--success);
-            color: white;
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--primary-red);
+            color: var(--primary-red);
         }
 
-        .btn-success:hover {
-            background: #21867a;
-            transform: translateY(-2px);
+        .btn-outline:hover {
+            background: rgba(214, 40, 57, 0.1);
         }
 
         .results-grid {
@@ -384,7 +378,6 @@
             flex-wrap: wrap;
         }
 
-        /* Performance Chart */
         .chart-controls {
             display: flex;
             flex-wrap: wrap;
@@ -442,7 +435,6 @@
             width: 100%;
         }
 
-        /* Modal */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -496,7 +488,6 @@
             padding: 20px;
         }
 
-        /* ✅ Added: modal footer styling (already exists in HTML) */
         .modal-footer {
             padding: 20px;
             border-top: 1px solid var(--border-color);
@@ -506,7 +497,6 @@
             flex-wrap: wrap;
         }
 
-        /* OMR View Modal */
         .omr-view-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
@@ -572,7 +562,6 @@
             color: white;
         }
 
-        /* Empty State */
         .empty-state {
             text-align: center;
             padding: 40px 20px;
@@ -595,7 +584,6 @@
             font-size: 14px;
         }
 
-        /* Loading */
         .spinner {
             width: 40px;
             height: 40px;
@@ -610,7 +598,6 @@
             to { transform: rotate(360deg); }
         }
 
-        /* Footer */
         footer {
             background: var(--card-bg);
             border-top: 1px solid var(--border-color);
@@ -627,25 +614,20 @@
                 gap: 15px;
                 text-align: center;
             }
-
             .student-welcome {
                 text-align: center;
             }
-
             .results-grid {
                 grid-template-columns: 1fr;
             }
-
             .chart-controls {
                 flex-direction: column;
                 align-items: stretch;
             }
-
             .btn {
                 width: 100%;
                 justify-content: center;
             }
-
             .modal-footer {
                 justify-content: stretch;
             }
@@ -653,7 +635,6 @@
     </style>
 </head>
 <body>
-    <!-- Header -->
     <header>
         <div class="container">
             <div class="header-content">
@@ -669,7 +650,6 @@
         </div>
     </header>
 
-    <!-- Main Content -->
     <main>
         <div class="container">
             <!-- Student Information -->
@@ -678,9 +658,7 @@
                     <h2><i class="fas fa-user"></i> Student Information</h2>
                 </div>
                 <div class="card-body">
-                    <div class="info-grid" id="studentInfo">
-                        <!-- Student info will be loaded here -->
-                    </div>
+                    <div class="info-grid" id="studentInfo"></div>
                 </div>
             </section>
 
@@ -718,7 +696,6 @@
                         </button>
                     </div>
                     <div class="results-grid" id="resultsGrid">
-                        <!-- Results will be loaded here -->
                         <div class="empty-state">
                             <div class="spinner"></div>
                             <div class="empty-title">Loading results...</div>
@@ -770,7 +747,6 @@
         </div>
     </main>
 
-    <!-- Footer -->
     <footer>
         <div class="container">
             <p>© <span id="currentYear"></span> Fardin (DU Physics). All rights reserved.</p>
@@ -785,9 +761,7 @@
                 <button class="modal-close" onclick="closeModal('omrModal')">&times;</button>
             </div>
             <div class="modal-body">
-                <div id="omrModalContent">
-                    <!-- OMR view will be loaded here -->
-                </div>
+                <div id="omrModalContent"></div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-primary" onclick="closeModal('omrModal')">Close</button>
@@ -806,68 +780,53 @@
             appId: "1:269325070232:web:79bdf01e4f47ea36bd45ed"
         };
 
-        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // Global Variables
         let currentStudent = null;
         let studentUsername = null;
         let submissions = [];
         let performanceChart = null;
 
-        // Initialize on load
-        document.addEventListener('DOMContentLoaded', async () => {
-            // Get username from URL
-            const urlParams = new URLSearchParams(window.location.search);
-            studentUsername = urlParams.get('user');
-
-            if (!studentUsername) {
-                showError('No student specified. Please use a valid dashboard link.');
-                return;
+        // Helper: Convert Firestore Timestamp / Date string to JS Date
+        function toDate(dateValue) {
+            if (!dateValue) return null;
+            if (dateValue.toDate && typeof dateValue.toDate === 'function') {
+                return dateValue.toDate();
             }
+            return new Date(dateValue);
+        }
 
-            // Set current year
-            document.getElementById('currentYear').textContent = new Date().getFullYear();
-
-            // Load student data
-            await loadStudentData();
-
-            // Load submissions
-            await loadSubmissions();
-        });
-
-        // Utility Functions
         function safeNum(v) {
             const n = Number(v);
             return Number.isFinite(n) ? n : null;
         }
 
-        // ✅ Main change: calculate percentage from obtained marks and total marks
-        // Priority:
-        // 1) If finalTotal + totalMark/totalMarks/finalTotalMax exists => final percentage
-        // 2) Else if mcqScore + mcqTotal exists => MCQ percentage
-        // 3) Else fallback to stored mcqPercentage (older data)
-        function getSubmissionPercentage(sub) {
+        // NEW: Percentage based on finalTotal / (mcqTotal + writtenTotal)
+        function getFinalPercentage(sub) {
             const finalTotal = safeNum(sub.finalTotal);
-            const totalMark =
-                safeNum(sub.totalMark) ??
-                safeNum(sub.totalMarks) ??
-                safeNum(sub.finalTotalMax);
+            if (finalTotal === null) return null;
 
-            if (finalTotal !== null && totalMark !== null && totalMark > 0) {
-                return Math.round((finalTotal / totalMark) * 100);
-            }
+            const mcqTotal = safeNum(sub.mcqTotal) ?? 0;
+            const writtenTotal = safeNum(sub.writtenTotal) ?? 0;
+            const totalMark = mcqTotal + writtenTotal;
+            if (totalMark <= 0) return null;
 
+            return Math.round((finalTotal / totalMark) * 100);
+        }
+
+        // Legacy function for OMR and display (keeps old behavior for result cards)
+        function getSubmissionPercentage(sub) {
+            const pct = getFinalPercentage(sub);
+            if (pct !== null) return pct;
+
+            // fallback for older submissions without finalTotal
             const mcqScore = safeNum(sub.mcqScore);
             const mcqTotal = safeNum(sub.mcqTotal);
-
             if (mcqScore !== null && mcqTotal !== null && mcqTotal > 0) {
                 return Math.round((mcqScore / mcqTotal) * 100);
             }
-
-            const storedPct = safeNum(sub.mcqPercentage);
-            return storedPct !== null ? storedPct : null;
+            return null;
         }
 
         function getPercentageClass(pct) {
@@ -878,7 +837,8 @@
         }
 
         function formatDateShort(iso) {
-            const date = new Date(iso);
+            const date = toDate(iso);
+            if (!date) return 'N/A';
             const day = String(date.getDate()).padStart(2, '0');
             const month = String(date.getMonth() + 1).padStart(2, '0');
             const year = date.getFullYear();
@@ -886,7 +846,8 @@
         }
 
         function formatDate(iso) {
-            const date = new Date(iso);
+            const date = toDate(iso);
+            if (!date) return 'N/A';
             return date.toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'short',
@@ -909,29 +870,21 @@
             document.getElementById(modalId).style.display = 'none';
         }
 
-        // Data Loading
+        // Load student data
         async function loadStudentData() {
             try {
                 const studentDoc = await db.collection('students').doc(studentUsername).get();
-
                 if (!studentDoc.exists) {
                     showError('Student not found. Please check your dashboard link.');
                     return;
                 }
-
                 currentStudent = studentDoc.data();
                 currentStudent.username = studentUsername;
 
-                // Update header
                 document.getElementById('studentName').textContent = currentStudent.studentName || studentUsername;
                 document.getElementById('studentClass').textContent = `Class: ${currentStudent.className || 'N/A'}`;
-
-                // Render student info
                 renderStudentInfo();
-
-                // Load attendance
                 loadAttendance();
-
             } catch (error) {
                 console.error('Load student error:', error);
                 showError('Failed to load student data.');
@@ -940,7 +893,6 @@
 
         function renderStudentInfo() {
             const infoGrid = document.getElementById('studentInfo');
-
             const info = [
                 { label: 'Full Name', value: currentStudent.studentName || 'N/A' },
                 { label: 'Username', value: currentStudent.username || 'N/A' },
@@ -949,7 +901,6 @@
                 { label: 'Guardian Number', value: maskPhoneNumber(currentStudent.guardianNumber), class: 'masked-number' },
                 { label: 'Dashboard Link', value: currentStudent.dashboardLink || `${window.location.origin}/student-dashboard.html?user=${currentStudent.username}` }
             ];
-
             infoGrid.innerHTML = info.map(item => `
                 <div class="info-item">
                     <div class="info-label">${item.label}</div>
@@ -958,15 +909,13 @@
             `).join('');
         }
 
+        // Attendance: show current month only + "See More" for previous months
         function loadAttendance() {
-            const content = document.getElementById('attendanceContent');
-
+            const container = document.getElementById('attendanceContent');
             if (!currentStudent.attendance || !currentStudent.attendance.months || currentStudent.attendance.months.length === 0) {
-                content.innerHTML = `
+                container.innerHTML = `
                     <div class="empty-state">
-                        <div class="empty-icon">
-                            <i class="fas fa-calendar-times"></i>
-                        </div>
+                        <div class="empty-icon"><i class="fas fa-calendar-times"></i></div>
                         <div class="empty-title">No attendance records</div>
                         <div class="empty-subtitle">Attendance will appear here once recorded by your teacher</div>
                     </div>
@@ -974,36 +923,73 @@
                 return;
             }
 
-            const months = [...currentStudent.attendance.months].reverse();
+            // Sort months chronologically (oldest first) based on startDate
+            const months = [...currentStudent.attendance.months].sort((a, b) => {
+                const dateA = toDate(a.startDate);
+                const dateB = toDate(b.startDate);
+                if (!dateA || !dateB) return 0;
+                return dateA - dateB;
+            });
 
-            let html = '';
-            months.forEach(month => {
-                const totalDays = (month.days && month.days.length) ? month.days.length : 0;
-                const startDate = month.startDate ? formatDateShort(month.startDate) : 'N/A';
+            // Current month = most recent (last in sorted array)
+            const currentMonth = months[months.length - 1];
+            const previousMonths = months.slice(0, -1);
 
-                html += `
-                    <div class="month-card">
+            function renderMonthCard(month, isCurrent = false) {
+                const totalDays = month.days ? month.days.length : 0;
+                const startDateObj = toDate(month.startDate);
+                const startDateStr = startDateObj ? formatDateShort(startDateObj) : 'N/A';
+
+                return `
+                    <div class="month-card" data-month-id="${month.monthNumber || ''}">
                         <div class="month-header">
-                            <div class="month-title">Month ${month.monthNumber || ''}</div>
+                            <div class="month-title">Month ${month.monthNumber || ''} ${isCurrent ? '(Current)' : ''}</div>
                             <div style="color: var(--success);">${totalDays} classes</div>
                         </div>
                         <div style="color: var(--text-muted); font-size: 14px; margin-bottom: 10px;">
-                            Started: ${startDate}
+                            Started: ${startDateStr}
                         </div>
                         <div class="month-days">
                             ${(month.days || []).map(day => {
-                                const date = new Date(day.date);
-                                const dayStr = String(date.getDate()).padStart(2, '0');
-                                const monthStr = String(date.getMonth() + 1).padStart(2, '0');
-                                const yearStr = date.getFullYear().toString().slice(-2);
+                                const dayDate = toDate(day.date);
+                                if (!dayDate) return `<span class="day-badge">Invalid date</span>`;
+                                const dayStr = String(dayDate.getDate()).padStart(2, '0');
+                                const monthStr = String(dayDate.getMonth() + 1).padStart(2, '0');
+                                const yearStr = dayDate.getFullYear().toString().slice(-2);
                                 return `<span class="day-badge">${month.monthNumber}.${day.dayNumber} (${dayStr}.${monthStr}.${yearStr})</span>`;
                             }).join('')}
                         </div>
                     </div>
                 `;
-            });
+            }
 
-            content.innerHTML = html;
+            let html = renderMonthCard(currentMonth, true);
+            if (previousMonths.length > 0) {
+                const hiddenId = 'hiddenMonthsContainer';
+                html += `
+                    <div id="${hiddenId}" style="display: none;">
+                        ${previousMonths.map(m => renderMonthCard(m, false)).join('')}
+                    </div>
+                    <button id="seeMoreBtn" class="btn btn-outline" style="margin-top: 10px;">
+                        <i class="fas fa-chevron-down"></i> See More (${previousMonths.length} previous months)
+                    </button>
+                `;
+            }
+            container.innerHTML = html;
+
+            const seeMoreBtn = document.getElementById('seeMoreBtn');
+            if (seeMoreBtn) {
+                seeMoreBtn.addEventListener('click', () => {
+                    const hiddenDiv = document.getElementById('hiddenMonthsContainer');
+                    if (hiddenDiv.style.display === 'none') {
+                        hiddenDiv.style.display = 'block';
+                        seeMoreBtn.innerHTML = '<i class="fas fa-chevron-up"></i> See Less';
+                    } else {
+                        hiddenDiv.style.display = 'none';
+                        seeMoreBtn.innerHTML = `<i class="fas fa-chevron-down"></i> See More (${previousMonths.length} previous months)`;
+                    }
+                });
+            }
         }
 
         async function loadSubmissions() {
@@ -1014,14 +1000,9 @@
                     .get();
 
                 submissions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-                // Render results
                 renderResults(submissions);
-
-                // Update stats and chart
                 updateStats();
                 updateChart();
-
             } catch (error) {
                 console.error('Load submissions error:', error);
                 showError('Failed to load exam results.');
@@ -1030,13 +1011,10 @@
 
         function renderResults(results) {
             const grid = document.getElementById('resultsGrid');
-
             if (!results || results.length === 0) {
                 grid.innerHTML = `
                     <div class="empty-state">
-                        <div class="empty-icon">
-                            <i class="fas fa-file-alt"></i>
-                        </div>
+                        <div class="empty-icon"><i class="fas fa-file-alt"></i></div>
                         <div class="empty-title">No exam results yet</div>
                         <div class="empty-subtitle">Your exam results will appear here after submission</div>
                     </div>
@@ -1047,7 +1025,6 @@
             grid.innerHTML = results.map(sub => {
                 const pct = getSubmissionPercentage(sub);
                 const percentageClass = getPercentageClass(pct);
-
                 const showPercentage = (pct !== null);
                 const hasMCQ = (sub.mcqScore !== undefined || sub.mcqTotal !== undefined || sub.mcqAnswers || sub.mcqReview);
 
@@ -1059,59 +1036,36 @@
                                 <div class="exam-code">${sub.questionCode || 'N/A'}</div>
                             </div>
                         </div>
-
                         <div class="result-meta">
                             <span><i class="fas fa-calendar"></i> ${sub.submittedAt ? formatDate(sub.submittedAt) : 'N/A'}</span>
                             <span class="status-badge ${sub.status === 'FINAL_PUBLISHED' ? 'status-final' : 'status-pending'}">
                                 ${(sub.status || 'UNKNOWN').split('_').join(' ')}
                             </span>
                         </div>
-
                         ${showPercentage ? `
                             <div class="percentage-big">
                                 <div class="percentage-value ${percentageClass}">${pct}%</div>
                             </div>
                         ` : ''}
-
                         ${hasMCQ ? `
                             <div class="score-display">
-                                <div class="score-item">
-                                    <div class="score-label">Score</div>
-                                    <div class="score-value">${(sub.mcqScore ?? 0)}/${(sub.mcqTotal ?? '?')}</div>
-                                </div>
-                                <div class="score-item">
-                                    <div class="score-label">Correct</div>
-                                    <div class="score-value">${sub.mcqCorrect ?? 0}</div>
-                                </div>
-                                <div class="score-item">
-                                    <div class="score-label">Wrong</div>
-                                    <div class="score-value">${sub.mcqWrong ?? 0}</div>
-                                </div>
-                                <div class="score-item">
-                                    <div class="score-label">Unmarked</div>
-                                    <div class="score-value">${sub.mcqUnmarked ?? 0}</div>
-                                </div>
+                                <div class="score-item"><div class="score-label">Score</div><div class="score-value">${(sub.mcqScore ?? 0)}/${(sub.mcqTotal ?? '?')}</div></div>
+                                <div class="score-item"><div class="score-label">Correct</div><div class="score-value">${sub.mcqCorrect ?? 0}</div></div>
+                                <div class="score-item"><div class="score-label">Wrong</div><div class="score-value">${sub.mcqWrong ?? 0}</div></div>
+                                <div class="score-item"><div class="score-label">Unmarked</div><div class="score-value">${sub.mcqUnmarked ?? 0}</div></div>
                             </div>
                         ` : ''}
-
                         ${sub.writtenTotal !== undefined ? `
                             <div class="score-display">
-                                <div class="score-item">
-                                    <div class="score-label">Written Score</div>
-                                    <div class="score-value">${sub.writtenTotal}</div>
-                                </div>
+                                <div class="score-item"><div class="score-label">Written Score</div><div class="score-value">${sub.writtenTotal}</div></div>
                             </div>
                         ` : ''}
-
                         ${sub.finalTotal !== undefined ? `
                             <div style="text-align: center; margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border-color);">
                                 <div style="font-size: 12px; color: var(--text-muted);">Final Total</div>
-                                <div style="font-size: 24px; font-weight: bold; color: var(--success);">
-                                    ${sub.finalTotal} marks
-                                </div>
+                                <div style="font-size: 24px; font-weight: bold; color: var(--success);">${sub.finalTotal} marks</div>
                             </div>
                         ` : ''}
-
                         <div class="result-actions">
                             ${(sub.mcqAnswers || sub.mcqReview) ? `
                                 <button class="btn btn-secondary" onclick="viewOMR('${sub.id}')">
@@ -1124,97 +1078,65 @@
             }).join('');
         }
 
-        // Search and Sort
         function sortResults(criteria) {
             let sorted = [...submissions];
-
             switch (criteria) {
                 case 'date':
-                    sorted.sort((a, b) => new Date(b.submittedAt || 0) - new Date(a.submittedAt || 0));
+                    sorted.sort((a, b) => toDate(b.submittedAt) - toDate(a.submittedAt));
                     break;
                 case 'score':
-                    sorted.sort((a, b) => {
-                        const scoreA = getSubmissionPercentage(a) ?? (safeNum(a.finalTotal) ?? 0);
-                        const scoreB = getSubmissionPercentage(b) ?? (safeNum(b.finalTotal) ?? 0);
-                        return scoreB - scoreA;
-                    });
+                    sorted.sort((a, b) => (getSubmissionPercentage(b) ?? 0) - (getSubmissionPercentage(a) ?? 0));
                     break;
                 case 'code':
                     sorted.sort((a, b) => String(a.questionCode || '').localeCompare(String(b.questionCode || '')));
                     break;
             }
-
             renderResults(sorted);
         }
 
-        // Search functionality
         document.getElementById('resultSearch').addEventListener('input', (e) => {
-            const searchTerm = e.target.value.toLowerCase();
-
-            if (!searchTerm) {
-                renderResults(submissions);
-                return;
-            }
-
-            const filtered = submissions.filter(sub => {
-                const name = String(sub.examName || '').toLowerCase();
-                const code = String(sub.questionCode || '').toLowerCase();
-                return name.includes(searchTerm) || code.includes(searchTerm);
-            });
-
+            const term = e.target.value.toLowerCase();
+            if (!term) return renderResults(submissions);
+            const filtered = submissions.filter(sub =>
+                String(sub.examName || '').toLowerCase().includes(term) ||
+                String(sub.questionCode || '').toLowerCase().includes(term)
+            );
             renderResults(filtered);
         });
 
-        // Stats and Chart
         function updateStats() {
-            const finalResults = submissions.filter(s => s.status === 'FINAL_PUBLISHED');
-
-            const percents = finalResults
-                .map(s => getSubmissionPercentage(s))
-                .filter(p => p !== null);
-
+            // Use only submissions that have finalTotal (our new percentage)
+            const validSubs = submissions.filter(s => safeNum(s.finalTotal) !== null);
+            const percents = validSubs.map(s => getFinalPercentage(s)).filter(p => p !== null);
             if (percents.length === 0) {
                 document.getElementById('avgPercentage').textContent = '0%';
                 document.getElementById('bestPercentage').textContent = '0%';
                 document.getElementById('totalExams').textContent = '0';
                 return;
             }
-
-            const totalPercentage = percents.reduce((sum, p) => sum + p, 0);
-            const avgPercentage = Math.round(totalPercentage / percents.length);
-            const bestPercentage = Math.max(...percents);
-
-            document.getElementById('avgPercentage').textContent = `${avgPercentage}%`;
-            document.getElementById('bestPercentage').textContent = `${bestPercentage}%`;
-            document.getElementById('totalExams').textContent = String(percents.length);
+            const avg = Math.round(percents.reduce((a,b) => a+b, 0) / percents.length);
+            const best = Math.max(...percents);
+            document.getElementById('avgPercentage').textContent = `${avg}%`;
+            document.getElementById('bestPercentage').textContent = `${best}%`;
+            document.getElementById('totalExams').textContent = percents.length;
         }
 
         function updateChart() {
             const filter = document.getElementById('chartFilter').value;
-            let dataToUse = [...submissions];
+            let dataToUse = submissions.filter(s => safeNum(s.finalTotal) !== null); // only those with finalTotal
 
             if (filter === 'finalOnly') {
                 dataToUse = dataToUse.filter(s => s.status === 'FINAL_PUBLISHED');
-            } else {
-                // includePending: keep all
-                dataToUse = dataToUse.filter(s => (s.mcqScore !== undefined || s.mcqPercentage !== undefined || s.finalTotal !== undefined));
             }
+            // sort by date ascending
+            dataToUse.sort((a, b) => toDate(a.submittedAt) - toDate(b.submittedAt));
 
-            // sort by date ASC
-            dataToUse.sort((a, b) => new Date(a.submittedAt || 0) - new Date(b.submittedAt || 0));
+            const labels = dataToUse.map(s => s.questionCode || 'N/A');
+            const percentages = dataToUse.map(s => getFinalPercentage(s) ?? 0);
+            const statuses = dataToUse.map(s => s.status || 'UNKNOWN');
 
-            const labels = dataToUse.map(sub => sub.questionCode || 'N/A');
-            const percentages = dataToUse.map(sub => getSubmissionPercentage(sub) ?? 0);
-            const statuses = dataToUse.map(sub => sub.status || 'UNKNOWN');
-
-            const canvas = document.getElementById('performanceChart');
-            if (!canvas) return;
-
-            const ctx = canvas.getContext('2d');
-
-            if (performanceChart) {
-                performanceChart.destroy();
-            }
+            const ctx = document.getElementById('performanceChart').getContext('2d');
+            if (performanceChart) performanceChart.destroy();
 
             performanceChart = new Chart(ctx, {
                 type: 'line',
@@ -1228,10 +1150,7 @@
                         borderWidth: 2,
                         fill: true,
                         tension: 0.4,
-                        pointBackgroundColor: function(context) {
-                            const index = context.dataIndex;
-                            return statuses[index] === 'FINAL_PUBLISHED' ? 'rgb(42, 157, 143)' : 'rgb(233, 196, 106)';
-                        },
+                        pointBackgroundColor: statuses.map(s => s === 'FINAL_PUBLISHED' ? 'rgb(42, 157, 143)' : 'rgb(233, 196, 106)'),
                         pointBorderColor: 'rgba(255, 255, 255, 0.8)',
                         pointBorderWidth: 2,
                         pointRadius: 6,
@@ -1242,9 +1161,7 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: {
-                            labels: { color: 'rgb(245, 243, 244)' }
-                        },
+                        legend: { labels: { color: 'rgb(245, 243, 244)' } },
                         tooltip: {
                             backgroundColor: 'rgba(33, 37, 41, 0.9)',
                             titleColor: 'rgb(245, 243, 244)',
@@ -1253,36 +1170,19 @@
                             borderWidth: 1,
                             callbacks: {
                                 label: function(context) {
-                                    const index = context.dataIndex;
-                                    const sub = dataToUse[index];
-                                    const pct = getSubmissionPercentage(sub);
-                                    let label = `${pct ?? 0}%`;
-
-                                    if (sub.finalTotal !== undefined) {
-                                        const totalMark = safeNum(sub.totalMark) ?? safeNum(sub.totalMarks) ?? safeNum(sub.finalTotalMax);
-                                        if (totalMark !== null) label += ` (${sub.finalTotal}/${totalMark})`;
-                                        else label += ` (Final: ${sub.finalTotal})`;
-                                    } else if (sub.mcqScore !== undefined && sub.mcqTotal !== undefined) {
-                                        label += ` (${sub.mcqScore}/${sub.mcqTotal})`;
-                                    }
-
-                                    if (sub.status !== 'FINAL_PUBLISHED') label += ' - Pending';
-                                    return label;
+                                    const sub = dataToUse[context.dataIndex];
+                                    const pct = getFinalPercentage(sub);
+                                    const mcqTotal = safeNum(sub.mcqTotal) ?? 0;
+                                    const writtenTotal = safeNum(sub.writtenTotal) ?? 0;
+                                    const totalMark = mcqTotal + writtenTotal;
+                                    return `${pct ?? 0}% (${sub.finalTotal}/${totalMark})`;
                                 }
                             }
                         }
                     },
                     scales: {
-                        x: {
-                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                            ticks: { color: 'rgb(177, 167, 166)', maxRotation: 45 }
-                        },
-                        y: {
-                            beginAtZero: true,
-                            max: 100,
-                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                            ticks: { color: 'rgb(177, 167, 166)' }
-                        }
+                        x: { grid: { color: 'rgba(255, 255, 255, 0.1)' }, ticks: { color: 'rgb(177, 167, 166)', maxRotation: 45 } },
+                        y: { beginAtZero: true, max: 100, grid: { color: 'rgba(255, 255, 255, 0.1)' }, ticks: { color: 'rgb(177, 167, 166)' } }
                     }
                 }
             });
@@ -1290,41 +1190,31 @@
 
         function filterChart(type) {
             if (!performanceChart) return;
-
             const filter = document.getElementById('chartFilter').value;
-            let dataToUse = [...submissions];
-
-            if (filter === 'finalOnly') {
-                dataToUse = dataToUse.filter(s => s.status === 'FINAL_PUBLISHED');
-            }
-
-            dataToUse.sort((a, b) => new Date(a.submittedAt || 0) - new Date(b.submittedAt || 0));
+            let dataToUse = submissions.filter(s => safeNum(s.finalTotal) !== null);
+            if (filter === 'finalOnly') dataToUse = dataToUse.filter(s => s.status === 'FINAL_PUBLISHED');
+            dataToUse.sort((a, b) => toDate(a.submittedAt) - toDate(b.submittedAt));
 
             switch (type) {
                 case 'last5':
                     dataToUse = dataToUse.slice(-5);
                     break;
                 case 'top5':
-                    dataToUse.sort((a, b) => (getSubmissionPercentage(b) ?? 0) - (getSubmissionPercentage(a) ?? 0));
+                    dataToUse.sort((a, b) => (getFinalPercentage(b) ?? 0) - (getFinalPercentage(a) ?? 0));
                     dataToUse = dataToUse.slice(0, 5);
-                    dataToUse.sort((a, b) => new Date(a.submittedAt || 0) - new Date(b.submittedAt || 0));
+                    dataToUse.sort((a, b) => toDate(a.submittedAt) - toDate(b.submittedAt));
                     break;
-                // all -> keep all
             }
-
-            const labels = dataToUse.map(sub => sub.questionCode || 'N/A');
-            const percentages = dataToUse.map(sub => getSubmissionPercentage(sub) ?? 0);
-            const statuses = dataToUse.map(sub => sub.status || 'UNKNOWN');
+            const labels = dataToUse.map(s => s.questionCode || 'N/A');
+            const percentages = dataToUse.map(s => getFinalPercentage(s) ?? 0);
+            const statuses = dataToUse.map(s => s.status || 'UNKNOWN');
 
             performanceChart.data.labels = labels;
             performanceChart.data.datasets[0].data = percentages;
-            performanceChart.data.datasets[0].pointBackgroundColor = statuses.map(status =>
-                status === 'FINAL_PUBLISHED' ? 'rgb(42, 157, 143)' : 'rgb(233, 196, 106)'
-            );
+            performanceChart.data.datasets[0].pointBackgroundColor = statuses.map(s => s === 'FINAL_PUBLISHED' ? 'rgb(42, 157, 143)' : 'rgb(233, 196, 106)');
             performanceChart.update();
         }
 
-        // OMR View
         async function viewOMR(submissionId) {
             try {
                 const submissionDoc = await db.collection('submissions').doc(submissionId).get();
@@ -1332,20 +1222,15 @@
                     showError('Submission not found');
                     return;
                 }
-
                 const submission = submissionDoc.data();
-
-                // ✅ Use calculated percentage from marks
                 const pct = getSubmissionPercentage(submission);
                 const pctText = (pct !== null) ? `${pct}%` : 'N/A';
 
-                // ✅ Prefer mcqReview (new submissions) to avoid extra exam fetch & avoid undefined issues
                 let totalQuestions = safeNum(submission.mcqTotal) ?? null;
                 let correctAnswers = null;
                 let studentAnswers = submission.mcqAnswers || null;
                 let reviewByQuestion = submission.mcqReview && submission.mcqReview.byQuestion ? submission.mcqReview.byQuestion : null;
 
-                // Fallback: fetch exam answers if review not present
                 if (!reviewByQuestion) {
                     if (!submission.setId) {
                         showError('Exam set not found for this submission');
@@ -1365,66 +1250,31 @@
                     correctAnswers = exam.mcq.answers || null;
                 }
 
-                // Build OMR header
                 let content = `
                     <div style="margin-bottom: 20px;">
-                        <h4 style="margin-bottom: 10px;">
-                            ${(submission.examName || 'Exam')} (${submission.questionCode || 'N/A'})
-                        </h4>
+                        <h4 style="margin-bottom: 10px;">${submission.examName || 'Exam'} (${submission.questionCode || 'N/A'})</h4>
                         <div class="score-display">
-                            <div class="score-item">
-                                <div class="score-label">Score</div>
-                                <div class="score-value">${(submission.mcqScore ?? 0)}/${(submission.mcqTotal ?? '?')}</div>
-                            </div>
-                            <div class="score-item">
-                                <div class="score-label">Percentage</div>
-                                <div class="score-value">${pctText}</div>
-                            </div>
-                            <div class="score-item">
-                                <div class="score-label">Correct</div>
-                                <div class="score-value">${submission.mcqCorrect ?? 0}</div>
-                            </div>
-                            <div class="score-item">
-                                <div class="score-label">Wrong</div>
-                                <div class="score-value">${submission.mcqWrong ?? 0}</div>
-                            </div>
-                            <div class="score-item">
-                                <div class="score-label">Unmarked</div>
-                                <div class="score-value">${submission.mcqUnmarked ?? 0}</div>
-                            </div>
+                            <div class="score-item"><div class="score-label">Score</div><div class="score-value">${(submission.mcqScore ?? 0)}/${(submission.mcqTotal ?? '?')}</div></div>
+                            <div class="score-item"><div class="score-label">Percentage</div><div class="score-value">${pctText}</div></div>
+                            <div class="score-item"><div class="score-label">Correct</div><div class="score-value">${submission.mcqCorrect ?? 0}</div></div>
+                            <div class="score-item"><div class="score-label">Wrong</div><div class="score-value">${submission.mcqWrong ?? 0}</div></div>
+                            <div class="score-item"><div class="score-label">Unmarked</div><div class="score-value">${submission.mcqUnmarked ?? 0}</div></div>
                         </div>
                     </div>
-
-                    <div class="omr-view-grid" id="omrViewGrid">
-                        <!-- OMR items will be generated here -->
-                    </div>
+                    <div class="omr-view-grid" id="omrViewGrid"></div>
                 `;
-
                 document.getElementById('omrModalTitle').textContent = `OMR View - ${submission.examName || 'Exam'}`;
                 document.getElementById('omrModalContent').innerHTML = content;
-
                 const grid = document.getElementById('omrViewGrid');
-
                 const tq = totalQuestions ?? 0;
                 if (!tq) {
-                    grid.innerHTML = `
-                        <div class="empty-state" style="grid-column: 1 / -1;">
-                            <div class="empty-icon"><i class="fas fa-circle-exclamation"></i></div>
-                            <div class="empty-title">No MCQ questions found</div>
-                            <div class="empty-subtitle">This submission doesn’t have a valid MCQ total.</div>
-                        </div>
-                    `;
+                    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="empty-icon"><i class="fas fa-circle-exclamation"></i></div><div class="empty-title">No MCQ questions found</div></div>`;
                     showModal('omrModal');
                     return;
                 }
-
                 for (let i = 1; i <= tq; i++) {
                     const qNum = i.toString();
-
-                    // If we have mcqReview, use it
-                    let correctAns = null;
-                    let studentAns = null;
-
+                    let correctAns = null, studentAns = null;
                     if (reviewByQuestion && reviewByQuestion[qNum]) {
                         correctAns = (reviewByQuestion[qNum].correct != null) ? reviewByQuestion[qNum].correct : null;
                         studentAns = (reviewByQuestion[qNum].student != null) ? reviewByQuestion[qNum].student : null;
@@ -1432,68 +1282,55 @@
                         correctAns = (correctAnswers && correctAnswers[qNum] != null) ? correctAnswers[qNum] : null;
                         studentAns = (studentAnswers && studentAnswers[qNum] != null) ? studentAnswers[qNum] : null;
                     }
-
                     let itemClass = 'omr-view-item';
                     if (studentAns == null) itemClass += ' unmarked';
                     else if (correctAns != null && studentAns === correctAns) itemClass += ' correct';
                     else if (correctAns != null && studentAns !== correctAns) itemClass += ' wrong';
-                    // if correctAns is null, don't label correct/wrong (only selected/unmarked)
 
                     let optionsHTML = '';
-                    ['A', 'B', 'C', 'D'].forEach(option => {
-                        let optionClass = 'omr-view-option';
-
-                        // Show correct answer in green only if we have answer key
-                        if (correctAns != null && option === correctAns) optionClass += ' correct';
-
-                        // Student selection
-                        if (studentAns != null && option === studentAns) optionClass += ' selected';
-
-                        // If student is wrong, mark selected option as wrong (red)
-                        if (studentAns != null && correctAns != null && option === studentAns && studentAns !== correctAns) {
-                            optionClass += ' wrong';
-                        }
-
-                        optionsHTML += `<div class="${optionClass}">${option}</div>`;
+                    ['A', 'B', 'C', 'D'].forEach(opt => {
+                        let optClass = 'omr-view-option';
+                        if (correctAns != null && opt === correctAns) optClass += ' correct';
+                        if (studentAns != null && opt === studentAns) optClass += ' selected';
+                        if (studentAns != null && correctAns != null && opt === studentAns && studentAns !== correctAns) optClass += ' wrong';
+                        optionsHTML += `<div class="${optClass}">${opt}</div>`;
                     });
-
                     grid.innerHTML += `
                         <div class="${itemClass}">
                             <div class="omr-view-number">Q${i}</div>
-                            <div class="omr-view-options">
-                                ${optionsHTML}
-                            </div>
+                            <div class="omr-view-options">${optionsHTML}</div>
                         </div>
                     `;
                 }
-
                 showModal('omrModal');
-
             } catch (error) {
                 console.error('View OMR error:', error);
                 showError('Failed to load OMR view');
             }
         }
 
-        // Error display (simplified)
         function showError(message) {
-            console.error('Dashboard error:', message);
+            console.error(message);
             alert(`Error: ${message}`);
         }
 
-        // Modal close on outside click
         document.querySelectorAll('.modal-overlay').forEach(overlay => {
             overlay.addEventListener('click', (e) => {
-                if (e.target === overlay) {
-                    overlay.style.display = 'none';
-                }
+                if (e.target === overlay) overlay.style.display = 'none';
             });
+        });
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            studentUsername = urlParams.get('user');
+            if (!studentUsername) {
+                showError('No student specified. Please use a valid dashboard link.');
+                return;
+            }
+            document.getElementById('currentYear').textContent = new Date().getFullYear();
+            await loadStudentData();
+            await loadSubmissions();
         });
     </script>
 </body>
 </html>
-
-
-
-
-
