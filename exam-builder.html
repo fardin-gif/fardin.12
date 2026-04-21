@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gamified Exam Builder</title>
+    <link rel="shortcut icon" href="icon.jpg" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/katex.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        :root {
+            --bg-dark: #161a1d; --card-bg: #212529; --primary-red: #d62839;
+            --text-light: #f5f3f4; --text-muted: #b1a7a6; --border-color: #333;
+            --success: #2a9d8f; --radius: 12px;
+        }
+        body { background: var(--bg-dark); color: var(--text-light); padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .card { background: var(--card-bg); border-radius: var(--radius); border: 1px solid var(--border-color); margin-bottom: 20px; overflow: hidden; }
+        .card-header { padding: 20px; border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.2); display: flex; justify-content: space-between; align-items: center; }
+        .card-header h3 { font-size: 18px; display: flex; align-items: center; gap: 10px; }
+        .card-body { padding: 20px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: 500; }
+        input, select, textarea { width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-light); }
+        .btn { padding: 10px 20px; border: none; border-radius: var(--radius); cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-primary { background: var(--primary-red); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-secondary { background: transparent; border: 1px solid var(--border-color); color: var(--text-light); }
+        .question-card { background: rgba(0,0,0,0.3); border-radius: 8px; padding: 15px; margin-bottom: 15px; }
+        .flex-row { display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end; }
+        .flex-grow { flex: 1; }
+        .remove-btn { background: none; border: none; color: var(--primary-red); cursor: pointer; font-size: 20px; }
+        .preview-latex { background: rgba(0,0,0,0.2); padding: 8px; border-radius: 8px; font-size: 14px; margin-top: 5px; }
+        .badge { background: rgba(214,40,57,0.2); color: var(--primary-red); padding: 4px 10px; border-radius: 20px; font-size: 12px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h1><i class="fas fa-gamepad"></i> Gamified Exam Builder</h1>
+        <a href="index.html" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><h3><i class="fas fa-info-circle"></i> Exam Details</h3></div>
+        <div class="card-body">
+            <div class="flex-row">
+                <div class="flex-grow"><label>Exam Title *</label><input type="text" id="examTitle" placeholder="e.g., Physics Midterm"></div>
+                <div class="flex-grow"><label>Class *</label><select id="examClass"><option value="">Select</option></select></div>
+                <div class="flex-grow"><label>Subject</label><input type="text" id="examSubject" placeholder="Physics"></div>
+                <div class="flex-grow"><label>Exam Date</label><input type="date" id="examDate"></div>
+            </div>
+            <div class="flex-row">
+                <div class="flex-grow"><label>Language Availability</label><select id="examLang"><option value="both">Both Bangla & English</option><option value="bn">Bangla Only</option><option value="en">English Only</option></select></div>
+                <div class="flex-grow"><label>Credits per correct answer</label><input type="number" id="creditsPerCorrect" value="5" min="1"></div>
+                <div class="flex-grow"><label>Penalty per wrong answer</label><input type="number" id="penaltyPerWrong" value="1" min="0"></div>
+                <div class="flex-grow"><label>Active</label><select id="examActive"><option value="true">Yes</option><option value="false">No</option></select></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><h3><i class="fas fa-list"></i> Questions</h3><button class="btn btn-success" onclick="addQuestion()"><i class="fas fa-plus"></i> Add Question</button></div>
+        <div class="card-body" id="questionsContainer"></div>
+        <div class="card-body"><button class="btn btn-primary" onclick="saveExam()"><i class="fas fa-save"></i> Save Exam</button></div>
+    </div>
+</div>
+
+<script>
+    const firebaseConfig = { apiKey: "AIzaSyAlR-WEX_HZjkE1hzh_rPRYAz7CrjQYB54", authDomain: "exammanagementsystem-a7720.firebaseapp.com", projectId: "exammanagementsystem-a7720", storageBucket: "exammanagementsystem-a7720.firebasestorage.app", messagingSenderId: "269325070232", appId: "1:269325070232:web:79bdf01e4f47ea36bd45ed" };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    let questionCount = 0;
+    let classes = [];
+
+    async function loadClasses() {
+        const snap = await db.collection('classes').get();
+        classes = snap.docs.map(d => ({ code: d.id, name: d.data().className }));
+        const select = document.getElementById('examClass');
+        classes.forEach(c => { const opt = document.createElement('option'); opt.value = c.code; opt.textContent = c.name; select.appendChild(opt); });
+    }
+    loadClasses();
+
+    function addQuestion() {
+        const container = document.getElementById('questionsContainer');
+        const id = questionCount++;
+        const div = document.createElement('div');
+        div.className = 'question-card';
+        div.id = `q_${id}`;
+        div.innerHTML = `
+            <div class="flex-row" style="justify-content: space-between; margin-bottom: 10px;">
+                <div><strong>Question ${id+1}</strong> <span class="badge" id="typeBadge_${id}">MCQ</span></div>
+                <button class="remove-btn" onclick="removeQuestion(${id})"><i class="fas fa-trash"></i></button>
+            </div>
+            <div class="flex-row">
+                <div class="flex-grow"><label>Type</label><select id="type_${id}" onchange="changeQuestionType(${id})"><option value="mcq">MCQ</option><option value="truefalse">True/False</option><option value="matching">Matching</option><option value="fillblank">Fill in Blank</option><option value="ordering">Ordering</option><option value="image-mcq">Image-based MCQ</option></select></div>
+                <div class="flex-grow"><label>Marks (Credits)</label><input type="number" id="marks_${id}" value="5" min="1"></div>
+                <div class="flex-grow"><label>Penalty</label><input type="number" id="penalty_${id}" value="1" min="0"></div>
+            </div>
+            <div class="flex-row"><div class="flex-grow"><label>Bangla Text</label><textarea id="textBn_${id}" rows="2" placeholder="বাংলায় প্রশ্ন..."></textarea><div class="preview-latex" id="previewBn_${id}"></div></div>
+            <div class="flex-grow"><label>English Text</label><textarea id="textEn_${id}" rows="2" placeholder="English question..."></textarea><div class="preview-latex" id="previewEn_${id}"></div></div></div>
+            <div id="optionsContainer_${id}"></div>
+        `;
+        container.appendChild(div);
+        attachLatexPreview(id);
+        changeQuestionType(id);
+    }
+
+    function attachLatexPreview(id) {
+        const bnTextarea = document.getElementById(`textBn_${id}`);
+        const enTextarea = document.getElementById(`textEn_${id}`);
+        const bnPreview = document.getElementById(`previewBn_${id}`);
+        const enPreview = document.getElementById(`previewEn_${id}`);
+        const updatePreview = (textarea, preview) => {
+            const val = textarea.value;
+            preview.innerHTML = val ? katex.renderToString(val, { throwOnError: false }) : '';
+        };
+        bnTextarea.addEventListener('input', () => updatePreview(bnTextarea, bnPreview));
+        enTextarea.addEventListener('input', () => updatePreview(enTextarea, enPreview));
+        updatePreview(bnTextarea, bnPreview);
+        updatePreview(enTextarea, enPreview);
+    }
+
+    function changeQuestionType(id) {
+        const type = document.getElementById(`type_${id}`).value;
+        const badge = document.getElementById(`typeBadge_${id}`);
+        badge.textContent = type.toUpperCase().replace('-',' ');
+        const container = document.getElementById(`optionsContainer_${id}`);
+        if (type === 'mcq' || type === 'image-mcq') {
+            container.innerHTML = `
+                <label>Options (A, B, C, D) - one per line or comma separated</label>
+                <textarea id="options_${id}" rows="3" placeholder="Option A\nOption B\nOption C\nOption D"></textarea>
+                <label>Correct Answer (A/B/C/D)</label><input type="text" id="correct_${id}" maxlength="1" placeholder="e.g., A">
+                ${type === 'image-mcq' ? `<label>Image URL</label><input type="text" id="imageUrl_${id}" placeholder="https://...">` : ''}
+            `;
+        } else if (type === 'truefalse') {
+            container.innerHTML = `<label>Correct Answer</label><select id="correct_${id}"><option value="true">True</option><option value="false">False</option></select>`;
+        } else if (type === 'matching') {
+            container.innerHTML = `<div id="matchingPairs_${id}"><label>Matching Pairs (Left - Right)</label><div id="pairsList_${id}"></div><button type="button" class="btn btn-secondary btn-sm" onclick="addMatchingPair(${id})">+ Add Pair</button><input type="hidden" id="correct_${id}"></div>`;
+            addMatchingPair(id);
+        } else if (type === 'fillblank') {
+            container.innerHTML = `<label>Word Bank (comma separated)</label><input type="text" id="wordBank_${id}" placeholder="word1, word2, word3"><label>Blank Positions (e.g., 0,2)</label><input type="text" id="blankIndices_${id}" placeholder="0,2"><input type="hidden" id="correct_${id}">`;
+        } else if (type === 'ordering') {
+            container.innerHTML = `<div id="orderingItems_${id}"><label>Ordered Items (one per line, correct order)</label><textarea id="orderedList_${id}" rows="3" placeholder="First item\nSecond item\nThird item"></textarea><input type="hidden" id="correct_${id}"></div>`;
+        }
+    }
+
+    function addMatchingPair(qid) {
+        const listDiv = document.getElementById(`pairsList_${qid}`);
+        const pairId = Date.now();
+        const div = document.createElement('div');
+        div.className = 'flex-row';
+        div.innerHTML = `<input type="text" placeholder="Left term" class="flex-grow" id="left_${qid}_${pairId}"><input type="text" placeholder="Right definition" class="flex-grow" id="right_${qid}_${pairId}"><button class="remove-btn" onclick="this.parentElement.remove()">✖</button>`;
+        listDiv.appendChild(div);
+    }
+
+    window.addMatchingPair = addMatchingPair;
+    window.removeQuestion = (id) => document.getElementById(`q_${id}`).remove();
+    window.changeQuestionType = changeQuestionType;
+
+    function collectQuestions() {
+        const questions = [];
+        const qDivs = document.querySelectorAll('.question-card');
+        for (let i = 0; i < qDivs.length; i++) {
+            const div = qDivs[i];
+            const idMatch = div.id.match(/\d+/);
+            if (!idMatch) continue;
+            const id = idMatch[0];
+            const type = document.getElementById(`type_${id}`).value;
+            const textBn = document.getElementById(`textBn_${id}`).value;
+            const textEn = document.getElementById(`textEn_${id}`).value;
+            const marks = parseInt(document.getElementById(`marks_${id}`).value);
+            const penalty = parseInt(document.getElementById(`penalty_${id}`).value);
+            let options = null, correctAnswer = null, imageUrl = null;
+            if (type === 'mcq') {
+                const optsText = document.getElementById(`options_${id}`).value;
+                options = optsText.split(/\n|,/).map(s => s.trim()).filter(s => s);
+                correctAnswer = document.getElementById(`correct_${id}`).value.toUpperCase();
+            } else if (type === 'image-mcq') {
+                const optsText = document.getElementById(`options_${id}`).value;
+                options = optsText.split(/\n|,/).map(s => s.trim()).filter(s => s);
+                correctAnswer = document.getElementById(`correct_${id}`).value.toUpperCase();
+                imageUrl = document.getElementById(`imageUrl_${id}`).value;
+            } else if (type === 'truefalse') {
+                correctAnswer = document.getElementById(`correct_${id}`).value === 'true';
+            } else if (type === 'matching') {
+                const pairs = [];
+                const pairDivs = document.querySelectorAll(`#pairsList_${id} .flex-row`);
+                pairDivs.forEach(pairDiv => {
+                    const left = pairDiv.querySelector('input:first-child').value;
+                    const right = pairDiv.querySelector('input:last-child').value;
+                    if (left && right) pairs.push({ left, right });
+                });
+                correctAnswer = pairs;
+            } else if (type === 'fillblank') {
+                const wordBank = document.getElementById(`wordBank_${id}`).value.split(',').map(s => s.trim());
+                const blankIndices = document.getElementById(`blankIndices_${id}`).value.split(',').map(s => parseInt(s.trim()));
+                correctAnswer = { wordBank, blankIndices };
+            } else if (type === 'ordering') {
+                const items = document.getElementById(`orderedList_${id}`).value.split('\n').map(s => s.trim()).filter(s => s);
+                correctAnswer = items;
+            }
+            questions.push({ type, textBn, textEn, marks, penalty, options, correctAnswer, imageUrl });
+        }
+        return questions;
+    }
+
+    async function saveExam() {
+        const title = document.getElementById('examTitle').value.trim();
+        const classCode = document.getElementById('examClass').value;
+        const subject = document.getElementById('examSubject').value.trim();
+        const date = document.getElementById('examDate').value;
+        const lang = document.getElementById('examLang').value;
+        const creditsPerCorrect = parseInt(document.getElementById('creditsPerCorrect').value);
+        const penaltyPerWrong = parseInt(document.getElementById('penaltyPerWrong').value);
+        const isActive = document.getElementById('examActive').value === 'true';
+        if (!title || !classCode) { alert('Please fill exam title and class'); return; }
+        const questions = collectQuestions();
+        if (questions.length === 0) { alert('Add at least one question'); return; }
+        const examData = {
+            title, classCode, subject, date, language: lang,
+            creditsPerCorrect, penaltyPerWrong, isActive,
+            questions, createdAt: new Date().toISOString()
+        };
+        await db.collection('gamifiedExams').add(examData);
+        alert('Exam saved successfully!');
+        window.location.href = 'index.html';
+    }
+    window.saveExam = saveExam;
+    window.addQuestion = addQuestion;
+</script>
+</body>
+</html>
