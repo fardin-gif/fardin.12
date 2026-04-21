@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gamified Exam</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/katex.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        :root { --bg-dark: #161a1d; --card-bg: #212529; --primary-red: #d62839; --success: #2a9d8f; --text-light: #f5f3f4; --border-color: #333; --radius: 12px; }
+        body { background: var(--bg-dark); color: var(--text-light); }
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        .progress-bar { height: 6px; background: var(--border-color); border-radius: 3px; margin-bottom: 20px; }
+        .progress-fill { height: 100%; background: var(--primary-red); width: 0%; border-radius: 3px; transition: width 0.3s; }
+        .question-card { background: var(--card-bg); border-radius: var(--radius); padding: 30px; border: 1px solid var(--border-color); margin-bottom: 20px; }
+        .options { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
+        .option-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); border-radius: 40px; padding: 12px 20px; cursor: pointer; transition: 0.2s; }
+        .option-btn:hover { background: rgba(214,40,57,0.2); border-color: var(--primary-red); }
+        .correct-feedback { background: rgba(42,157,143,0.2); border-left: 4px solid var(--success); padding: 10px; margin-top: 15px; }
+        .wrong-feedback { background: rgba(214,40,57,0.2); border-left: 4px solid var(--primary-red); padding: 10px; margin-top: 15px; animation: shake 0.3s; }
+        @keyframes shake { 0%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} 100%{transform:translateX(0)} }
+        .btn { padding: 10px 20px; border: none; border-radius: var(--radius); cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-primary { background: var(--primary-red); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .language-toggle { display: flex; gap: 10px; justify-content: flex-end; margin-bottom: 20px; }
+        .lang-btn { background: transparent; border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 20px; cursor: pointer; }
+        .lang-btn.active { background: var(--primary-red); border-color: var(--primary-red); }
+        .milestone-popup { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--success); color: white; padding: 30px; border-radius: 20px; text-align: center; z-index: 1000; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="language-toggle" id="langToggle">
+        <button class="lang-btn active" data-lang="en">English</button>
+        <button class="lang-btn" data-lang="bn">বাংলা</button>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <div id="examContent"></div>
+</div>
+
+<script>
+    const firebaseConfig = { apiKey: "AIzaSyAlR-WEX_HZjkE1hzh_rPRYAz7CrjQYB54", authDomain: "exammanagementsystem-a7720.firebaseapp.com", projectId: "exammanagementsystem-a7720", storageBucket: "exammanagementsystem-a7720.firebasestorage.app", messagingSenderId: "269325070232", appId: "1:269325070232:web:79bdf01e4f47ea36bd45ed" };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    let examId = new URLSearchParams(window.location.search).get('id');
+    let examData = null;
+    let currentIndex = 0;
+    let answers = [];
+    let currentLang = 'en';
+    let studentDoc = null;
+    let username = null;
+
+    async function init() {
+        // Login
+        username = prompt('Enter your username:');
+        if (!username) { window.location.href = 'student-dashboard.html'; return; }
+        const studentSnap = await db.collection('students').doc(username).get();
+        if (!studentSnap.exists) { alert('Invalid username'); window.location.href = 'student-dashboard.html'; return; }
+        studentDoc = { id: username, ...studentSnap.data() };
+
+        // Load exam
+        const examSnap = await db.collection('gamifiedExams').doc(examId).get();
+        if (!examSnap.exists) { alert('Exam not found'); return; }
+        examData = examSnap.data();
+        // Check class match
+        if (examData.classCode !== studentDoc.classCode) { alert('This exam is not for your class'); return; }
+        // Language availability
+        if (examData.language === 'bn') currentLang = 'bn';
+        else if (examData.language === 'en') currentLang = 'en';
+        document.querySelectorAll('.lang-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.lang === currentLang);
+            if (examData.language !== 'both' && btn.dataset.lang !== examData.language) btn.style.display = 'none';
+        });
+        renderQuestion();
+    }
+
+    function renderQuestion() {
+        if (currentIndex >= examData.questions.length) return finishExam();
+        const q = examData.questions[currentIndex];
+        const text = currentLang === 'en' ? q.textEn : q.textBn;
+        const container = document.getElementById('examContent');
+        let html = `<div class="question-card"><h3>Question ${currentIndex+1}</h3><div class="question-text">${renderLatex(text)}</div>`;
+        if (q.imageUrl) html += `<img src="${q.imageUrl}" style="max-width:100%; margin:15px 0;">`;
+        html += `<div class="options" id="optionsContainer"></div><div id="feedback"></div><button class="btn btn-primary" id="nextBtn" style="margin-top:20px;">Next</button></div>`;
+        container.innerHTML = html;
+        renderOptions(q);
+        document.getElementById('nextBtn').onclick = () => checkAnswer();
+        updateProgress();
+    }
+
+    function renderLatex(str) {
+        if (!str) return '';
+        return katex.renderToString(str, { throwOnError: false });
+    }
+
+    function renderOptions(q) {
+        const container = document.getElementById('optionsContainer');
+        if (q.type === 'mcq' || q.type === 'image-mcq') {
+            q.options.forEach((opt, idx) => {
+                const letter = String.fromCharCode(65+idx);
+                const btn = document.createElement('div');
+                btn.className = 'option-btn';
+                btn.innerHTML = `<strong>${letter}.</strong> ${renderLatex(opt)}`;
+                btn.onclick = () => selectAnswer(letter);
+                container.appendChild(btn);
+            });
+        } else if (q.type === 'truefalse') {
+            ['True','False'].forEach(val => {
+                const btn = document.createElement('div');
+                btn.className = 'option-btn';
+                btn.textContent = val;
+                btn.onclick = () => selectAnswer(val.toLowerCase() === 'true');
+                container.appendChild(btn);
+            });
+        } else if (q.type === 'fillblank') {
+            // Simplified: show dropdowns for each blank
+            const blanks = q.correctAnswer.blankIndices.length;
+            for (let i = 0; i < blanks; i++) {
+                const select = document.createElement('select');
+                select.className = 'option-btn';
+                select.innerHTML = '<option value="">Select word</option>' + q.correctAnswer.wordBank.map(w => `<option value="${w}">${w}</option>`).join('');
+                container.appendChild(select);
+            }
+            const submitBtn = document.createElement('button');
+            submitBtn.textContent = 'Submit Answer';
+            submitBtn.className = 'btn btn-primary';
+            submitBtn.onclick = () => {
+                const selections = Array.from(container.querySelectorAll('select')).map(s => s.value);
+                selectAnswer(selections);
+            };
+            container.appendChild(submitBtn);
+        } else if (q.type === 'ordering') {
+            const items = [...q.correctAnswer];
+            shuffleArray(items);
+            const list = document.createElement('div');
+            items.forEach((item, idx) => {
+                const div = document.createElement('div');
+                div.className = 'option-btn';
+                div.textContent = item;
+                div.draggable = true;
+                // Simple drag & drop reorder - we'll use buttons for simplicity
+                div.innerHTML = `${item} <button class="move-up">▲</button> <button class="move-down">▼</button>`;
+                list.appendChild(div);
+            });
+            container.appendChild(list);
+            const submitBtn = document.createElement('button');
+            submitBtn.textContent = 'Submit Order';
+            submitBtn.className = 'btn btn-primary';
+            submitBtn.onclick = () => {
+                const order = Array.from(list.children).map(div => div.textContent.replace(/[▲▼]/g,'').trim());
+                selectAnswer(order);
+            };
+            container.appendChild(submitBtn);
+        } else if (q.type === 'matching') {
+            const pairs = q.correctAnswer;
+            const leftCol = document.createElement('div');
+            const rightCol = document.createElement('div');
+            // For simplicity, use dropdowns for each left term
+            pairs.forEach((pair, idx) => {
+                const div = document.createElement('div');
+                div.innerHTML = `${pair.left} → <select id="match_${idx}"><option value="">Select</option>${pairs.map((p,i) => `<option value="${i}">${p.right}</option>`).join('')}</select>`;
+                leftCol.appendChild(div);
+            });
+            container.appendChild(leftCol);
+            const submitBtn = document.createElement('button');
+            submitBtn.textContent = 'Submit Matching';
+            submitBtn.onclick = () => {
+                const matches = pairs.map((_,idx) => parseInt(document.getElementById(`match_${idx}`).value));
+                selectAnswer(matches);
+            };
+            container.appendChild(submitBtn);
+        }
+    }
+
+    function shuffleArray(arr) { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } }
+
+    let currentAnswer = null;
+    function selectAnswer(ans) { currentAnswer = ans; }
+
+    async function checkAnswer() {
+        const q = examData.questions[currentIndex];
+        let isCorrect = false;
+        if (q.type === 'mcq' || q.type === 'image-mcq') isCorrect = (currentAnswer === q.correctAnswer);
+        else if (q.type === 'truefalse') isCorrect = (currentAnswer === q.correctAnswer);
+        else if (q.type === 'fillblank') isCorrect = JSON.stringify(currentAnswer) === JSON.stringify(q.correctAnswer.blankIndices.map(i => q.correctAnswer.wordBank[i]));
+        else if (q.type === 'ordering') isCorrect = JSON.stringify(currentAnswer) === JSON.stringify(q.correctAnswer);
+        else if (q.type === 'matching') {
+            const expected = q.correctAnswer.map((_,i) => i);
+            isCorrect = JSON.stringify(currentAnswer) === JSON.stringify(expected);
+        }
+        const earnedCredits = isCorrect ? examData.creditsPerCorrect : -examData.penaltyPerWrong;
+        answers.push({ questionIndex: currentIndex, isCorrect, earnedCredits });
+        const feedbackDiv = document.getElementById('feedback');
+        if (isCorrect) {
+            feedbackDiv.innerHTML = `<div class="correct-feedback"><i class="fas fa-check-circle"></i> Correct! +${examData.creditsPerCorrect} credits</div>`;
+        } else {
+            feedbackDiv.innerHTML = `<div class="wrong-feedback"><i class="fas fa-times-circle"></i> Wrong! -${examData.penaltyPerWrong} credits</div>`;
+        }
+        currentIndex++;
+        setTimeout(() => renderQuestion(), 1500);
+    }
+
+    function updateProgress() {
+        const percent = (currentIndex / examData.questions.length) * 100;
+        document.getElementById('progressFill').style.width = `${percent}%`;
+    }
+
+    async function finishExam() {
+        let totalEarned = answers.reduce((sum, a) => sum + a.earnedCredits, 0);
+        // Update student credits in transaction
+        const studentRef = db.collection('students').doc(username);
+        await db.runTransaction(async (t) => {
+            const studentSnap = await t.get(studentRef);
+            const currentCredits = studentSnap.data().totalCredits || 0;
+            const newTotal = currentCredits + totalEarned;
+            t.update(studentRef, { totalCredits: newTotal, creditHistory: firebase.firestore.FieldValue.arrayUnion({ examId, earned: totalEarned, date: new Date().toISOString() }) });
+            // Check milestones (simple hardcoded for demo)
+            const milestones = [100, 500, 1000];
+            const reached = milestones.filter(m => currentCredits < m && newTotal >= m);
+            if (reached.length) {
+                alert(`🎉 Congratulations! You reached ${reached.join(', ')} credits! 🎉`);
+                // You could also send notification to admin
+            }
+        });
+        // Save submission
+        await db.collection('gamifiedSubmissions').add({
+            examId, username, studentName: studentDoc.studentName,
+            answers, totalEarned, totalQuestions: examData.questions.length,
+            submittedAt: new Date().toISOString()
+        });
+        // Show result and WhatsApp share
+        const container = document.getElementById('examContent');
+        container.innerHTML = `
+            <div class="question-card" style="text-align:center">
+                <h2>Exam Completed!</h2>
+                <p>You earned <strong>${totalEarned}</strong> credits!</p>
+                <button class="btn btn-success" id="shareWA">Share Result on WhatsApp</button>
+                <a href="student-dashboard.html" class="btn btn-primary">Back to Dashboard</a>
+            </div>`;
+        document.getElementById('shareWA')?.addEventListener('click', () => shareResult(totalEarned));
+    }
+
+    function shareResult(earned) {
+        const guardianNumber = studentDoc.guardianNumber;
+        const message = `Assalamu Alaikum,\n${studentDoc.studentName} (${studentDoc.className}) completed "${examData.title}" on ${new Date().toLocaleDateString()}.\nScore: ${answers.filter(a=>a.isCorrect).length}/${examData.questions.length}\nCredits earned: ${earned}\nTotal credits: ${(studentDoc.totalCredits||0)+earned}\n— Fardin (DU Physics)`;
+        if (guardianNumber) {
+            const waNumber = guardianNumber.replace(/\D/g, '');
+            window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`, '_blank');
+        } else {
+            alert('No guardian number found. Message copied to clipboard.');
+            navigator.clipboard.writeText(message);
+        }
+    }
+
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            currentLang = btn.dataset.lang;
+            renderQuestion();
+        });
+    });
+
+    init();
+</script>
+</body>
+</html>
