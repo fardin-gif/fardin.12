@@ -149,7 +149,7 @@
             letter-spacing: 1px;
         }
 
-        /* Attendance - refined for show more/less */
+        /* Attendance */
         .month-card {
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid var(--border-color);
@@ -452,6 +452,13 @@
             width: 100%;
         }
 
+        /* Gamified Exams */
+        .gamified-exams-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
         /* Modal */
         .modal-overlay {
             position: fixed;
@@ -641,7 +648,7 @@
                 text-align: center;
             }
 
-            .results-grid {
+            .results-grid, .gamified-exams-grid {
                 grid-template-columns: 1fr;
             }
 
@@ -689,7 +696,7 @@
                 </div>
             </section>
 
-            <!-- Attendance - refined show more/less -->
+            <!-- Attendance -->
             <section class="card">
                 <div class="card-header">
                     <h2><i class="fas fa-calendar-check"></i> Attendance</h2>
@@ -716,6 +723,24 @@
                     </div>
                     <div class="results-grid" id="resultsGrid">
                         <div class="empty-state"><div class="spinner"></div><div class="empty-title">Loading results...</div></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Gamified Exams Section -->
+            <section class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-gamepad"></i> Gamified Exams</h2>
+                </div>
+                <div class="card-body">
+                    <div class="gamified-exams-grid" id="gamifiedExamsGrid">
+                        <div class="spinner"></div>
+                        <div class="empty-title">Loading gamified exams...</div>
+                    </div>
+                    <div style="text-align: center; margin-top: 15px;">
+                        <a href="leaderboard.html" id="leaderboardLink" class="btn btn-secondary">
+                            <i class="fas fa-trophy"></i> View Leaderboard
+                        </a>
                     </div>
                 </div>
             </section>
@@ -759,11 +784,12 @@
             document.getElementById('currentYear').textContent = new Date().getFullYear();
             await loadStudentData();
             await loadSubmissions();
+            await loadGamifiedExams();
         });
 
         function safeNum(v) { const n = Number(v); return Number.isFinite(n) ? n : null; }
 
-        // Priority: overallPercentage from Firestore (as requested) else fallback to derived
+        // Priority: overallPercentage from Firestore
         function getSubmissionPercentage(sub) {
             if (sub.overallPercentage !== undefined && sub.overallPercentage !== null && !isNaN(Number(sub.overallPercentage))) {
                 return Math.round(Number(sub.overallPercentage));
@@ -783,6 +809,7 @@
         function maskPhoneNumber(number) { if(!number) return 'N/A'; const digits=String(number).replace(/\D/g,''); if(digits.length<7) return number; return `${digits.substring(0,4)}*****${digits.substring(digits.length-3)}`; }
         function showModal(id) { document.getElementById(id).style.display = 'flex'; }
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+        function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, function(m) { if (m === '&') return '&amp;'; if (m === '<') return '&lt;'; if (m === '>') return '&gt;'; return m; }); }
 
         async function loadStudentData() {
             try {
@@ -793,6 +820,11 @@
                 document.getElementById('studentClass').textContent = `Class: ${currentStudent.className || 'N/A'}`;
                 renderStudentInfo();
                 renderAttendance();
+                // Update leaderboard link with class code
+                const leaderboardLink = document.getElementById('leaderboardLink');
+                if (leaderboardLink && currentStudent.classCode) {
+                    leaderboardLink.href = `leaderboard.html?classCode=${currentStudent.classCode}`;
+                }
             } catch(e) { console.error(e); showError('Failed to load student data.'); }
         }
 
@@ -807,36 +839,25 @@
             document.getElementById('studentInfo').innerHTML = info.map(i => `<div class="info-item"><div class="info-label">${i.label}</div><div class="info-value ${i.class||''}">${i.value}</div></div>`).join('');
         }
 
-        // Attendance: show only the most recent month (highest monthNumber) directly.
-        // All other months are hidden initially. Toggle button shows/hides all previous months.
+        // Attendance: show most recent month, others hidden with toggle
         function renderAttendance() {
             const container = document.getElementById('attendanceContainer');
             if (!currentStudent.attendance || !currentStudent.attendance.months || currentStudent.attendance.months.length === 0) {
                 container.innerHTML = `<div class="empty-state"><div class="empty-icon"><i class="fas fa-calendar-times"></i></div><div class="empty-title">No attendance records</div><div class="empty-subtitle">Attendance will appear here once recorded</div></div>`;
                 return;
             }
-            // Clone and sort descending by monthNumber (highest first)
             let months = [...currentStudent.attendance.months];
             months.sort((a, b) => (b.monthNumber || 0) - (a.monthNumber || 0));
-            
             const mostRecentMonth = months[0];
             const previousMonths = months.slice(1);
-            
             let html = `<div id="attendanceMonthsWrapper">`;
-            // Render most recent month (always visible)
             html += renderMonthCard(mostRecentMonth, false);
-            // Render previous months with hidden class
-            previousMonths.forEach(month => {
-                html += renderMonthCard(month, true);
-            });
+            previousMonths.forEach(month => { html += renderMonthCard(month, true); });
             html += `</div>`;
-            
-            // Add toggle button only if there are previous months
             if (previousMonths.length > 0) {
                 html += `<div class="btn-attendance-toggle"><button id="toggleAttendanceBtn" class="btn btn-secondary"><i class="fas fa-chevron-down"></i> Show More Months (${previousMonths.length})</button></div>`;
             }
             container.innerHTML = html;
-            
             if (previousMonths.length > 0) {
                 const toggleBtn = document.getElementById('toggleAttendanceBtn');
                 let expanded = false;
@@ -854,7 +875,7 @@
                 });
             }
         }
-        
+
         function renderMonthCard(month, isHidden) {
             const totalDays = month.days?.length || 0;
             const startDate = month.startDate ? formatDateShort(month.startDate) : 'N/A';
@@ -889,7 +910,7 @@
                 const pct = getSubmissionPercentage(sub);
                 const pctClass = getPercentageClass(pct);
                 const hasMCQ = (sub.mcqScore !== undefined || sub.mcqTotal !== undefined);
-                return `<div class="result-card"><div class="result-header"><div><div class="exam-name">${sub.examName || 'Exam'}</div><div class="exam-code">${sub.questionCode || 'N/A'}</div></div></div>
+                return `<div class="result-card"><div class="result-header"><div><div class="exam-name">${escapeHtml(sub.examName || 'Exam')}</div><div class="exam-code">${sub.questionCode || 'N/A'}</div></div></div>
                         <div class="result-meta"><span><i class="fas fa-calendar"></i> ${sub.submittedAt ? formatDate(sub.submittedAt) : 'N/A'}</span><span class="status-badge ${sub.status === 'FINAL_PUBLISHED' ? 'status-final' : 'status-pending'}">${(sub.status || 'UNKNOWN').split('_').join(' ')}</span></div>
                         ${pct !== null ? `<div class="percentage-big"><div class="percentage-value ${pctClass}">${pct}%</div></div>` : ''}
                         ${hasMCQ ? `<div class="score-display"><div class="score-item"><div class="score-label">Score</div><div class="score-value">${sub.mcqScore ?? 0}/${sub.mcqTotal ?? '?'}</div></div><div class="score-item"><div class="score-label">Correct</div><div class="score-value">${sub.mcqCorrect ?? 0}</div></div><div class="score-item"><div class="score-label">Wrong</div><div class="score-value">${sub.mcqWrong ?? 0}</div></div><div class="score-item"><div class="score-label">Unmarked</div><div class="score-value">${sub.mcqUnmarked ?? 0}</div></div></div>` : ''}
@@ -907,6 +928,7 @@
             if (criteria === 'code') sorted.sort((a,b) => String(a.questionCode||'').localeCompare(String(b.questionCode||'')));
             renderResults(sorted);
         }
+
         document.getElementById('resultSearch').addEventListener('input', (e) => {
             const term = e.target.value.toLowerCase();
             if (!term) renderResults(submissions);
@@ -967,7 +989,7 @@
                     if (examDoc.exists && examDoc.data().mcq?.answers) correctAnswers = examDoc.data().mcq.answers;
                     if (!totalQuestions && examDoc.exists) totalQuestions = safeNum(examDoc.data().mcq?.totalQuestions) ?? totalQuestions;
                 }
-                let content = `<div style="margin-bottom:20px;"><h4>${sub.examName || 'Exam'} (${sub.questionCode || 'N/A'})</h4><div class="score-display"><div class="score-item"><div class="score-label">Score</div><div class="score-value">${sub.mcqScore ?? 0}/${sub.mcqTotal ?? '?'}</div></div><div class="score-item"><div class="score-label">Percentage</div><div class="score-value">${pct !== null ? pct+'%' : 'N/A'}</div></div><div class="score-item"><div class="score-label">Correct</div><div class="score-value">${sub.mcqCorrect ?? 0}</div></div><div class="score-item"><div class="score-label">Wrong</div><div class="score-value">${sub.mcqWrong ?? 0}</div></div><div class="score-item"><div class="score-label">Unmarked</div><div class="score-value">${sub.mcqUnmarked ?? 0}</div></div></div></div><div class="omr-view-grid" id="omrViewGrid"></div>`;
+                let content = `<div style="margin-bottom:20px;"><h4>${escapeHtml(sub.examName || 'Exam')} (${sub.questionCode || 'N/A'})</h4><div class="score-display"><div class="score-item"><div class="score-label">Score</div><div class="score-value">${sub.mcqScore ?? 0}/${sub.mcqTotal ?? '?'}</div></div><div class="score-item"><div class="score-label">Percentage</div><div class="score-value">${pct !== null ? pct+'%' : 'N/A'}</div></div><div class="score-item"><div class="score-label">Correct</div><div class="score-value">${sub.mcqCorrect ?? 0}</div></div><div class="score-item"><div class="score-label">Wrong</div><div class="score-value">${sub.mcqWrong ?? 0}</div></div><div class="score-item"><div class="score-label">Unmarked</div><div class="score-value">${sub.mcqUnmarked ?? 0}</div></div></div></div><div class="omr-view-grid" id="omrViewGrid"></div>`;
                 document.getElementById('omrModalTitle').textContent = `OMR View - ${sub.examName || 'Exam'}`;
                 document.getElementById('omrModalContent').innerHTML = content;
                 const grid = document.getElementById('omrViewGrid');
@@ -994,6 +1016,40 @@
                 }
                 showModal('omrModal');
             } catch(e) { console.error(e); showError('Failed to load OMR view'); }
+        }
+
+        // Load gamified exams for this student's class
+        async function loadGamifiedExams() {
+            const container = document.getElementById('gamifiedExamsGrid');
+            if (!currentStudent) return;
+            try {
+                const snapshot = await db.collection('gamifiedExams')
+                    .where('classCode', '==', currentStudent.classCode)
+                    .where('isActive', '==', true)
+                    .get();
+                if (snapshot.empty) {
+                    container.innerHTML = `<div class="empty-state"><div class="empty-icon"><i class="fas fa-gamepad"></i></div><div class="empty-title">No gamified exams available</div><div class="empty-subtitle">Check back later for new challenges!</div></div>`;
+                    return;
+                }
+                let html = `<div class="results-grid">`;
+                snapshot.forEach(doc => {
+                    const exam = doc.data();
+                    html += `
+                        <div class="result-card">
+                            <div class="exam-name">${escapeHtml(exam.title)}</div>
+                            <div class="exam-code">${escapeHtml(exam.subject || 'General')}</div>
+                            <div class="result-meta"><i class="fas fa-calendar"></i> ${exam.date ? new Date(exam.date).toLocaleDateString() : 'No date'}</div>
+                            <div class="result-actions">
+                                <a href="gamified-exam.html?id=${doc.id}" class="btn btn-primary btn-sm">Start Exam</a>
+                            </div>
+                        </div>`;
+                });
+                html += `</div>`;
+                container.innerHTML = html;
+            } catch (e) {
+                console.error(e);
+                container.innerHTML = `<div class="empty-state"><div class="empty-icon"><i class="fas fa-exclamation-triangle"></i></div><div class="empty-title">Failed to load exams</div></div>`;
+            }
         }
 
         function showError(msg) { alert(`Error: ${msg}`); }
