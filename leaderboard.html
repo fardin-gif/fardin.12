@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Leaderboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background: #161a1d; color: #f5f3f4; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .card { background: #212529; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+        h1 { margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #333; }
+        th { color: #b1a7a6; }
+        .rank { font-weight: bold; color: #d62839; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="card">
+        <h1><i class="fas fa-trophy"></i> Student Leaderboard</h1>
+        <select id="classFilter" style="margin-bottom: 20px; padding: 8px; background:#212529; color:white; border-radius:8px;"></select>
+        <table id="leaderboardTable">
+            <thead><tr><th>Rank</th><th>Student</th><th>Class</th><th>Total Credits</th></tr></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+<script>
+    const firebaseConfig = { apiKey: "AIzaSyAlR-WEX_HZjkE1hzh_rPRYAz7CrjQYB54", authDomain: "exammanagementsystem-a7720.firebaseapp.com", projectId: "exammanagementsystem-a7720", storageBucket: "exammanagementsystem-a7720.firebasestorage.app", messagingSenderId: "269325070232", appId: "1:269325070232:web:79bdf01e4f47ea36bd45ed" };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    let allStudents = [];
+
+    async function loadStudents() {
+        const snap = await db.collection('students').get();
+        allStudents = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        populateClassFilter();
+        renderLeaderboard();
+    }
+
+    function populateClassFilter() {
+        const classes = [...new Set(allStudents.map(s => s.classCode))];
+        const filter = document.getElementById('classFilter');
+        filter.innerHTML = '<option value="all">All Classes</option>' + classes.map(c => `<option value="${c}">${c}</option>`).join('');
+        filter.addEventListener('change', () => renderLeaderboard());
+    }
+
+    function renderLeaderboard() {
+        const filterClass = document.getElementById('classFilter').value;
+        let filtered = filterClass === 'all' ? allStudents : allStudents.filter(s => s.classCode === filterClass);
+        filtered.sort((a,b) => (b.totalCredits || 0) - (a.totalCredits || 0));
+        const tbody = document.querySelector('#leaderboardTable tbody');
+        tbody.innerHTML = filtered.map((s, idx) => `
+            <tr>
+                <td class="rank">${idx+1}</td>
+                <td>${s.studentName}</td>
+                <td>${s.className || s.classCode}</td>
+                <td>${s.totalCredits || 0}</td>
+            </tr>
+        `).join('');
+    }
+
+    loadStudents();
+</script>
+</body>
+</html>
