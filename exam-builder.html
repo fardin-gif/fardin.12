@@ -127,11 +127,6 @@
         @keyframes sp{to{transform:rotate(360deg)}}
         .es{text-align:center;padding:26px;color:var(--muted);font-size:13px}
         .hint{font-size:11px;color:var(--muted);margin-top:4px}
-        
-        /* Management row */
-        .manage-row{display:flex;gap:20px;flex-wrap:wrap;margin-top:8px}
-        .manage-box{flex:1;background:rgba(0,0,0,.2);border-radius:var(--r);padding:12px}
-        .manage-box h4{font-size:14px;margin-bottom:10px;display:flex;align-items:center;gap:6px}
     </style>
 </head>
 <body>
@@ -200,6 +195,13 @@
             <div id="qtenw"><div class="ll">English</div><textarea id="qten" class="fc" placeholder="Write question (LaTeX: $\sin\theta$)"></textarea></div>
           </div>
         </div>
+        <div class="fg" style="margin-bottom:12px;max-width:240px">
+          <label style="display:block;font-size:13px;font-weight:500;margin-bottom:7px">⏱ Timer (seconds)</label>
+          <div style="display:flex;align-items:center;gap:8px">
+            <input type="number" id="qTimer" class="fc" value="30" min="0" max="300" placeholder="0 = no timer" style="width:100px">
+            <span style="font-size:12px;color:var(--muted)">0 = no timer</span>
+          </div>
+        </div>
         <div id="ansBuilder"></div>
         <div style="margin-top:14px;text-align:right">
           <button class="btn btn-v" onclick="addQ()"><i class="fas fa-plus"></i> Add This Question</button>
@@ -214,33 +216,6 @@
         <button class="btn btn-g" onclick="saveExam()"><i class="fas fa-save"></i> Save Exam</button>
       </div>
       <div class="cb"><div class="qlist" id="qlist"><div class="noq"><i class="fas fa-info-circle"></i> No questions yet. Add from above.</div></div></div>
-    </div>
-
-    <!-- Manage Classes & Subjects (NEW) -->
-    <div class="card">
-      <div class="ch">
-        <h3><i class="fas fa-school"></i> Manage Classes & Subjects</h3>
-      </div>
-      <div class="cb">
-        <div class="manage-row">
-          <div class="manage-box">
-            <h4><i class="fas fa-users"></i> Add New Class</h4>
-            <div style="display:flex; gap:8px; flex-wrap:wrap;">
-              <input type="text" id="newClassName" class="fc" placeholder="e.g. Class 5" style="flex:2">
-              <input type="text" id="newClassCode" class="fc" placeholder="Code (e.g. 05)" style="flex:1">
-              <button class="btn btn-p" onclick="addClass()"><i class="fas fa-plus"></i> Add</button>
-            </div>
-            <p class="hint" style="margin-top:6px">Use both name and code (e.g. "Class 5" and "05")</p>
-          </div>
-          <div class="manage-box">
-            <h4><i class="fas fa-book"></i> Add New Subject</h4>
-            <div style="display:flex; gap:8px;">
-              <input type="text" id="newSubjectName" class="fc" placeholder="e.g. Physics">
-              <button class="btn btn-p" onclick="addSubject()"><i class="fas fa-plus"></i> Add</button>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
 
     <!-- Saved Exams -->
@@ -272,12 +247,15 @@ function setLang(m,btn){
 }
 
 function refreshBiVisibility(){
+  // main question textarea
   document.getElementById('qtbnw').style.display=lang==='en'?'none':'';
   document.getElementById('qtenw').style.display=lang==='bn'?'none':'';
   document.getElementById('qtxtbi').className='bi'+(lang!=='both'?' one':'');
+  // all named bnw/enw inside ansBuilder
   document.querySelectorAll('[id$="bnw"]').forEach(el=>el.style.display=lang==='en'?'none':'');
   document.querySelectorAll('[id$="enw"]').forEach(el=>el.style.display=lang==='bn'?'none':'');
   document.querySelectorAll('.abi').forEach(el=>el.className='bi abi'+(lang!=='both'?' one':''));
+  // fill blank word inputs
   ['#fwbn','#fwen'].forEach((sel,i)=>{
     const el=document.querySelector(sel);
     if(el)el.style.display=(i===0&&lang==='en')?'none':(i===1&&lang==='bn')?'none':'';
@@ -392,7 +370,8 @@ function addQ(){
   else if(qtype==='fillblank')ans=cFill();
   else if(qtype==='ordering')ans=cOrder();
   if(!ans)return;
-  questions.push({id:Date.now(),type:qtype,textBn:tbn,textEn:ten,...ans});
+  const tSec=parseInt(document.getElementById('qTimer').value)||0;
+  questions.push({id:Date.now(),type:qtype,textBn:tbn,textEn:ten,timerSeconds:tSec,...ans});
   renderQList();
   document.getElementById('qtbn').value='';
   document.getElementById('qten').value='';
@@ -528,76 +507,36 @@ async function delExam(id){
   loadExams();
 }
 
-// NEW: Load classes & subjects with your custom fields (className, classCode)
+// FIXED: load classes (using className & classCode) and subjects (name or subjectName)
 async function loadDropdowns(){
   try {
-    // Load classes
-    const classesSnap = await db.collection('classes').orderBy('classCode').get();
+    // Load classes: documents have "className" and "classCode"
+    const classesSnapshot = await db.collection('classes').orderBy('classCode').get();
     const classSelect = document.getElementById('classSelect');
     classSelect.innerHTML = '<option value="">Select Class</option>';
-    classesSnap.forEach(doc => {
+    classesSnapshot.forEach(doc => {
       const data = doc.data();
-      // Your structure: className (e.g. "Class 5"), classCode (e.g. "05")
-      let displayName = data.className || data.name || data.classCode;
+      const displayName = data.className || data.name;
       if (!displayName) return;
       const option = new Option(displayName, displayName);
       classSelect.appendChild(option);
     });
 
-    // Load subjects (assumes subjects have a 'name' field, or fallback)
-    const subjectsSnap = await db.collection('subjects').orderBy('name').get();
+    // Load subjects: try "name" first, then "subjectName"
+    const subjectsSnapshot = await db.collection('subjects').orderBy('name').get();
     const subjectSelect = document.getElementById('subjectSelect');
     subjectSelect.innerHTML = '<option value="">Select Subject</option>';
-    subjectsSnap.forEach(doc => {
+    subjectsSnapshot.forEach(doc => {
       const data = doc.data();
       let displayName = data.name || data.subjectName;
       if (!displayName) return;
       const option = new Option(displayName, displayName);
       subjectSelect.appendChild(option);
     });
-  } catch(e){
-    console.error("Dropdown error:", e);
+  } catch(e) {
+    console.error("Error loading dropdowns:", e);
     document.getElementById('classSelect').innerHTML = '<option value="">Error loading classes</option>';
     document.getElementById('subjectSelect').innerHTML = '<option value="">Error loading subjects</option>';
-  }
-}
-
-// NEW: Add class with className + classCode
-async function addClass(){
-  const className = document.getElementById('newClassName').value.trim();
-  const classCode = document.getElementById('newClassCode').value.trim();
-  if(!className){
-    alert('Please enter a class name (e.g. Class 5)');
-    return;
-  }
-  try {
-    await db.collection('classes').add({
-      className: className,
-      classCode: classCode || className.replace(/\D/g,'') || '0'
-    });
-    document.getElementById('newClassName').value = '';
-    document.getElementById('newClassCode').value = '';
-    await loadDropdowns();
-    alert(`Class "${className}" added successfully!`);
-  } catch(err) {
-    alert('Error: ' + err.message);
-  }
-}
-
-// NEW: Add subject with name field
-async function addSubject(){
-  const name = document.getElementById('newSubjectName').value.trim();
-  if(!name){
-    alert('Please enter a subject name');
-    return;
-  }
-  try {
-    await db.collection('subjects').add({ name: name });
-    document.getElementById('newSubjectName').value = '';
-    await loadDropdowns();
-    alert(`Subject "${name}" added successfully!`);
-  } catch(err) {
-    alert('Error: ' + err.message);
   }
 }
 
