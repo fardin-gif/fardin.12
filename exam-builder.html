@@ -6,233 +6,516 @@
     <title>Gamified Exam Builder</title>
     <link rel="shortcut icon" href="icon.jpg" type="image/x-icon">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/katex.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/katex.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        :root {
-            --bg-dark: #161a1d; --card-bg: #212529; --primary-red: #d62839;
-            --text-light: #f5f3f4; --text-muted: #b1a7a6; --border-color: #333;
-            --success: #2a9d8f; --radius: 12px;
-        }
-        body { background: var(--bg-dark); color: var(--text-light); padding: 20px; }
-        .container { max-width: 1200px; margin: 0 auto; }
-        .card { background: var(--card-bg); border-radius: var(--radius); border: 1px solid var(--border-color); margin-bottom: 20px; overflow: hidden; }
-        .card-header { padding: 20px; border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.2); display: flex; justify-content: space-between; align-items: center; }
-        .card-header h3 { font-size: 18px; display: flex; align-items: center; gap: 10px; }
-        .card-body { padding: 20px; }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; font-weight: 500; }
-        input, select, textarea { width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-light); }
-        .btn { padding: 10px 20px; border: none; border-radius: var(--radius); cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
-        .btn-primary { background: var(--primary-red); color: white; }
-        .btn-success { background: var(--success); color: white; }
-        .btn-secondary { background: transparent; border: 1px solid var(--border-color); color: var(--text-light); }
-        .question-card { background: rgba(0,0,0,0.3); border-radius: 8px; padding: 15px; margin-bottom: 15px; }
-        .flex-row { display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end; }
-        .flex-grow { flex: 1; }
-        .remove-btn { background: none; border: none; color: var(--primary-red); cursor: pointer; font-size: 20px; }
-        .preview-latex { background: rgba(0,0,0,0.2); padding: 8px; border-radius: 8px; font-size: 14px; margin-top: 5px; }
-        .badge { background: rgba(214,40,57,0.2); color: var(--primary-red); padding: 4px 10px; border-radius: 20px; font-size: 12px; }
+        *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',system-ui,sans-serif}
+        :root{--bg:#161a1d;--card:#212529;--red:#d62839;--red2:#ba181b;--text:#f5f3f4;--muted:#b1a7a6;--border:#333;--ok:#2a9d8f;--warn:#e9c46a;--err:#e63946;--info:#457b9d;--r:12px;--shadow:0 8px 16px rgba(0,0,0,.3);--purple:#7c3aed;--gold:#f59e0b}
+        body{background:var(--bg);color:var(--text);min-height:100vh}
+        .wrap{max-width:960px;margin:0 auto;padding:0 20px}
+        header{background:var(--card);border-bottom:1px solid var(--border);padding:16px 0;position:sticky;top:0;z-index:100}
+        .hrow{display:flex;justify-content:space-between;align-items:center}
+        .logo h1{font-size:20px;background:linear-gradient(90deg,var(--red),#ff6b6b);-webkit-background-clip:text;background-clip:text;color:transparent}
+        .logo p{color:var(--muted);font-size:12px}
+        .back{background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--text);padding:7px 14px;border-radius:var(--r);cursor:pointer;text-decoration:none;display:flex;align-items:center;gap:7px;font-size:13px;transition:.2s}
+        .back:hover{background:rgba(255,255,255,.1)}
+        main{padding:28px 0 60px}
+        .card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);border:1px solid var(--border);margin-bottom:22px;overflow:hidden}
+        .ch{padding:16px 20px;border-bottom:1px solid var(--border);background:rgba(0,0,0,.2);display:flex;justify-content:space-between;align-items:center}
+        .ch h3{font-size:16px;display:flex;align-items:center;gap:9px}
+        .cb{padding:20px}
+        .row{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:14px}
+        .fg{flex:1;min-width:190px}
+        .fg label{display:block;margin-bottom:6px;font-size:13px;font-weight:500}
+        .fc{width:100%;padding:10px 13px;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:14px;transition:.2s}
+        .fc:focus{outline:none;border-color:var(--red);box-shadow:0 0 0 3px rgba(214,40,57,.2)}
+        .fsel{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23b1a7a6' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:36px}
+        .btn{padding:9px 18px;border:none;border-radius:var(--r);font-weight:500;cursor:pointer;transition:.2s;display:inline-flex;align-items:center;gap:7px;font-size:13px}
+        .btn-p{background:var(--red);color:#fff}.btn-p:hover{background:var(--red2);transform:translateY(-1px)}
+        .btn-s{background:transparent;color:var(--text);border:1px solid var(--border)}.btn-s:hover{background:rgba(255,255,255,.05)}
+        .btn-g{background:var(--ok);color:#fff}.btn-g:hover{background:#21867a;transform:translateY(-1px)}
+        .btn-v{background:var(--purple);color:#fff}.btn-v:hover{background:#6d28d9;transform:translateY(-1px)}
+        .btn-d{background:rgba(230,57,70,.15);color:var(--err);border:1px solid var(--err)}.btn-d:hover{background:var(--err);color:#fff}
+        .btn-sm{padding:5px 11px;font-size:12px}
+
+        /* Lang mode */
+        .lmg{display:flex;gap:10px;flex-wrap:wrap}
+        .lmb{padding:9px 18px;border-radius:var(--r);border:2px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-size:13px;transition:.2s;display:flex;align-items:center;gap:7px}
+        .lmb.on{border-color:var(--red);color:var(--text);background:rgba(214,40,57,.1)}
+        .lmb:hover{border-color:var(--muted);color:var(--text)}
+
+        /* Q type grid */
+        .qtg{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:18px}
+        .qtb{padding:13px;border-radius:var(--r);border:2px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-size:12px;transition:.2s;text-align:center}
+        .qtb i{display:block;font-size:20px;margin-bottom:7px}
+        .qtb:hover{border-color:var(--purple);color:var(--text)}
+        .qtb.on{border-color:var(--purple);color:var(--text);background:rgba(124,58,237,.15)}
+
+        /* Credits */
+        .cred-row{display:flex;gap:16px;flex-wrap:wrap}
+        .cred-box{display:flex;align-items:center;gap:9px;background:rgba(255,255,255,.03);padding:10px 14px;border-radius:var(--r);border:1px solid var(--border)}
+        .cred-box label{font-size:13px;color:var(--muted);white-space:nowrap}
+        .cred-box input{width:65px}
+
+        /* Toggle */
+        .tog-row{display:flex;align-items:center;gap:10px}
+        .tswitch{position:relative;width:42px;height:22px}
+        .tswitch input{opacity:0;width:0;height:0}
+        .tslider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:var(--border);border-radius:22px;transition:.3s}
+        .tslider:before{position:absolute;content:"";height:16px;width:16px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s}
+        input:checked+.tslider{background:var(--ok)}
+        input:checked+.tslider:before{transform:translateX(20px)}
+
+        /* Bilingual */
+        .bi{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+        .bi.one{grid-template-columns:1fr}
+        .ll{font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+        .bn{font-family:'Hind Siliguri',sans-serif;font-size:15px}
+        textarea.fc{resize:vertical;min-height:64px}
+
+        /* MCQ */
+        .mcq-opts{display:grid;gap:9px}
+        .mcq-or{display:grid;grid-template-columns:30px 1fr 1fr 22px;gap:8px;align-items:center}
+        .olabel{width:30px;height:30px;background:rgba(255,255,255,.08);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--muted);flex-shrink:0}
+        .cradio{width:17px;height:17px;accent-color:var(--ok);cursor:pointer;flex-shrink:0}
+
+        /* Matching */
+        .mp{display:grid;grid-template-columns:1fr 24px 1fr;gap:8px;align-items:start;margin-bottom:8px}
+        .marr{color:var(--muted);font-size:16px;padding-top:22px;text-align:center}
+
+        /* Fill blank */
+        .word-row{display:flex;gap:8px;margin-top:9px}
+        .words-wrap{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
+        .wchip{background:rgba(124,58,237,.2);border:1px solid var(--purple);color:var(--text);padding:4px 11px;border-radius:20px;font-size:12px;display:flex;align-items:center;gap:5px}
+        .wchip .rx{cursor:pointer;color:var(--err);font-size:10px}
+        .cwsel{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
+        .cwbtn{padding:4px 13px;border-radius:20px;border:2px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-size:12px;transition:.2s}
+        .cwbtn.on{border-color:var(--ok);color:var(--ok);background:rgba(42,157,143,.1)}
+
+        /* Order */
+        .ord-items{display:grid;gap:8px}
+        .ord-row{display:grid;grid-template-columns:26px 1fr 1fr;gap:8px;align-items:start}
+        .onum{width:26px;height:26px;background:rgba(245,158,11,.2);border:1px solid var(--gold);color:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0;margin-top:2px}
+
+        /* Questions list */
+        .qlist{min-height:50px}
+        .noq{text-align:center;color:var(--muted);padding:24px;font-size:13px;border:2px dashed var(--border);border-radius:var(--r)}
+        .qi{background:rgba(0,0,0,.2);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:13px;position:relative}
+        .qi-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:8px}
+        .qnum{font-size:12px;font-weight:600;color:var(--purple);background:rgba(124,58,237,.15);padding:3px 10px;border-radius:20px}
+        .qtbadge{font-size:11px;color:var(--muted);background:rgba(255,255,255,.05);padding:3px 9px;border-radius:20px;margin-right:auto}
+
+        /* Exam list cards */
+        .egrid{display:grid;gap:12px}
+        .ecard{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:var(--r);padding:16px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;transition:.2s}
+        .ecard:hover{border-color:var(--purple)}
+        .einfo h4{font-size:14px;margin-bottom:5px}
+        .emeta{display:flex;flex-wrap:wrap;gap:6px}
+        .mb{font-size:11px;padding:2px 9px;border-radius:20px;background:rgba(255,255,255,.06);color:var(--muted)}
+        .mb-v{background:rgba(124,58,237,.2);color:#a78bfa}
+        .mb-g{background:rgba(42,157,143,.2);color:var(--ok)}
+        .mb-au{background:rgba(245,158,11,.2);color:var(--gold)}
+        .eacts{display:flex;gap:7px;flex-shrink:0}
+
+        /* Alert */
+        .al{padding:11px 15px;border-radius:var(--r);margin-bottom:14px;font-size:13px;display:flex;align-items:center;gap:9px}
+        .al-ok{background:rgba(42,157,143,.15);border:1px solid var(--ok);color:var(--ok)}
+        .al-err{background:rgba(230,57,70,.15);border:1px solid var(--err);color:#ff6b6b}
+
+        .spin{width:26px;height:26px;border:3px solid rgba(255,255,255,.1);border-radius:50%;border-top-color:var(--red);animation:sp .8s linear infinite;margin:18px auto}
+        @keyframes sp{to{transform:rotate(360deg)}}
+        .es{text-align:center;padding:26px;color:var(--muted);font-size:13px}
+        .hint{font-size:11px;color:var(--muted);margin-top:4px}
     </style>
 </head>
 <body>
-<div class="container">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h1><i class="fas fa-gamepad"></i> Gamified Exam Builder</h1>
-        <a href="index.html" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+<header>
+  <div class="wrap">
+    <div class="hrow">
+      <div class="logo"><h1>Fardin (DU Physics)</h1><p>Gamified Exam Builder</p></div>
+      <a href="index.html" class="back"><i class="fas fa-arrow-left"></i> Dashboard</a>
     </div>
+  </div>
+</header>
+<main>
+  <div class="wrap">
+    <div id="alertBox"></div>
 
+    <!-- Settings -->
     <div class="card">
-        <div class="card-header"><h3><i class="fas fa-info-circle"></i> Exam Details</h3></div>
-        <div class="card-body">
-            <div class="flex-row">
-                <div class="flex-grow"><label>Exam Title *</label><input type="text" id="examTitle" placeholder="e.g., Physics Midterm"></div>
-                <div class="flex-grow"><label>Class *</label><select id="examClass"><option value="">Select</option></select></div>
-                <div class="flex-grow"><label>Subject</label><input type="text" id="examSubject" placeholder="Physics"></div>
-                <div class="flex-grow"><label>Exam Date</label><input type="date" id="examDate"></div>
-            </div>
-            <div class="flex-row">
-                <div class="flex-grow"><label>Language Availability</label><select id="examLang"><option value="both">Both Bangla & English</option><option value="bn">Bangla Only</option><option value="en">English Only</option></select></div>
-                <div class="flex-grow"><label>Credits per correct answer</label><input type="number" id="creditsPerCorrect" value="5" min="1"></div>
-                <div class="flex-grow"><label>Penalty per wrong answer</label><input type="number" id="penaltyPerWrong" value="1" min="0"></div>
-                <div class="flex-grow"><label>Active</label><select id="examActive"><option value="true">Yes</option><option value="false">No</option></select></div>
-            </div>
+      <div class="ch"><h3><i class="fas fa-gamepad" style="color:var(--purple)"></i> Exam Settings</h3></div>
+      <div class="cb">
+        <div class="row">
+          <div class="fg"><label>Exam Title *</label><input type="text" id="examTitle" class="fc" placeholder="e.g. Chapter 3 Practice"></div>
+          <div class="fg"><label>Class *</label><select id="classSelect" class="fc fsel"><option value="">Select Class</option></select></div>
+          <div class="fg"><label>Subject</label><select id="subjectSelect" class="fc fsel"><option value="">Select Subject</option></select></div>
         </div>
+        <div class="fg" style="margin-bottom:14px">
+          <label style="margin-bottom:9px;display:block">Language Mode *</label>
+          <div class="lmg">
+            <button class="lmb on" data-mode="bn" onclick="setLang('bn',this)"><i class="fas fa-language"></i> বাংলা Only</button>
+            <button class="lmb" data-mode="en" onclick="setLang('en',this)"><i class="fas fa-font"></i> English Only</button>
+            <button class="lmb" data-mode="both" onclick="setLang('both',this)"><i class="fas fa-globe"></i> Both (Student Chooses)</button>
+          </div>
+          <p class="hint" id="lhint">Students will answer in Bangla only.</p>
+        </div>
+        <div class="fg" style="margin-bottom:14px">
+          <label style="margin-bottom:9px;display:block"><i class="fas fa-star" style="color:var(--gold)"></i> Credit System</label>
+          <div class="cred-row">
+            <div class="cred-box"><label>✅ Correct:</label><input type="number" id="creditR" class="fc" value="5" min="1" max="100"><span style="font-size:12px;color:var(--muted)">credits</span></div>
+            <div class="cred-box"><label>❌ Wrong:</label><input type="number" id="creditW" class="fc" value="2" min="0" max="50"><span style="font-size:12px;color:var(--muted)">credits lost</span></div>
+          </div>
+        </div>
+        <div class="tog-row">
+          <label class="tswitch"><input type="checkbox" id="isActive" checked><span class="tslider"></span></label>
+          <span style="font-size:13px;color:var(--muted)">Active (visible to students)</span>
+        </div>
+      </div>
     </div>
 
+    <!-- Question Builder -->
     <div class="card">
-        <div class="card-header"><h3><i class="fas fa-list"></i> Questions</h3><button class="btn btn-success" onclick="addQuestion()"><i class="fas fa-plus"></i> Add Question</button></div>
-        <div class="card-body" id="questionsContainer"></div>
-        <div class="card-body"><button class="btn btn-primary" onclick="saveExam()"><i class="fas fa-save"></i> Save Exam</button></div>
+      <div class="ch"><h3><i class="fas fa-plus-circle" style="color:var(--purple)"></i> Add Question</h3></div>
+      <div class="cb">
+        <div style="margin-bottom:14px">
+          <label style="display:block;margin-bottom:9px;font-size:13px;font-weight:500">Question Type</label>
+          <div class="qtg">
+            <button class="qtb on" data-type="mcq" onclick="setQType('mcq',this)"><i class="fas fa-list-ul"></i>MCQ</button>
+            <button class="qtb" data-type="truefalse" onclick="setQType('truefalse',this)"><i class="fas fa-check-double"></i>True / False</button>
+            <button class="qtb" data-type="matching" onclick="setQType('matching',this)"><i class="fas fa-project-diagram"></i>Matching</button>
+            <button class="qtb" data-type="fillblank" onclick="setQType('fillblank',this)"><i class="fas fa-pen-nib"></i>Fill Blank</button>
+            <button class="qtb" data-type="ordering" onclick="setQType('ordering',this)"><i class="fas fa-sort-amount-down"></i>Ordering</button>
+          </div>
+        </div>
+        <div style="margin-bottom:12px">
+          <label style="display:block;font-size:13px;font-weight:500;margin-bottom:7px">Question Text</label>
+          <div class="bi" id="qtxtbi">
+            <div id="qtbnw"><div class="ll">বাংলা</div><textarea id="qtbn" class="fc bn" placeholder="প্রশ্ন লিখুন (LaTeX: $\sin\theta$)"></textarea></div>
+            <div id="qtenw"><div class="ll">English</div><textarea id="qten" class="fc" placeholder="Write question (LaTeX: $\sin\theta$)"></textarea></div>
+          </div>
+        </div>
+        <div id="ansBuilder"></div>
+        <div style="margin-top:14px;text-align:right">
+          <button class="btn btn-v" onclick="addQ()"><i class="fas fa-plus"></i> Add This Question</button>
+        </div>
+      </div>
     </div>
-</div>
+
+    <!-- Questions List -->
+    <div class="card">
+      <div class="ch">
+        <h3><i class="fas fa-list-check" style="color:var(--gold)"></i> Questions (<span id="qcnt">0</span>)</h3>
+        <button class="btn btn-g" onclick="saveExam()"><i class="fas fa-save"></i> Save Exam</button>
+      </div>
+      <div class="cb"><div class="qlist" id="qlist"><div class="noq"><i class="fas fa-info-circle"></i> No questions yet. Add from above.</div></div></div>
+    </div>
+
+    <!-- Saved Exams -->
+    <div class="card">
+      <div class="ch">
+        <h3><i class="fas fa-gamepad" style="color:var(--gold)"></i> Saved Gamified Exams</h3>
+        <button class="btn btn-s btn-sm" onclick="loadExams()"><i class="fas fa-sync"></i> Refresh</button>
+      </div>
+      <div class="cb"><div id="examsList"><div class="spin"></div></div></div>
+    </div>
+  </div>
+</main>
 
 <script>
-    const firebaseConfig = { apiKey: "AIzaSyAlR-WEX_HZjkE1hzh_rPRYAz7CrjQYB54", authDomain: "exammanagementsystem-a7720.firebaseapp.com", projectId: "exammanagementsystem-a7720", storageBucket: "exammanagementsystem-a7720.firebasestorage.app", messagingSenderId: "269325070232", appId: "1:269325070232:web:79bdf01e4f47ea36bd45ed" };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+const firebaseConfig={apiKey:"AIzaSyAlR-WEX_HZjkE1hzh_rPRYAz7CrjQYB54",authDomain:"exammanagementsystem-a7720.firebaseapp.com",projectId:"exammanagementsystem-a7720",storageBucket:"exammanagementsystem-a7720.firebasestorage.app",messagingSenderId:"269325070232",appId:"1:269325070232:web:79bdf01e4f47ea36bd45ed"};
+firebase.initializeApp(firebaseConfig);
+const db=firebase.firestore();
 
-    let questionCount = 0;
-    let classes = [];
+let lang='bn', qtype='mcq', questions=[], fillWords=[], correctFillId=null;
 
-    async function loadClasses() {
-        const snap = await db.collection('classes').get();
-        classes = snap.docs.map(d => ({ code: d.id, name: d.data().className }));
-        const select = document.getElementById('examClass');
-        classes.forEach(c => { const opt = document.createElement('option'); opt.value = c.code; opt.textContent = c.name; select.appendChild(opt); });
+const lhints={bn:'Students will answer in Bangla only.',en:'Students will answer in English only.',both:'Students can choose Bangla or English before starting.'};
+
+function setLang(m,btn){
+  lang=m;
+  document.querySelectorAll('.lmb').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('lhint').textContent=lhints[m];
+  refreshBiVisibility();
+}
+
+function refreshBiVisibility(){
+  // main question textarea
+  document.getElementById('qtbnw').style.display=lang==='en'?'none':'';
+  document.getElementById('qtenw').style.display=lang==='bn'?'none':'';
+  document.getElementById('qtxtbi').className='bi'+(lang!=='both'?' one':'');
+  // all named bnw/enw inside ansBuilder
+  document.querySelectorAll('[id$="bnw"]').forEach(el=>el.style.display=lang==='en'?'none':'');
+  document.querySelectorAll('[id$="enw"]').forEach(el=>el.style.display=lang==='bn'?'none':'');
+  document.querySelectorAll('.abi').forEach(el=>el.className='bi abi'+(lang!=='both'?' one':''));
+  // fill blank word inputs
+  ['#fwbn','#fwen'].forEach((sel,i)=>{
+    const el=document.querySelector(sel);
+    if(el)el.style.display=(i===0&&lang==='en')?'none':(i===1&&lang==='bn')?'none':'';
+  });
+}
+
+function setQType(t,btn){
+  qtype=t;
+  document.querySelectorAll('.qtb').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  buildAnsUI();
+}
+
+function bif(idBn,idEn,ph,ta=false){
+  const tag=ta?'textarea':'input';
+  const xtra=ta?'':`type="text"`;
+  return `<div id="${idBn}bnw"><div class="ll">বাংলা</div><${tag} ${xtra} id="${idBn}bn" class="fc bn${ta?' ':' '}" placeholder="${ph} (বাংলা)"></${tag}></div>
+          <div id="${idBn}enw"><div class="ll">English</div><${tag} ${xtra} id="${idEn}en" class="fc${ta?' ':' '}" placeholder="${ph} (English)"></${tag}></div>`;
+}
+
+function buildAnsUI(){
+  const ab=document.getElementById('ansBuilder');
+  if(qtype==='mcq'){
+    let o='';
+    ['A','B','C','D'].forEach(l=>{
+      o+=`<div class="mcq-or">
+        <div class="olabel">${l}</div>
+        <div class="bi abi" style="margin:0">${bif('opt'+l+'_','opt'+l+'_',`Option ${l}`)}</div>
+        <input type="radio" name="mcqc" value="${l}" class="cradio" title="Correct answer">
+      </div>`;
+    });
+    ab.innerHTML=`<label style="font-size:13px;font-weight:500;margin-bottom:9px;display:block;color:var(--muted)">Options (radio = correct)</label><div class="mcq-opts">${o}</div>`;
+  } else if(qtype==='truefalse'){
+    ab.innerHTML=`<label style="font-size:13px;font-weight:500;margin-bottom:9px;display:block;color:var(--muted)">Correct Answer</label>
+    <div style="display:flex;gap:12px">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px 18px;border:2px solid var(--border);border-radius:var(--r);transition:.2s" id="tftl">
+        <input type="radio" name="tfa" value="true" onchange="tfhl()"> ✅ True / সত্য
+      </label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px 18px;border:2px solid var(--border);border-radius:var(--r);transition:.2s" id="tffl">
+        <input type="radio" name="tfa" value="false" onchange="tfhl()"> ❌ False / মিথ্যা
+      </label>
+    </div>`;
+  } else if(qtype==='matching'){
+    let p='';
+    for(let i=1;i<=4;i++){
+      p+=`<div class="mp">
+        <div class="bi abi" style="margin:0">${bif('ml'+i+'_','ml'+i+'_','Left '+i)}</div>
+        <div class="marr">→</div>
+        <div class="bi abi" style="margin:0">${bif('mr'+i+'_','mr'+i+'_','Right '+i)}</div>
+      </div>`;
     }
-    loadClasses();
-
-    function addQuestion() {
-        const container = document.getElementById('questionsContainer');
-        const id = questionCount++;
-        const div = document.createElement('div');
-        div.className = 'question-card';
-        div.id = `q_${id}`;
-        div.innerHTML = `
-            <div class="flex-row" style="justify-content: space-between; margin-bottom: 10px;">
-                <div><strong>Question ${id+1}</strong> <span class="badge" id="typeBadge_${id}">MCQ</span></div>
-                <button class="remove-btn" onclick="removeQuestion(${id})"><i class="fas fa-trash"></i></button>
-            </div>
-            <div class="flex-row">
-                <div class="flex-grow"><label>Type</label><select id="type_${id}" onchange="changeQuestionType(${id})"><option value="mcq">MCQ</option><option value="truefalse">True/False</option><option value="matching">Matching</option><option value="fillblank">Fill in Blank</option><option value="ordering">Ordering</option><option value="image-mcq">Image-based MCQ</option></select></div>
-                <div class="flex-grow"><label>Marks (Credits)</label><input type="number" id="marks_${id}" value="5" min="1"></div>
-                <div class="flex-grow"><label>Penalty</label><input type="number" id="penalty_${id}" value="1" min="0"></div>
-            </div>
-            <div class="flex-row"><div class="flex-grow"><label>Bangla Text</label><textarea id="textBn_${id}" rows="2" placeholder="বাংলায় প্রশ্ন..."></textarea><div class="preview-latex" id="previewBn_${id}"></div></div>
-            <div class="flex-grow"><label>English Text</label><textarea id="textEn_${id}" rows="2" placeholder="English question..."></textarea><div class="preview-latex" id="previewEn_${id}"></div></div></div>
-            <div id="optionsContainer_${id}"></div>
-        `;
-        container.appendChild(div);
-        attachLatexPreview(id);
-        changeQuestionType(id);
+    ab.innerHTML=`<label style="font-size:13px;font-weight:500;margin-bottom:9px;display:block;color:var(--muted)">Matching Pairs (correct order; right column will be shuffled)</label>${p}`;
+  } else if(qtype==='fillblank'){
+    fillWords=[];correctFillId=null;
+    ab.innerHTML=`<label style="font-size:13px;font-weight:500;margin-bottom:7px;display:block;color:var(--muted)">Word Bank</label>
+    <p class="hint" style="margin-bottom:8px">Use ___ in the question text to mark the blank.</p>
+    <div class="word-row">
+      <input type="text" id="fwbn" class="fc bn" placeholder="শব্দ (বাংলা)">
+      <input type="text" id="fwen" class="fc" placeholder="Word (English)">
+      <button class="btn btn-v btn-sm" onclick="addFW()"><i class="fas fa-plus"></i></button>
+    </div>
+    <div class="words-wrap" id="wwrap"></div>
+    <div style="margin-top:12px"><label style="font-size:12px;color:var(--muted);margin-bottom:7px;display:block">Select the correct word:</label><div class="cwsel" id="cwsel"></div></div>`;
+  } else if(qtype==='ordering'){
+    let it='';
+    for(let i=1;i<=4;i++){
+      it+=`<div class="ord-row">
+        <div class="onum">${i}</div>
+        <div class="bi abi" style="margin:0">${bif('or'+i+'_','or'+i+'_','Item '+i)}</div>
+      </div>`;
     }
+    ab.innerHTML=`<label style="font-size:13px;font-weight:500;margin-bottom:9px;display:block;color:var(--muted)">Items in correct order (will be shuffled for students)</label><div class="ord-items">${it}</div>`;
+  }
+  refreshBiVisibility();
+}
 
-    function attachLatexPreview(id) {
-        const bnTextarea = document.getElementById(`textBn_${id}`);
-        const enTextarea = document.getElementById(`textEn_${id}`);
-        const bnPreview = document.getElementById(`previewBn_${id}`);
-        const enPreview = document.getElementById(`previewEn_${id}`);
-        const updatePreview = (textarea, preview) => {
-            const val = textarea.value;
-            preview.innerHTML = val ? katex.renderToString(val, { throwOnError: false }) : '';
-        };
-        bnTextarea.addEventListener('input', () => updatePreview(bnTextarea, bnPreview));
-        enTextarea.addEventListener('input', () => updatePreview(enTextarea, enPreview));
-        updatePreview(bnTextarea, bnPreview);
-        updatePreview(enTextarea, enPreview);
-    }
+function tfhl(){
+  const v=document.querySelector('input[name="tfa"]:checked')?.value;
+  document.getElementById('tftl').style.borderColor=v==='true'?'var(--ok)':'var(--border)';
+  document.getElementById('tffl').style.borderColor=v==='false'?'var(--err)':'var(--border)';
+}
 
-    function changeQuestionType(id) {
-        const type = document.getElementById(`type_${id}`).value;
-        const badge = document.getElementById(`typeBadge_${id}`);
-        badge.textContent = type.toUpperCase().replace('-',' ');
-        const container = document.getElementById(`optionsContainer_${id}`);
-        if (type === 'mcq' || type === 'image-mcq') {
-            container.innerHTML = `
-                <label>Options (A, B, C, D) - one per line or comma separated</label>
-                <textarea id="options_${id}" rows="3" placeholder="Option A\nOption B\nOption C\nOption D"></textarea>
-                <label>Correct Answer (A/B/C/D)</label><input type="text" id="correct_${id}" maxlength="1" placeholder="e.g., A">
-                ${type === 'image-mcq' ? `<label>Image URL</label><input type="text" id="imageUrl_${id}" placeholder="https://...">` : ''}
-            `;
-        } else if (type === 'truefalse') {
-            container.innerHTML = `<label>Correct Answer</label><select id="correct_${id}"><option value="true">True</option><option value="false">False</option></select>`;
-        } else if (type === 'matching') {
-            container.innerHTML = `<div id="matchingPairs_${id}"><label>Matching Pairs (Left - Right)</label><div id="pairsList_${id}"></div><button type="button" class="btn btn-secondary btn-sm" onclick="addMatchingPair(${id})">+ Add Pair</button><input type="hidden" id="correct_${id}"></div>`;
-            addMatchingPair(id);
-        } else if (type === 'fillblank') {
-            container.innerHTML = `<label>Word Bank (comma separated)</label><input type="text" id="wordBank_${id}" placeholder="word1, word2, word3"><label>Blank Positions (e.g., 0,2)</label><input type="text" id="blankIndices_${id}" placeholder="0,2"><input type="hidden" id="correct_${id}">`;
-        } else if (type === 'ordering') {
-            container.innerHTML = `<div id="orderingItems_${id}"><label>Ordered Items (one per line, correct order)</label><textarea id="orderedList_${id}" rows="3" placeholder="First item\nSecond item\nThird item"></textarea><input type="hidden" id="correct_${id}"></div>`;
-        }
-    }
+function addFW(){
+  const bn=document.getElementById('fwbn')?.value.trim()||'';
+  const en=document.getElementById('fwen')?.value.trim()||'';
+  if(!bn&&!en){alert('Enter a word');return;}
+  fillWords.push({id:Date.now(),bn,en});
+  document.getElementById('fwbn').value='';
+  document.getElementById('fwen').value='';
+  renderFW();
+}
+function renderFW(){
+  const ww=document.getElementById('wwrap');
+  const cs=document.getElementById('cwsel');
+  if(!ww)return;
+  ww.innerHTML=fillWords.map(w=>`<div class="wchip">${w.bn||w.en}<span class="rx" onclick="remFW(${w.id})">✕</span></div>`).join('');
+  cs.innerHTML=fillWords.map(w=>`<button class="cwbtn${correctFillId===w.id?' on':''}" onclick="selCF(${w.id},this)">${w.bn||w.en}</button>`).join('');
+}
+function remFW(id){fillWords=fillWords.filter(w=>w.id!==id);if(correctFillId===id)correctFillId=null;renderFW();}
+function selCF(id,btn){correctFillId=id;document.querySelectorAll('.cwbtn').forEach(b=>b.classList.remove('on'));btn.classList.add('on');}
 
-    function addMatchingPair(qid) {
-        const listDiv = document.getElementById(`pairsList_${qid}`);
-        const pairId = Date.now();
-        const div = document.createElement('div');
-        div.className = 'flex-row';
-        div.innerHTML = `<input type="text" placeholder="Left term" class="flex-grow" id="left_${qid}_${pairId}"><input type="text" placeholder="Right definition" class="flex-grow" id="right_${qid}_${pairId}"><button class="remove-btn" onclick="this.parentElement.remove()">✖</button>`;
-        listDiv.appendChild(div);
-    }
+function addQ(){
+  const tbn=document.getElementById('qtbn')?.value.trim()||'';
+  const ten=document.getElementById('qten')?.value.trim()||'';
+  if(lang==='bn'&&!tbn){alert('Enter Bangla question text');return;}
+  if(lang==='en'&&!ten){alert('Enter English question text');return;}
+  if(lang==='both'&&!tbn&&!ten){alert('Enter question text');return;}
+  let ans=null;
+  if(qtype==='mcq')ans=cMCQ();
+  else if(qtype==='truefalse')ans=cTF();
+  else if(qtype==='matching')ans=cMatch();
+  else if(qtype==='fillblank')ans=cFill();
+  else if(qtype==='ordering')ans=cOrder();
+  if(!ans)return;
+  questions.push({id:Date.now(),type:qtype,textBn:tbn,textEn:ten,...ans});
+  renderQList();
+  document.getElementById('qtbn').value='';
+  document.getElementById('qten').value='';
+  fillWords=[];correctFillId=null;
+  buildAnsUI();
+  alert('Question '+(questions.length)+' added!');
+}
 
-    window.addMatchingPair = addMatchingPair;
-    window.removeQuestion = (id) => document.getElementById(`q_${id}`).remove();
-    window.changeQuestionType = changeQuestionType;
+function gv(id){return document.getElementById(id)?.value.trim()||'';}
+function cMCQ(){
+  const c=document.querySelector('input[name="mcqc"]:checked')?.value;
+  if(!c){alert('Select correct option');return null;}
+  const opts={};
+  ['A','B','C','D'].forEach(l=>{opts[l]={bn:gv('opt'+l+'_bn'),en:gv('opt'+l+'_en')};});
+  return{options:opts,correct:c};
+}
+function cTF(){
+  const c=document.querySelector('input[name="tfa"]:checked')?.value;
+  if(!c){alert('Select True or False');return null;}
+  return{correct:c};
+}
+function cMatch(){
+  const pairs=[];
+  for(let i=1;i<=4;i++){
+    const lb=gv('ml'+i+'_bn'),le=gv('ml'+i+'_en'),rb=gv('mr'+i+'_bn'),re=gv('mr'+i+'_en');
+    if(lb||le||rb||re)pairs.push({lBn:lb,lEn:le,rBn:rb,rEn:re});
+  }
+  if(pairs.length<2){alert('Add at least 2 pairs');return null;}
+  return{pairs};
+}
+function cFill(){
+  if(fillWords.length<2){alert('Add at least 2 words');return null;}
+  if(!correctFillId){alert('Select the correct word');return null;}
+  return{words:[...fillWords],correctWordId:correctFillId};
+}
+function cOrder(){
+  const items=[];
+  for(let i=1;i<=4;i++){
+    const bn=gv('or'+i+'_bn'),en=gv('or'+i+'_en');
+    if(bn||en)items.push({bn,en,correctPos:i});
+  }
+  if(items.length<2){alert('Add at least 2 items');return null;}
+  return{items};
+}
 
-    function collectQuestions() {
-        const questions = [];
-        const qDivs = document.querySelectorAll('.question-card');
-        for (let i = 0; i < qDivs.length; i++) {
-            const div = qDivs[i];
-            const idMatch = div.id.match(/\d+/);
-            if (!idMatch) continue;
-            const id = idMatch[0];
-            const type = document.getElementById(`type_${id}`).value;
-            const textBn = document.getElementById(`textBn_${id}`).value;
-            const textEn = document.getElementById(`textEn_${id}`).value;
-            const marks = parseInt(document.getElementById(`marks_${id}`).value);
-            const penalty = parseInt(document.getElementById(`penalty_${id}`).value);
-            let options = null, correctAnswer = null, imageUrl = null;
-            if (type === 'mcq') {
-                const optsText = document.getElementById(`options_${id}`).value;
-                options = optsText.split(/\n|,/).map(s => s.trim()).filter(s => s);
-                correctAnswer = document.getElementById(`correct_${id}`).value.toUpperCase();
-            } else if (type === 'image-mcq') {
-                const optsText = document.getElementById(`options_${id}`).value;
-                options = optsText.split(/\n|,/).map(s => s.trim()).filter(s => s);
-                correctAnswer = document.getElementById(`correct_${id}`).value.toUpperCase();
-                imageUrl = document.getElementById(`imageUrl_${id}`).value;
-            } else if (type === 'truefalse') {
-                correctAnswer = document.getElementById(`correct_${id}`).value === 'true';
-            } else if (type === 'matching') {
-                const pairs = [];
-                const pairDivs = document.querySelectorAll(`#pairsList_${id} .flex-row`);
-                pairDivs.forEach(pairDiv => {
-                    const left = pairDiv.querySelector('input:first-child').value;
-                    const right = pairDiv.querySelector('input:last-child').value;
-                    if (left && right) pairs.push({ left, right });
-                });
-                correctAnswer = pairs;
-            } else if (type === 'fillblank') {
-                const wordBank = document.getElementById(`wordBank_${id}`).value.split(',').map(s => s.trim());
-                const blankIndices = document.getElementById(`blankIndices_${id}`).value.split(',').map(s => parseInt(s.trim()));
-                correctAnswer = { wordBank, blankIndices };
-            } else if (type === 'ordering') {
-                const items = document.getElementById(`orderedList_${id}`).value.split('\n').map(s => s.trim()).filter(s => s);
-                correctAnswer = items;
-            }
-            questions.push({ type, textBn, textEn, marks, penalty, options, correctAnswer, imageUrl });
-        }
-        return questions;
-    }
+const QTLABELS={mcq:'MCQ',truefalse:'True/False',matching:'Matching',fillblank:'Fill Blank',ordering:'Ordering'};
+function renderQList(){
+  const el=document.getElementById('qlist');
+  document.getElementById('qcnt').textContent=questions.length;
+  if(!questions.length){el.innerHTML='<div class="noq"><i class="fas fa-info-circle"></i> No questions yet.</div>';return;}
+  el.innerHTML=questions.map((q,i)=>{
+    const txt=lang==='en'?q.textEn:(q.textBn||q.textEn);
+    let prev='';
+    if(q.type==='mcq')prev=`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">${Object.entries(q.options).map(([l,o])=>`<span style="font-size:11px;padding:3px 8px;border-radius:20px;border:1px solid ${l===q.correct?'var(--ok)':'var(--border)'};color:${l===q.correct?'var(--ok)':'var(--muted)'}">${l}: ${o.bn||o.en}</span>`).join('')}</div>`;
+    if(q.type==='truefalse')prev=`<div style="margin-top:7px;font-size:12px;color:var(--ok)">✓ ${q.correct==='true'?'True / সত্য':'False / মিথ্যা'}</div>`;
+    if(q.type==='matching')prev=`<div style="margin-top:7px;font-size:11px;color:var(--muted)">${q.pairs.map(p=>`${p.lBn||p.lEn} → ${p.rBn||p.rEn}`).join(' | ')}</div>`;
+    if(q.type==='fillblank')prev=`<div style="margin-top:7px;font-size:11px;color:var(--muted)">Words: ${q.words.map(w=>w.bn||w.en).join(', ')}</div>`;
+    if(q.type==='ordering')prev=`<div style="margin-top:7px;font-size:11px;color:var(--muted)">${q.items.map((it,n)=>`${n+1}. ${it.bn||it.en}`).join(' → ')}</div>`;
+    return `<div class="qi">
+      <div class="qi-hd">
+        <span class="qnum">Q${i+1}</span>
+        <span class="qtbadge">${QTLABELS[q.type]}</span>
+        <button class="btn btn-d btn-sm" onclick="remQ(${q.id})"><i class="fas fa-trash"></i></button>
+      </div>
+      <p style="font-size:13px;line-height:1.5;font-family:${q.textBn?'Hind Siliguri,':''}sans-serif">${txt}</p>
+      ${prev}
+    </div>`;
+  }).join('');
+}
+function remQ(id){questions=questions.filter(q=>q.id!==id);renderQList();}
 
-    async function saveExam() {
-        const title = document.getElementById('examTitle').value.trim();
-        const classCode = document.getElementById('examClass').value;
-        const subject = document.getElementById('examSubject').value.trim();
-        const date = document.getElementById('examDate').value;
-        const lang = document.getElementById('examLang').value;
-        const creditsPerCorrect = parseInt(document.getElementById('creditsPerCorrect').value);
-        const penaltyPerWrong = parseInt(document.getElementById('penaltyPerWrong').value);
-        const isActive = document.getElementById('examActive').value === 'true';
-        if (!title || !classCode) { alert('Please fill exam title and class'); return; }
-        const questions = collectQuestions();
-        if (questions.length === 0) { alert('Add at least one question'); return; }
-        const examData = {
-            title, classCode, subject, date, language: lang,
-            creditsPerCorrect, penaltyPerWrong, isActive,
-            questions, createdAt: new Date().toISOString()
-        };
-        await db.collection('gamifiedExams').add(examData);
-        alert('Exam saved successfully!');
-        window.location.href = 'index.html';
-    }
-    window.saveExam = saveExam;
-    window.addQuestion = addQuestion;
+async function saveExam(){
+  const title=document.getElementById('examTitle').value.trim();
+  const cls=document.getElementById('classSelect').value;
+  if(!title){alert('Enter exam title');return;}
+  if(!cls){alert('Select a class');return;}
+  if(!questions.length){alert('Add at least 1 question');return;}
+  const data={
+    title,className:cls,
+    subject:document.getElementById('subjectSelect').value,
+    langMode:lang,
+    creditRight:Number(document.getElementById('creditR').value)||5,
+    creditWrong:Number(document.getElementById('creditW').value)||2,
+    isActive:document.getElementById('isActive').checked,
+    questions:questions.map(({id,...r})=>r),
+    createdAt:firebase.firestore.FieldValue.serverTimestamp()
+  };
+  try{
+    const ref=await db.collection('gamifiedExams').add(data);
+    alert('Exam saved! ID: '+ref.id);
+    questions=[];renderQList();
+    document.getElementById('examTitle').value='';
+    loadExams();
+  }catch(e){alert('Error: '+e.message);}
+}
+
+async function loadExams(){
+  const el=document.getElementById('examsList');
+  el.innerHTML='<div class="spin"></div>';
+  try{
+    const snap=await db.collection('gamifiedExams').orderBy('createdAt','desc').get();
+    if(snap.empty){el.innerHTML='<div class="es">No gamified exams yet.</div>';return;}
+    el.innerHTML='<div class="egrid">'+snap.docs.map(doc=>{
+      const d=doc.data();
+      const url=`gamified-exam.html?id=${doc.id}`;
+      return `<div class="ecard">
+        <div class="einfo">
+          <h4>${d.title}</h4>
+          <div class="emeta">
+            <span class="mb">${d.className||'—'}</span>
+            <span class="mb">${d.subject||'—'}</span>
+            <span class="mb mb-v">${(d.questions||[]).length} questions</span>
+            <span class="mb mb-au">${d.langMode==='bn'?'বাংলা':d.langMode==='en'?'English':'Bilingual'}</span>
+            <span class="mb ${d.isActive?'mb-g':''}">${d.isActive?'Active':'Inactive'}</span>
+            <span class="mb">+${d.creditRight||5} / -${d.creditWrong||2} credits</span>
+          </div>
+        </div>
+        <div class="eacts">
+          <button class="btn btn-s btn-sm" onclick="cpLink('${url}')"><i class="fas fa-link"></i></button>
+          <button class="btn btn-d btn-sm" onclick="delExam('${doc.id}')"><i class="fas fa-trash"></i></button>
+        </div>
+      </div>`;
+    }).join('')+'</div>';
+  }catch(e){el.innerHTML=`<div class="es">Error: ${e.message}</div>`;}
+}
+function cpLink(url){
+  const base=window.location.href.replace('exam-builder.html','');
+  navigator.clipboard.writeText(base+url).then(()=>alert('Link copied!'));
+}
+async function delExam(id){
+  if(!confirm('Delete this exam?'))return;
+  await db.collection('gamifiedExams').doc(id).delete();
+  loadExams();
+}
+
+async function loadDropdowns(){
+  try{
+    const[cs,ss]=await Promise.all([db.collection('classes').orderBy('name').get(),db.collection('subjects').orderBy('name').get()]);
+    const cSel=document.getElementById('classSelect');
+    cs.forEach(d=>{const o=new Option(d.data().name,d.data().name);cSel.appendChild(o);});
+    const sSel=document.getElementById('subjectSelect');
+    ss.forEach(d=>{const o=new Option(d.data().name,d.data().name);sSel.appendChild(o);});
+  }catch(e){console.error(e);}
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  const s=JSON.parse(localStorage.getItem('adminSession')||'{}');
+  if(!s.isAdmin){window.location.href='login.html';return;}
+  loadDropdowns();
+  buildAnsUI();
+  loadExams();
+});
 </script>
 </body>
 </html>
