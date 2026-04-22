@@ -1243,7 +1243,7 @@ function renderMatching(q,area){
     </div>
     <div class="match-submit-row">
       <button class="btn-match-check" id="matchCheckBtn" onclick="submitMatching()" disabled>
-        ✅ ${isBn()?'উত্তর দেখুন':'Check Answers'}
+        ✅ ${isBn()?'Submit!':'Check Answers'}
       </button>
     </div>
     <div class="match-answer-reveal" id="matchReveal"></div>`;
@@ -1413,13 +1413,13 @@ function handleAnswer(isOk){
     sessionCredits+=cr;
     streak++;
     launchConfetti(false);
-    showFeedback('ok','🎉',streak>=3?'🔥 On Fire! +'+cr+' Credits':'✓ Correct! +'+cr+' Credits',streak>=3?'Streak: '+streak+' in a row!':'Keep it up!');
+    showFeedback('ok','🎉',streak>=3?'🔥 On Fire!':'✓ Correct!',streak>=3?'Streak: '+streak+' in a row!':'Keep it up!');
     if(streak>=3) showStreakBadge(streak);
   } else {
     wrongCount++;
     sessionCredits=Math.max(0,sessionCredits-cw);
     streak=0;
-    showFeedback('err','😔','Wrong answer! -'+cw+' credits','Review and do better next time!');
+    showFeedback('err','😔','Wrong answer!','Review and do better next time!');
   }
   updateCredits();
   setTimeout(()=>document.getElementById('nextBtnRow').classList.add('show'),700);
@@ -1520,7 +1520,7 @@ async function loadLeaderboard(){
         <div class="lb-cred">⭐${sd.totalCredits||0}</div>
       </div>`;
     }).join('');
-  }catch(e){el.innerHTML='<p style="color:var(--muted);font-size:13px;text-align:center">Leaderboard needs Firestore index: students → className ASC + totalCredits DESC</p>';}
+  }catch(e){el.innerHTML='<p style="color:var(--muted);font-size:13px;text-align:center">Leaderboard needs multiple responses.</p>';}
 }
 function goBack(){window.location.href=`student-dashboard.html?user=${studentUsername}`;}
 </script>
