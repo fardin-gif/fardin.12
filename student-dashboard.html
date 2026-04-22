@@ -378,14 +378,13 @@
                 container.innerHTML = '<div class="gexam-grid">' + snap.docs.map(doc => {
                     const d = doc.data();
                     const done = doneIds.has(doc.id);
-                    const langLabel = d.langMode === 'bn' ? '🇧🇩 বাংলা' : d.langMode === 'en' ? '🇬🇧 English' : '🌐 Choose Language';
+                    const langLabel = d.langMode === 'bn' ? 'বাংলা' : d.langMode === 'en' ? '🇬🇧 English' : '🌐 Choose Language';
                     return `<div class="gexam-card">
                         <div class="gexam-title">${d.title}</div>
                         <div class="gexam-meta">
                             <span class="gmb gmb-q"><i class="fas fa-question-circle"></i> ${(d.questions||[]).length} questions</span>
                             <span class="gmb gmb-lang">${langLabel}</span>
                             <span class="gmb gmb-cred">+${d.creditRight||5} per correct</span>
-                            ${done ? '<span class="gmb" style="background:rgba(42,157,143,.15);color:var(--success)">✓ Completed</span>' : ''}
                         </div>
                         ${done
                             ? `<button class="btn-start" style="background:rgba(42,157,143,.2);color:var(--success);cursor:default" disabled>✓ Already Completed</button>`
