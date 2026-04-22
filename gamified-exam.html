@@ -1351,7 +1351,7 @@ function renderOrdering(q,area){
       <div class="order-bank-item${isBn()?' bn':''}" data-i="${i}" onclick="placeOrd(this,${i})">${getLang(it)}</div>`).join('')}
     </div>
     <div class="order-check-row">
-      <button class="btn-order-check" id="ordCheckBtn" onclick="submitOrdering()" disabled>${isBn()?'উত্তর চেক করুন':'Check Order'}</button>
+      <button class="btn-order-check" id="ordCheckBtn" onclick="submitOrdering()" disabled>${isBn()?'Submit':'Check Order'}</button>
     </div>`;
 }
 function placeOrd(el,i){
