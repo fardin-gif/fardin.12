@@ -194,6 +194,17 @@
                 </div>
             </section>
 
+            <!-- Attendance -->
+            <section class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-calendar-check"></i> Attendance</h2>
+                </div>
+                <div class="card-body" id="attendanceContainer">
+                    <div class="spinner"></div>
+                    <div class="empty-title">Loading attendance...</div>
+                </div>
+            </section>
+            
             <!-- ⭐ GAMIFIED EXAMS (NEW SECTION) -->
             <section class="card">
                 <div class="card-header">
@@ -228,17 +239,6 @@
                     <!-- Leaderboard -->
                     <h3 style="font-size:15px;margin:20px 0 12px;color:var(--text-muted)"><i class="fas fa-trophy" style="color:var(--gold)"></i> Class Leaderboard</h3>
                     <div id="leaderboardList"><div class="spinner"></div></div>
-                </div>
-            </section>
-
-            <!-- Attendance -->
-            <section class="card">
-                <div class="card-header">
-                    <h2><i class="fas fa-calendar-check"></i> Attendance</h2>
-                </div>
-                <div class="card-body" id="attendanceContainer">
-                    <div class="spinner"></div>
-                    <div class="empty-title">Loading attendance...</div>
                 </div>
             </section>
 
@@ -449,7 +449,7 @@
                     </div>`;
                 }).join('');
             } catch(e) {
-                document.getElementById('leaderboardList').innerHTML = '<div class="empty-state"><div class="empty-subtitle">Leaderboard requires a Firestore index on students: className + totalCredits desc</div></div>';
+                document.getElementById('leaderboardList').innerHTML = '<div class="empty-state"><div class="empty-subtitle">Leaderboard requires multiple responses.</div></div>';
             }
         }
 
