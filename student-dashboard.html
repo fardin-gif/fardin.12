@@ -55,6 +55,7 @@
         .gmb-lang { background: rgba(245,158,11,0.15); color: var(--gold); }
         .gmb-q { background: rgba(124,58,237,0.15); color: #a78bfa; }
         .gmb-cred { background: rgba(6,214,160,0.15); color: var(--success); }
+        .gmb-creb { background: rgba(255, 0, 0, 0.15); color: var(--primary-red); }
         .btn-start { width: 100%; padding: 11px; background: linear-gradient(135deg, var(--purple), var(--primary-red)); color: white; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-start:hover { opacity: 0.9; transform: translateY(-1px); }
 
@@ -385,6 +386,7 @@
                             <span class="gmb gmb-q"><i class="fas fa-question-circle"></i> ${(d.questions||[]).length} questions</span>
                             <span class="gmb gmb-lang">${langLabel}</span>
                             <span class="gmb gmb-cred">+${d.creditRight||5} per correct</span>
+                            <span class="gmb gmb-creb">-${d.creditWrong||2} per wrong</span>
                         </div>
                         ${done
                             ? `<button class="btn-start" style="background:rgba(42,157,143,.2);color:var(--success);cursor:default" disabled>✓ Already Completed</button>`
