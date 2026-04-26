@@ -12,747 +12,306 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 <style>
-/* ═══════════════════════════════════════════════════════
-   BASE & VARIABLES
-═══════════════════════════════════════════════════════ */
 :root {
-  --bg:       #0d0f14;
-  --surface:  #161922;
-  --card:     #1e2230;
-  --card2:    #252a3a;
-  --border:   #2e3347;
-  --border2:  #3d4460;
-  --text:     #edeef5;
-  --muted:    #7c829e;
-  --muted2:   #545878;
-  --purple:   #7c3aed;
-  --purple2:  #6025d1;
-  --purple-l: rgba(124,58,237,.18);
-  --blue:     #3b82f6;
-  --blue-l:   rgba(59,130,246,.15);
-  --green:    #10b981;
-  --green-l:  rgba(16,185,129,.15);
-  --red:      #ef4444;
-  --red-l:    rgba(239,68,68,.14);
-  --orange:   #f97316;
-  --yellow:   #eab308;
-  --yellow-l: rgba(234,179,8,.15);
-  --pink:     #ec4899;
-  --gold:     #f59e0b;
-  --gold-l:   rgba(245,158,11,.15);
-  --ok:       #10b981;
-  --err:      #ef4444;
-  --r:        16px;
-  --r-sm:     10px;
-  --shadow:   0 20px 60px rgba(0,0,0,.6);
-  --font:     'Nunito', sans-serif;
-  --font-bn:  'Hind Siliguri', sans-serif;
-}
-*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-html { scroll-behavior: smooth; }
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--font);
-  min-height: 100vh;
-  -webkit-tap-highlight-color: transparent;
-  overflow-x: hidden;
-}
-.bn { font-family: var(--font-bn) !important; }
+  --bg:#0d0f14;--surface:#161922;--card:#1e2230;--card2:#252a3a;
+  --border:#2e3347;--border2:#3d4460;--text:#edeef5;--muted:#7c829e;--muted2:#545878;
+  --purple:#7c3aed;--purple2:#6025d1;--purple-l:rgba(124,58,237,.18);
+  --blue:#3b82f6;--blue-l:rgba(59,130,246,.15);
+  --green:#10b981;--green-l:rgba(16,185,129,.15);
+  --red:#ef4444;--red-l:rgba(239,68,68,.14);
+  --orange:#f97316;--yellow:#eab308;--yellow-l:rgba(234,179,8,.15);
+  --pink:#ec4899;--gold:#f59e0b;--gold-l:rgba(245,158,11,.15);
+  --ok:#10b981;--err:#ef4444;
+  --r:16px;--r-sm:10px;--shadow:0 20px 60px rgba(0,0,0,.6);
+  --font:'Nunito',sans-serif;--font-bn:'Hind Siliguri',sans-serif;
 
-/* ═══════════════════════════════════════════════════════
-   SCREENS — show/hide
-═══════════════════════════════════════════════════════ */
-.screen { display: none; min-height: 100vh; }
-.screen.active { display: flex; }
+  /* 8 distinct pair colors for matching */
+  --pair0:#7c3aed;--pair0-l:rgba(124,58,237,.18);--pair0-b:rgba(124,58,237,.4);
+  --pair1:#3b82f6;--pair1-l:rgba(59,130,246,.18);--pair1-b:rgba(59,130,246,.4);
+  --pair2:#10b981;--pair2-l:rgba(16,185,129,.18);--pair2-b:rgba(16,185,129,.4);
+  --pair3:#f59e0b;--pair3-l:rgba(245,158,11,.18);--pair3-b:rgba(245,158,11,.4);
+  --pair4:#ec4899;--pair4-l:rgba(236,72,153,.18);--pair4-b:rgba(236,72,153,.4);
+  --pair5:#06b6d4;--pair5-l:rgba(6,182,212,.18);--pair5-b:rgba(6,182,212,.4);
+  --pair6:#84cc16;--pair6-l:rgba(132,204,22,.18);--pair6-b:rgba(132,204,22,.4);
+  --pair7:#f97316;--pair7-l:rgba(249,115,22,.18);--pair7-b:rgba(249,115,22,.4);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;-webkit-tap-highlight-color:transparent;overflow-x:hidden}
+.bn{font-family:var(--font-bn)!important}
+.screen{display:none;min-height:100vh}
+.screen.active{display:flex}
+#confettiCanvas{position:fixed;inset:0;pointer-events:none;z-index:9999;width:100%;height:100%}
 
-/* ═══════════════════════════════════════════════════════
-   CONFETTI CANVAS
-═══════════════════════════════════════════════════════ */
-#confettiCanvas {
-  position: fixed; inset: 0;
-  pointer-events: none; z-index: 9999;
-  width: 100%; height: 100%;
-}
+/* ── LOGIN ── */
+#loginScreen{flex-direction:column;align-items:center;justify-content:center;padding:24px;
+  background:radial-gradient(ellipse at 30% 20%,rgba(124,58,237,.2) 0%,transparent 60%),
+             radial-gradient(ellipse at 80% 80%,rgba(59,130,246,.15) 0%,transparent 50%),var(--bg)}
+.login-box{width:100%;max-width:420px;background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:40px 36px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.login-box::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--purple),var(--blue),var(--pink))}
+.login-logo{text-align:center;margin-bottom:28px}
+.login-logo .emoji{font-size:52px;display:block;margin-bottom:10px}
+.login-logo h1{font-size:22px;font-weight:900;background:linear-gradient(135deg,var(--purple),var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:4px}
+.login-logo p{font-size:14px;color:var(--muted)}
+.login-logo .exam-class{display:inline-block;margin-top:8px;font-size:12px;font-weight:700;background:var(--purple-l);color:#a78bfa;border:1px solid rgba(124,58,237,.3);padding:4px 12px;border-radius:20px}
+.input-group{margin-bottom:16px}
+.input-group label{display:block;font-size:13px;font-weight:700;color:var(--muted);margin-bottom:8px;letter-spacing:.3px}
+.input-box{position:relative}
+.input-box .icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:16px;pointer-events:none}
+.input-box input{width:100%;padding:13px 14px 13px 44px;background:var(--card2);border:2px solid var(--border);border-radius:12px;color:var(--text);font-family:var(--font);font-size:15px;font-weight:600;outline:none;transition:border-color .2s,box-shadow .2s}
+.input-box input:focus{border-color:var(--purple);box-shadow:0 0 0 4px rgba(124,58,237,.15)}
+.input-box input::placeholder{color:var(--muted2);font-weight:400}
+.btn-login{width:100%;padding:14px;background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;border:none;border-radius:12px;font-family:var(--font);font-size:16px;font-weight:800;cursor:pointer;transition:transform .15s,box-shadow .15s;box-shadow:0 6px 24px rgba(124,58,237,.4);display:flex;align-items:center;justify-content:center;gap:10px}
+.btn-login:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(124,58,237,.5)}
+.err-toast{background:rgba(239,68,68,.1);border:1.5px solid var(--red);border-radius:10px;padding:10px 14px;font-size:13px;font-weight:600;color:#fca5a5;display:none;margin-bottom:14px;align-items:center;gap:8px}
+.err-toast.show{display:flex}
 
-/* ═══════════════════════════════════════════════════════
-   SCREEN 1 — LOGIN
-═══════════════════════════════════════════════════════ */
-#loginScreen {
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  background: radial-gradient(ellipse at 30% 20%, rgba(124,58,237,.2) 0%, transparent 60%),
-              radial-gradient(ellipse at 80% 80%, rgba(59,130,246,.15) 0%, transparent 50%),
-              var(--bg);
-}
+/* ── LANG ── */
+#langScreen{flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;background:radial-gradient(ellipse at 50% 30%,rgba(124,58,237,.2) 0%,transparent 60%),var(--bg)}
+.lang-card{background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:40px 32px;max-width:460px;width:100%}
+.lang-card h2{font-size:26px;font-weight:900;margin-bottom:8px}
+.lang-card p{color:var(--muted);font-size:15px;margin-bottom:32px}
+.lang-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.lang-btn{padding:24px 16px;background:var(--card2);border:2.5px solid var(--border);border-radius:16px;cursor:pointer;transition:all .25s;font-family:var(--font)}
+.lang-btn:hover{border-color:var(--purple);background:var(--purple-l);transform:translateY(-3px);box-shadow:0 8px 24px rgba(124,58,237,.25)}
+.lang-btn .flag{font-size:40px;display:block;margin-bottom:10px}
+.lang-btn .lang-name{font-size:18px;font-weight:800;display:block}
+.lang-btn .lang-sub{font-size:13px;color:var(--muted);margin-top:4px;display:block}
 
-.login-box {
-  width: 100%; max-width: 420px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 24px;
-  padding: 40px 36px;
-  box-shadow: var(--shadow);
-  position: relative;
-  overflow: hidden;
-}
-.login-box::before {
-  content: '';
-  position: absolute; top: 0; left: 0; right: 0; height: 4px;
-  background: linear-gradient(90deg, var(--purple), var(--blue), var(--pink));
-}
+/* ── EXAM SCREEN ── */
+#examScreen{flex-direction:column;background:var(--bg)}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 16px;position:sticky;top:0;z-index:50}
+.topbar-inner{max-width:700px;margin:0 auto;display:flex;align-items:center;gap:10px}
+.topbar-title{font-size:14px;font-weight:800;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.credit-pill{display:flex;align-items:center;gap:5px;background:var(--gold-l);border:1.5px solid rgba(245,158,11,.35);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:800;color:var(--gold);white-space:nowrap;flex-shrink:0;transition:transform .2s}
+.credit-pill.bump{animation:creditBump .35s ease}
+@keyframes creditBump{0%{transform:scale(1)}50%{transform:scale(1.25)}100%{transform:scale(1)}}
+.progress-bar-wrap{background:var(--border);border-radius:8px;height:6px;flex:1;overflow:hidden;min-width:60px}
+.progress-bar-fill{height:100%;background:linear-gradient(90deg,var(--purple),var(--pink));border-radius:8px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+.progress-label{font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap;flex-shrink:0}
+.timer-ring-wrap{position:relative;width:46px;height:46px;flex-shrink:0}
+.timer-ring-wrap svg{transform:rotate(-90deg)}
+.timer-ring-bg{fill:none;stroke:var(--border);stroke-width:4}
+.timer-ring-fill{fill:none;stroke:var(--green);stroke-width:4;stroke-linecap:round;stroke-dasharray:113;stroke-dashoffset:0;transition:stroke-dashoffset .9s linear,stroke .3s}
+.timer-ring-fill.warn{stroke:var(--yellow)}
+.timer-ring-fill.danger{stroke:var(--red)}
+.timer-num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:var(--text)}
+.timer-num.danger{color:var(--red)}
 
-.login-logo {
-  text-align: center; margin-bottom: 28px;
-}
-.login-logo .emoji { font-size: 52px; display: block; margin-bottom: 10px; }
-.login-logo h1 {
-  font-size: 22px; font-weight: 900;
-  background: linear-gradient(135deg, var(--purple), var(--pink));
-  -webkit-background-clip: text; background-clip: text; color: transparent;
-  margin-bottom: 4px;
-}
-.login-logo p { font-size: 14px; color: var(--muted); }
-.login-logo .exam-class {
-  display: inline-block; margin-top: 8px;
-  font-size: 12px; font-weight: 700;
-  background: var(--purple-l); color: #a78bfa;
-  border: 1px solid rgba(124,58,237,.3);
-  padding: 4px 12px; border-radius: 20px;
-}
+/* ── Q AREA ── */
+.q-area{flex:1;padding:20px 16px 80px;display:flex;flex-direction:column;align-items:center}
+.q-container{width:100%;max-width:700px}
+.q-meta{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.q-badge{font-size:11px;font-weight:800;letter-spacing:.5px;padding:4px 10px;border-radius:20px;text-transform:uppercase}
+.qb-mcq{background:var(--purple-l);color:#a78bfa;border:1px solid rgba(124,58,237,.3)}
+.qb-tf{background:var(--blue-l);color:#93c5fd;border:1px solid rgba(59,130,246,.3)}
+.qb-match{background:var(--yellow-l);color:#fde047;border:1px solid rgba(234,179,8,.3)}
+.qb-fill{background:var(--green-l);color:#6ee7b7;border:1px solid rgba(16,185,129,.3)}
+.qb-order{background:var(--gold-l);color:#fcd34d;border:1px solid rgba(245,158,11,.3)}
+.q-num-badge{font-size:12px;font-weight:700;color:var(--muted);margin-left:auto}
+.q-card{background:var(--surface);border:1.5px solid var(--border);border-radius:20px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.4);animation:cardIn .35s cubic-bezier(.22,.68,0,1.2)}
+@keyframes cardIn{from{opacity:0;transform:translateY(18px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+.q-card-top{height:5px;background:linear-gradient(90deg,var(--purple),var(--pink),var(--blue))}
+.q-text-wrap{padding:22px 22px 18px}
+.q-text{font-size:18px;font-weight:700;line-height:1.6;color:var(--text)}
+.q-text.bn{font-family:var(--font-bn);font-size:19px;font-weight:600}
+.q-answer{padding:0 16px 20px}
 
-.input-group { margin-bottom: 16px; }
-.input-group label {
-  display: block; font-size: 13px; font-weight: 700;
-  color: var(--muted); margin-bottom: 8px; letter-spacing: .3px;
-}
-.input-box {
-  position: relative;
-}
-.input-box .icon {
-  position: absolute; left: 14px; top: 50%;
-  transform: translateY(-50%); font-size: 16px; pointer-events: none;
-}
-.input-box input {
-  width: 100%; padding: 13px 14px 13px 44px;
-  background: var(--card2); border: 2px solid var(--border);
-  border-radius: 12px; color: var(--text);
-  font-family: var(--font); font-size: 15px; font-weight: 600;
-  outline: none; transition: border-color .2s, box-shadow .2s;
-}
-.input-box input:focus {
-  border-color: var(--purple);
-  box-shadow: 0 0 0 4px rgba(124,58,237,.15);
-}
-.input-box input::placeholder { color: var(--muted2); font-weight: 400; }
+/* ── MCQ ── */
+.opts{display:grid;gap:10px}
+.opt{display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--card2);border:2px solid var(--border);border-radius:14px;cursor:pointer;font-size:15px;font-weight:600;transition:border-color .15s,background .15s,transform .1s;user-select:none}
+.opt:hover{border-color:var(--purple);background:var(--purple-l)}
+.opt:active{transform:scale(.98)}
+.opt.bn{font-family:var(--font-bn);font-size:16px}
+.opt-letter{width:34px;height:34px;flex-shrink:0;background:var(--border2);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:var(--muted);transition:background .15s,color .15s}
+.opt:hover .opt-letter{background:var(--purple);color:#fff}
+.opt.state-correct{border-color:var(--green)!important;background:var(--green-l)!important;animation:popCorrect .4s ease}
+.opt.state-correct .opt-letter{background:var(--green);color:#fff}
+.opt.state-wrong{border-color:var(--red)!important;background:var(--red-l)!important;animation:shakeIt .4s ease}
+.opt.state-wrong .opt-letter{background:var(--red);color:#fff}
+.opt.state-reveal{border-color:var(--green)!important;background:rgba(16,185,129,.06)!important}
+.opt.state-reveal .opt-letter{background:var(--green);color:#fff}
+.opt.disabled{pointer-events:none;opacity:.55}
+@keyframes popCorrect{0%{transform:scale(1)}40%{transform:scale(1.04)}100%{transform:scale(1)}}
+@keyframes shakeIt{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}40%{transform:translateX(7px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
 
-.btn-login {
-  width: 100%; padding: 14px;
-  background: linear-gradient(135deg, var(--purple), var(--purple2));
-  color: #fff; border: none; border-radius: 12px;
-  font-family: var(--font); font-size: 16px; font-weight: 800;
-  cursor: pointer; transition: transform .15s, box-shadow .15s;
-  box-shadow: 0 6px 24px rgba(124,58,237,.4);
-  display: flex; align-items: center; justify-content: center; gap: 10px;
-}
-.btn-login:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(124,58,237,.5); }
-.btn-login:active { transform: translateY(0); }
+/* ── TRUE/FALSE ── */
+.tf-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tf-btn{padding:28px 16px;text-align:center;background:var(--card2);border:2.5px solid var(--border);border-radius:16px;cursor:pointer;transition:all .2s;user-select:none;font-family:var(--font)}
+.tf-btn:hover{border-color:var(--blue);background:var(--blue-l);transform:translateY(-2px)}
+.tf-btn:active{transform:scale(.97)}
+.tf-icon{font-size:36px;display:block;margin-bottom:10px}
+.tf-label{font-size:16px;font-weight:800;display:block}
+.tf-label-sub{font-size:13px;color:var(--muted);display:block;margin-top:3px;font-family:var(--font-bn)}
+.tf-btn.state-correct{border-color:var(--green)!important;background:var(--green-l)!important}
+.tf-btn.state-wrong{border-color:var(--red)!important;background:var(--red-l)!important;animation:shakeIt .4s ease}
+.tf-btn.state-reveal{border-color:var(--green)!important;background:rgba(16,185,129,.06)!important}
+.tf-btn.disabled{pointer-events:none;opacity:.5}
 
-.err-toast {
-  background: rgba(239,68,68,.1); border: 1.5px solid var(--red);
-  border-radius: 10px; padding: 10px 14px;
-  font-size: 13px; font-weight: 600; color: #fca5a5;
-  display: none; margin-bottom: 14px;
-  align-items: center; gap: 8px;
-}
-.err-toast.show { display: flex; }
+/* ── MATCHING (colored pairs) ── */
+.match-hint{font-size:13px;font-weight:600;color:var(--muted);background:var(--card2);border-radius:10px;padding:9px 14px;margin-bottom:14px;display:flex;align-items:center;gap:7px}
+.match-cols{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.match-col-head{font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;padding-left:4px}
+.match-item{padding:12px 14px;margin-bottom:8px;background:var(--card2);border:2px solid var(--border);border-radius:12px;cursor:pointer;font-size:14px;font-weight:600;transition:all .2s;user-select:none;position:relative}
+.match-item.bn{font-family:var(--font-bn);font-size:15px}
+/* Pair color classes — set via JS */
+.match-item.matched-ok{pointer-events:none;cursor:default}
+.match-item.matched-ok::after{content:'✓';position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:15px;font-weight:900}
+.match-item.matched-err{animation:shakeIt .4s ease}
+.match-item.disabled{pointer-events:none}
+.match-item:not([class*="pair-"]){border-color:var(--border)}
+/* pair color hover */
+.match-item[data-pair-hover]:hover{opacity:.85}
 
-/* ═══════════════════════════════════════════════════════
-   SCREEN 2 — LANGUAGE CHOOSER
-═══════════════════════════════════════════════════════ */
-#langScreen {
-  flex-direction: column;
-  align-items: center; justify-content: center;
-  padding: 24px; text-align: center;
-  background: radial-gradient(ellipse at 50% 30%, rgba(124,58,237,.2) 0%, transparent 60%), var(--bg);
-}
-.lang-card {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: 24px; padding: 40px 32px;
-  max-width: 460px; width: 100%;
-}
-.lang-card h2 { font-size: 26px; font-weight: 900; margin-bottom: 8px; }
-.lang-card p { color: var(--muted); font-size: 15px; margin-bottom: 32px; }
-.lang-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-.lang-btn {
-  padding: 24px 16px;
-  background: var(--card2); border: 2.5px solid var(--border);
-  border-radius: 16px; cursor: pointer;
-  transition: all .25s; font-family: var(--font);
-}
-.lang-btn:hover {
-  border-color: var(--purple);
-  background: var(--purple-l); transform: translateY(-3px);
-  box-shadow: 0 8px 24px rgba(124,58,237,.25);
-}
-.lang-btn .flag { font-size: 40px; display: block; margin-bottom: 10px; }
-.lang-btn .lang-name { font-size: 18px; font-weight: 800; display: block; }
-.lang-btn .lang-sub { font-size: 13px; color: var(--muted); margin-top: 4px; display: block; }
+/* pair dot indicator */
+.pair-dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:7px;flex-shrink:0;vertical-align:middle}
 
-/* ═══════════════════════════════════════════════════════
-   SCREEN 3 — EXAM
-═══════════════════════════════════════════════════════ */
-#examScreen {
-  flex-direction: column;
-  background: var(--bg);
-}
+.match-submit-row{margin-top:14px;text-align:center}
+.btn-match-check{padding:12px 28px;background:linear-gradient(135deg,var(--yellow),var(--orange));color:#1a1200;border:none;border-radius:12px;font-family:var(--font);font-size:15px;font-weight:800;cursor:pointer;transition:transform .15s,box-shadow .15s;box-shadow:0 4px 16px rgba(234,179,8,.3)}
+.btn-match-check:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(234,179,8,.4)}
+.btn-match-check:disabled{opacity:.4;cursor:not-allowed;transform:none}
 
-/* ── Top Bar ── */
-.topbar {
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  padding: 12px 16px;
-  position: sticky; top: 0; z-index: 50;
-}
-.topbar-inner {
-  max-width: 700px; margin: 0 auto;
-  display: flex; align-items: center; gap: 10px;
-}
-.topbar-title {
-  font-size: 14px; font-weight: 800;
-  flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  min-width: 0;
-}
-.credit-pill {
-  display: flex; align-items: center; gap: 5px;
-  background: var(--gold-l); border: 1.5px solid rgba(245,158,11,.35);
-  padding: 5px 12px; border-radius: 20px;
-  font-size: 13px; font-weight: 800; color: var(--gold);
-  white-space: nowrap; flex-shrink: 0;
-  transition: transform .2s;
-}
-.credit-pill.bump { animation: creditBump .35s ease; }
-@keyframes creditBump { 0%{transform:scale(1)} 50%{transform:scale(1.25)} 100%{transform:scale(1)} }
+/* pair legend */
+.pair-legend{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.pair-legend-item{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:4px 10px;border-radius:20px;border:1.5px solid}
 
-/* ── Progress ── */
-.progress-bar-wrap {
-  background: var(--border); border-radius: 8px;
-  height: 6px; flex: 1; overflow: hidden; min-width: 60px;
-}
-.progress-bar-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--purple), var(--pink));
-  border-radius: 8px; transition: width .5s cubic-bezier(.4,0,.2,1);
-}
-.progress-label {
-  font-size: 12px; font-weight: 700; color: var(--muted);
-  white-space: nowrap; flex-shrink: 0;
-}
+.match-answer-reveal{margin-top:14px;background:var(--card2);border:1.5px solid var(--border);border-radius:14px;padding:14px;display:none}
+.match-answer-reveal.show{display:block}
+.match-answer-reveal h4{font-size:12px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.match-pair-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px;font-weight:600}
+.match-pair-row:last-child{border-bottom:none}
+.match-pair-l{flex:1}
+.match-pair-arrow{color:var(--muted);font-size:16px;flex-shrink:0}
+.match-pair-r{flex:1}
+.match-pair-row.pair-ok .match-pair-l{color:var(--green)}
+.match-pair-row.pair-ok .match-pair-r{color:var(--green)}
+.match-pair-row.pair-err .match-pair-l{color:var(--red)}
+.match-pair-row.pair-err .match-pair-r{color:var(--yellow)}
 
-/* ── Timer Ring ── */
-.timer-ring-wrap {
-  position: relative; width: 46px; height: 46px; flex-shrink: 0;
+/* ── FILL IN BLANK (text input) ── */
+.fill-sentence{background:var(--card2);border:1.5px solid var(--border);border-radius:14px;padding:18px 20px;font-size:18px;font-weight:600;line-height:2;margin-bottom:18px;word-break:break-word}
+.fill-sentence.bn{font-family:var(--font-bn);font-size:19px}
+.blank-input-wrap{display:inline-flex;align-items:center;margin:0 6px;vertical-align:middle}
+.blank-input{
+  min-width:100px;max-width:200px;height:38px;
+  background:var(--purple-l);border:2px dashed rgba(124,58,237,.5);
+  border-radius:8px;padding:0 12px;
+  font-size:15px;font-weight:800;color:#a78bfa;
+  font-family:var(--font-bn);
+  outline:none;transition:all .2s;
+  text-align:center;
 }
-.timer-ring-wrap svg { transform: rotate(-90deg); }
-.timer-ring-bg { fill: none; stroke: var(--border); stroke-width: 4; }
-.timer-ring-fill {
-  fill: none; stroke: var(--green); stroke-width: 4;
-  stroke-linecap: round;
-  stroke-dasharray: 113; /* 2π×18 */
-  stroke-dashoffset: 0;
-  transition: stroke-dashoffset .9s linear, stroke .3s;
-}
-.timer-ring-fill.warn { stroke: var(--yellow); }
-.timer-ring-fill.danger { stroke: var(--red); }
-.timer-num {
-  position: absolute; inset: 0;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 13px; font-weight: 900; color: var(--text);
-}
-.timer-num.danger { color: var(--red); }
+.blank-input:focus{border-color:var(--purple);border-style:solid;background:rgba(124,58,237,.25);color:var(--text);box-shadow:0 0 0 3px rgba(124,58,237,.2)}
+.blank-input.correct-blank{background:var(--green-l);border-color:var(--green);border-style:solid;color:var(--green)}
+.blank-input.wrong-blank{background:var(--red-l);border-color:var(--red);border-style:solid;color:var(--red)}
+.blank-input:disabled{pointer-events:none}
+.fill-submit-row{margin-top:16px;text-align:right}
+.btn-fill-check{padding:11px 24px;background:linear-gradient(135deg,var(--green),#0d9668);color:#fff;border:none;border-radius:12px;font-family:var(--font);font-size:14px;font-weight:800;cursor:pointer;transition:all .15s;box-shadow:0 4px 14px rgba(16,185,129,.35)}
+.btn-fill-check:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(16,185,129,.45)}
+.btn-fill-check:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.fill-correct-reveal{margin-top:10px;font-size:13px;color:var(--muted);display:none}
+.fill-correct-reveal.show{display:block}
+.fill-correct-reveal span{color:var(--green);font-weight:800}
 
-/* ── Question area ── */
-.q-area {
-  flex: 1; padding: 20px 16px 80px;
-  display: flex; flex-direction: column; align-items: center;
-}
-.q-container { width: 100%; max-width: 700px; }
+/* ── ORDERING ── */
+.order-instruction{font-size:13px;font-weight:600;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:7px}
+.order-drop-zone{min-height:54px;padding:10px;background:rgba(245,158,11,.04);border:2px dashed rgba(245,158,11,.3);border-radius:14px;margin-bottom:14px;transition:border-color .2s}
+.order-drop-zone.has-items{border-color:var(--gold);border-style:solid}
+.order-placed-item{display:flex;align-items:center;gap:10px;padding:10px 14px;margin-bottom:7px;background:var(--yellow-l);border:1.5px solid rgba(245,158,11,.4);border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;user-select:none;transition:all .2s}
+.order-placed-item:hover{border-color:var(--red);background:var(--red-l)}
+.order-placed-item.bn{font-family:var(--font-bn);font-size:15px}
+.order-pos{width:24px;height:24px;flex-shrink:0;background:var(--yellow-l);border:1.5px solid var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:var(--gold)}
+.order-bank{display:flex;flex-wrap:wrap;gap:9px}
+.order-bank-item{padding:10px 18px;background:var(--card2);border:2px solid var(--border);border-radius:12px;cursor:pointer;font-size:14px;font-weight:700;transition:all .2s;user-select:none}
+.order-bank-item.bn{font-family:var(--font-bn);font-size:15px}
+.order-bank-item:hover{border-color:var(--gold);background:var(--yellow-l)}
+.order-bank-item:active{transform:scale(.95)}
+.order-bank-item.placed{opacity:.3;pointer-events:none}
+.order-check-row{margin-top:12px;text-align:right}
+.btn-order-check{padding:11px 24px;background:linear-gradient(135deg,var(--gold),var(--orange));color:#1a0f00;border:none;border-radius:12px;font-family:var(--font);font-size:14px;font-weight:800;cursor:pointer;transition:all .15s;box-shadow:0 4px 14px rgba(245,158,11,.35)}
+.btn-order-check:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(245,158,11,.45)}
+.btn-order-check:disabled{opacity:.4;cursor:not-allowed;transform:none}
 
-/* Question meta row */
-.q-meta {
-  display: flex; align-items: center; gap: 8px;
-  margin-bottom: 14px; flex-wrap: wrap;
-}
-.q-badge {
-  font-size: 11px; font-weight: 800; letter-spacing: .5px;
-  padding: 4px 10px; border-radius: 20px; text-transform: uppercase;
-}
-.qb-mcq     { background: var(--purple-l); color: #a78bfa; border: 1px solid rgba(124,58,237,.3); }
-.qb-tf      { background: var(--blue-l);   color: #93c5fd; border: 1px solid rgba(59,130,246,.3); }
-.qb-match   { background: var(--yellow-l); color: #fde047; border: 1px solid rgba(234,179,8,.3); }
-.qb-fill    { background: var(--green-l);  color: #6ee7b7; border: 1px solid rgba(16,185,129,.3); }
-.qb-order   { background: var(--gold-l);   color: #fcd34d; border: 1px solid rgba(245,158,11,.3); }
-.q-num-badge {
-  font-size: 12px; font-weight: 700; color: var(--muted);
-  margin-left: auto;
-}
+/* ── FEEDBACK ── */
+.feedback-banner{max-width:700px;width:100%;margin-top:14px;padding:14px 18px;border-radius:14px;display:none;align-items:center;gap:12px;animation:slideUp .3s ease;font-weight:700;font-size:15px}
+@keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.feedback-banner.show{display:flex}
+.feedback-banner.ok{background:var(--green-l);border:1.5px solid rgba(16,185,129,.4);color:#6ee7b7}
+.feedback-banner.err{background:var(--red-l);border:1.5px solid rgba(239,68,68,.4);color:#fca5a5}
+.feedback-banner.timeout{background:var(--yellow-l);border:1.5px solid rgba(234,179,8,.4);color:#fde047}
+.feedback-icon{font-size:26px;flex-shrink:0}
+.feedback-txt h4{font-size:16px;font-weight:900;margin-bottom:2px}
+.feedback-txt p{font-size:13px;font-weight:600;opacity:.8}
 
-/* Question card */
-.q-card {
-  background: var(--surface);
-  border: 1.5px solid var(--border);
-  border-radius: 20px;
-  overflow: hidden;
-  box-shadow: 0 8px 40px rgba(0,0,0,.4);
-  animation: cardIn .35s cubic-bezier(.22,.68,0,1.2);
-}
-@keyframes cardIn {
-  from { opacity:0; transform: translateY(18px) scale(.97); }
-  to   { opacity:1; transform: translateY(0) scale(1); }
-}
-.q-card-top {
-  height: 5px;
-  background: linear-gradient(90deg, var(--purple), var(--pink), var(--blue));
-}
+/* ── NEXT BTN ── */
+.next-btn-row{max-width:700px;width:100%;margin-top:12px;display:none}
+.next-btn-row.show{display:flex;justify-content:flex-end}
+.btn-next{padding:13px 32px;background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;border:none;border-radius:14px;font-family:var(--font);font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:10px;box-shadow:0 6px 20px rgba(124,58,237,.4);transition:transform .15s,box-shadow .15s}
+.btn-next:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(124,58,237,.5)}
+.btn-next-arrow{font-size:18px}
 
-/* Question text */
-.q-text-wrap { padding: 22px 22px 18px; }
-.q-text {
-  font-size: 18px; font-weight: 700; line-height: 1.6; color: var(--text);
-}
-.q-text.bn { font-family: var(--font-bn); font-size: 19px; font-weight: 600; }
+/* ── STREAK ── */
+.streak-badge{position:fixed;top:80px;right:16px;z-index:200;background:linear-gradient(135deg,var(--orange),var(--yellow));color:#1a0800;padding:8px 14px;border-radius:20px;font-size:13px;font-weight:900;box-shadow:0 6px 20px rgba(249,115,22,.4);display:none;align-items:center;gap:6px;animation:streakPop .4s cubic-bezier(.22,.68,0,1.4)}
+@keyframes streakPop{from{transform:scale(0) rotate(-10deg)}to{transform:scale(1) rotate(0)}}
+.streak-badge.show{display:flex}
 
-/* Answer area inside card */
-.q-answer { padding: 0 16px 20px; }
+/* ── RESULT ── */
+#resultScreen{flex-direction:column;align-items:center;padding:24px 16px 60px;background:radial-gradient(ellipse at 50% 10%,rgba(124,58,237,.2) 0%,transparent 60%),var(--bg);overflow-y:auto}
+.result-wrap{width:100%;max-width:560px}
+.result-hero{text-align:center;background:var(--surface);border:1.5px solid var(--border);border-radius:24px;padding:36px 28px 28px;margin-bottom:16px;position:relative;overflow:hidden}
+.result-hero::before{content:'';position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,var(--purple),var(--pink),var(--blue))}
+.result-emoji{font-size:64px;display:block;margin-bottom:12px}
+.result-title{font-size:28px;font-weight:900;margin-bottom:6px}
+.result-sub{font-size:15px;color:var(--muted);margin-bottom:24px}
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+.stat-box{background:var(--card2);border:1.5px solid var(--border);border-radius:14px;padding:14px 10px;text-align:center}
+.stat-box-label{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.4px;text-transform:uppercase;margin-bottom:6px}
+.stat-box-val{font-size:26px;font-weight:900}
+.stat-box-val.green{color:var(--green)}.stat-box-val.red{color:var(--red)}.stat-box-val.gold{color:var(--gold)}
+.credit-box{background:var(--gold-l);border:1.5px solid rgba(245,158,11,.35);border-radius:16px;padding:18px 20px;text-align:center}
+.credit-box-main{font-size:22px;font-weight:900;color:var(--gold);margin-bottom:4px}
+.credit-box-sub{font-size:13px;color:var(--muted)}
+.credit-box-total{font-size:15px;font-weight:800;color:var(--text);margin-top:4px}
+.result-section{background:var(--surface);border:1.5px solid var(--border);border-radius:20px;padding:20px;margin-bottom:14px}
+.result-section-title{font-size:14px;font-weight:800;color:var(--muted);letter-spacing:.4px;text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.lb-list{display:grid;gap:8px}
+.lb-row{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--card2);border:1.5px solid var(--border);border-radius:12px;transition:border-color .2s}
+.lb-row.me{border-color:var(--gold);background:var(--gold-l)}
+.lb-rank{width:30px;height:30px;flex-shrink:0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;background:var(--border2);color:var(--muted)}
+.lb-rank.r1{background:rgba(245,158,11,.2);color:var(--gold)}.lb-rank.r2{background:rgba(176,196,222,.2);color:#b0c4de}.lb-rank.r3{background:rgba(205,127,50,.2);color:#cd7f32}
+.lb-name{flex:1;font-size:14px;font-weight:700}
+.lb-cred{font-size:14px;font-weight:800;color:var(--gold)}
+.btn-dashboard{width:100%;padding:15px;background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;border:none;border-radius:14px;font-family:var(--font);font-size:16px;font-weight:800;cursor:pointer;margin-top:4px;box-shadow:0 6px 24px rgba(124,58,237,.4);transition:transform .15s,box-shadow .15s}
+.btn-dashboard:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(124,58,237,.5)}
+.spin{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--purple);border-radius:50%;animation:sp .7s linear infinite;margin:20px auto}
+@keyframes sp{to{transform:rotate(360deg)}}
 
-/* ── MCQ Options ── */
-.opts { display: grid; gap: 10px; }
-.opt {
-  display: flex; align-items: center; gap: 14px;
-  padding: 14px 16px;
-  background: var(--card2); border: 2px solid var(--border);
-  border-radius: 14px; cursor: pointer;
-  font-size: 15px; font-weight: 600;
-  transition: border-color .15s, background .15s, transform .1s;
-  user-select: none; position: relative; overflow: hidden;
+@media(max-width:480px){
+  .login-box{padding:30px 22px}
+  .lang-grid{grid-template-columns:1fr 1fr;gap:10px}
+  .lang-btn{padding:18px 10px}
+  .lang-btn .flag{font-size:32px}
+  .q-text{font-size:16px}.q-text.bn{font-size:17px}
+  .match-cols{grid-template-columns:1fr 1fr;gap:7px}
+  .match-item{font-size:13px;padding:10px 10px}
+  .tf-grid{grid-template-columns:1fr 1fr;gap:9px}
+  .tf-btn{padding:20px 10px}.tf-icon{font-size:28px}
+  .stats-grid{grid-template-columns:repeat(3,1fr);gap:8px}
+  .stat-box-val{font-size:22px}
+  .topbar-title{font-size:12px}
+  .fill-sentence{font-size:16px}.fill-sentence.bn{font-size:17px}
 }
-.opt::after {
-  content: ''; position: absolute; inset: 0;
-  background: rgba(124,58,237,.0); transition: background .15s;
-}
-.opt:hover { border-color: var(--purple); background: var(--purple-l); }
-.opt:hover::after { background: rgba(124,58,237,.04); }
-.opt:active { transform: scale(.98); }
-.opt.bn { font-family: var(--font-bn); font-size: 16px; }
-
-.opt-letter {
-  width: 34px; height: 34px; flex-shrink: 0;
-  background: var(--border2); border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 13px; font-weight: 900; color: var(--muted);
-  transition: background .15s, color .15s;
-}
-.opt:hover .opt-letter { background: var(--purple); color: #fff; }
-
-.opt.state-correct {
-  border-color: var(--green) !important;
-  background: var(--green-l) !important;
-  animation: popCorrect .4s ease;
-}
-.opt.state-correct .opt-letter { background: var(--green); color: #fff; }
-.opt.state-wrong {
-  border-color: var(--red) !important;
-  background: var(--red-l) !important;
-  animation: shakeIt .4s ease;
-}
-.opt.state-wrong .opt-letter { background: var(--red); color: #fff; }
-.opt.state-reveal {
-  border-color: var(--green) !important;
-  background: rgba(16,185,129,.06) !important;
-}
-.opt.state-reveal .opt-letter { background: var(--green); color: #fff; }
-.opt.disabled { pointer-events: none; opacity: .55; }
-
-@keyframes popCorrect {
-  0%   { transform: scale(1); }
-  40%  { transform: scale(1.04); }
-  100% { transform: scale(1); }
-}
-@keyframes shakeIt {
-  0%,100% { transform: translateX(0); }
-  20%      { transform: translateX(-7px); }
-  40%      { transform: translateX(7px); }
-  60%      { transform: translateX(-4px); }
-  80%      { transform: translateX(4px); }
-}
-
-/* ── True/False ── */
-.tf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.tf-btn {
-  padding: 28px 16px; text-align: center;
-  background: var(--card2); border: 2.5px solid var(--border);
-  border-radius: 16px; cursor: pointer;
-  transition: all .2s; user-select: none;
-  font-family: var(--font);
-}
-.tf-btn:hover { border-color: var(--blue); background: var(--blue-l); transform: translateY(-2px); }
-.tf-btn:active { transform: scale(.97); }
-.tf-icon { font-size: 36px; display: block; margin-bottom: 10px; }
-.tf-label { font-size: 16px; font-weight: 800; display: block; }
-.tf-label-sub { font-size: 13px; color: var(--muted); display: block; margin-top: 3px; font-family: var(--font-bn); }
-.tf-btn.state-correct { border-color: var(--green) !important; background: var(--green-l) !important; }
-.tf-btn.state-wrong   { border-color: var(--red)   !important; background: var(--red-l)   !important; animation: shakeIt .4s ease; }
-.tf-btn.state-reveal  { border-color: var(--green) !important; background: rgba(16,185,129,.06) !important; }
-.tf-btn.disabled      { pointer-events: none; opacity: .5; }
-
-/* ── Matching ── */
-.match-hint {
-  font-size: 13px; font-weight: 600; color: var(--muted);
-  background: var(--card2); border-radius: 10px;
-  padding: 9px 14px; margin-bottom: 14px;
-  display: flex; align-items: center; gap: 7px;
-}
-.match-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.match-col-head {
-  font-size: 11px; font-weight: 800; letter-spacing: .6px;
-  text-transform: uppercase; color: var(--muted); margin-bottom: 8px; padding-left: 4px;
-}
-.match-item {
-  padding: 12px 14px; margin-bottom: 8px;
-  background: var(--card2); border: 2px solid var(--border);
-  border-radius: 12px; cursor: pointer;
-  font-size: 14px; font-weight: 600;
-  transition: all .2s; user-select: none;
-  position: relative;
-}
-.match-item.bn { font-family: var(--font-bn); font-size: 15px; }
-.match-item:hover { border-color: var(--yellow); background: var(--yellow-l); }
-.match-item.sel-l { border-color: var(--yellow); background: var(--yellow-l); }
-.match-item.sel-r { border-color: var(--purple); background: var(--purple-l); }
-.match-item.matched-ok {
-  border-color: var(--green); background: var(--green-l);
-  pointer-events: none; cursor: default;
-}
-.match-item.matched-ok::after {
-  content: '✓'; position: absolute; right: 10px; top: 50%;
-  transform: translateY(-50%); color: var(--green); font-size: 15px; font-weight: 900;
-}
-.match-item.matched-err {
-  border-color: var(--red); background: var(--red-l);
-  animation: shakeIt .4s ease;
-}
-.match-item.disabled { pointer-events: none; }
-
-/* Submit + Answer reveal for matching */
-.match-submit-row { margin-top: 14px; text-align: center; }
-.btn-match-check {
-  padding: 12px 28px;
-  background: linear-gradient(135deg, var(--yellow), var(--orange));
-  color: #1a1200; border: none; border-radius: 12px;
-  font-family: var(--font); font-size: 15px; font-weight: 800;
-  cursor: pointer; transition: transform .15s, box-shadow .15s;
-  box-shadow: 0 4px 16px rgba(234,179,8,.3);
-}
-.btn-match-check:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(234,179,8,.4); }
-.btn-match-check:disabled { opacity: .4; cursor: not-allowed; transform: none; }
-
-.match-answer-reveal {
-  margin-top: 14px;
-  background: var(--card2); border: 1.5px solid var(--border);
-  border-radius: 14px; padding: 14px; display: none;
-}
-.match-answer-reveal.show { display: block; }
-.match-answer-reveal h4 {
-  font-size: 12px; font-weight: 800; letter-spacing: .5px;
-  text-transform: uppercase; color: var(--muted); margin-bottom: 10px;
-}
-.match-pair-row {
-  display: flex; align-items: center; gap: 8px;
-  padding: 7px 0; border-bottom: 1px solid var(--border);
-  font-size: 13px; font-weight: 600;
-}
-.match-pair-row:last-child { border-bottom: none; }
-.match-pair-l { flex: 1; }
-.match-pair-arrow { color: var(--muted); font-size: 16px; flex-shrink: 0; }
-.match-pair-r { flex: 1; }
-.match-pair-row.pair-ok .match-pair-l { color: var(--green); }
-.match-pair-row.pair-ok .match-pair-r { color: var(--green); }
-.match-pair-row.pair-err .match-pair-l { color: var(--red); }
-.match-pair-row.pair-err .match-pair-r { color: var(--yellow); }
-
-/* ── Fill in Blank ── */
-.fill-sentence {
-  background: var(--card2); border: 1.5px solid var(--border);
-  border-radius: 14px; padding: 18px 20px;
-  font-size: 18px; font-weight: 600; line-height: 2;
-  margin-bottom: 18px; word-break: break-word;
-}
-.fill-sentence.bn { font-family: var(--font-bn); font-size: 19px; }
-.blank-box {
-  display: inline-flex; align-items: center; justify-content: center;
-  min-width: 80px; height: 36px; margin: 0 5px;
-  background: var(--purple-l); border: 2px dashed rgba(124,58,237,.5);
-  border-radius: 8px; padding: 0 12px;
-  font-size: 15px; font-weight: 800; color: #a78bfa;
-  vertical-align: middle; transition: all .2s;
-}
-.blank-box.filled {
-  background: var(--yellow-l); border-style: solid;
-  border-color: var(--yellow); color: var(--yellow);
-}
-.blank-box.filled.correct-blank {
-  background: var(--green-l); border-color: var(--green); color: var(--green);
-}
-.blank-box.filled.wrong-blank {
-  background: var(--red-l); border-color: var(--red); color: var(--red);
-}
-.word-choices {
-  display: flex; flex-wrap: wrap; gap: 10px; padding-top: 4px;
-}
-.choice-word {
-  padding: 10px 20px;
-  background: var(--card2); border: 2px solid var(--border);
-  border-radius: 24px; cursor: pointer;
-  font-size: 15px; font-weight: 700;
-  transition: all .2s; user-select: none;
-  font-family: var(--font);
-}
-.choice-word.bn { font-family: var(--font-bn); font-size: 16px; }
-.choice-word:hover { border-color: var(--purple); background: var(--purple-l); transform: translateY(-1px); }
-.choice-word:active { transform: scale(.95); }
-.choice-word.state-correct { border-color: var(--green) !important; background: var(--green-l) !important; color: var(--green); pointer-events: none; }
-.choice-word.state-wrong   { border-color: var(--red)   !important; background: var(--red-l)   !important; color: var(--red);   animation: shakeIt .4s ease; pointer-events: none; }
-.choice-word.state-reveal  { border-color: var(--green) !important; background: rgba(16,185,129,.06) !important; color: var(--green); pointer-events: none; }
-.choice-word.disabled { pointer-events: none; opacity: .45; }
-
-/* ── Ordering ── */
-.order-instruction {
-  font-size: 13px; font-weight: 600; color: var(--muted);
-  margin-bottom: 12px; display: flex; align-items: center; gap: 7px;
-}
-.order-drop-zone {
-  min-height: 54px; padding: 10px;
-  background: rgba(245,158,11,.04);
-  border: 2px dashed rgba(245,158,11,.3);
-  border-radius: 14px; margin-bottom: 14px;
-  transition: border-color .2s;
-}
-.order-drop-zone.has-items { border-color: var(--gold); border-style: solid; }
-.order-placed-item {
-  display: flex; align-items: center; gap: 10px;
-  padding: 10px 14px; margin-bottom: 7px;
-  background: var(--yellow-l); border: 1.5px solid rgba(245,158,11,.4);
-  border-radius: 10px; font-size: 14px; font-weight: 700;
-  cursor: pointer; user-select: none; transition: all .2s;
-}
-.order-placed-item:hover { border-color: var(--red); background: var(--red-l); }
-.order-placed-item.bn { font-family: var(--font-bn); font-size: 15px; }
-.order-pos {
-  width: 24px; height: 24px; flex-shrink: 0;
-  background: var(--yellow-l); border: 1.5px solid var(--gold);
-  border-radius: 50%; display: flex; align-items: center; justify-content: center;
-  font-size: 11px; font-weight: 900; color: var(--gold);
-}
-.order-bank { display: flex; flex-wrap: wrap; gap: 9px; }
-.order-bank-item {
-  padding: 10px 18px;
-  background: var(--card2); border: 2px solid var(--border);
-  border-radius: 12px; cursor: pointer;
-  font-size: 14px; font-weight: 700;
-  transition: all .2s; user-select: none;
-}
-.order-bank-item.bn { font-family: var(--font-bn); font-size: 15px; }
-.order-bank-item:hover { border-color: var(--gold); background: var(--yellow-l); }
-.order-bank-item:active { transform: scale(.95); }
-.order-bank-item.placed { opacity: .3; pointer-events: none; }
-.order-check-row { margin-top: 12px; text-align: right; }
-.btn-order-check {
-  padding: 11px 24px;
-  background: linear-gradient(135deg, var(--gold), var(--orange));
-  color: #1a0f00; border: none; border-radius: 12px;
-  font-family: var(--font); font-size: 14px; font-weight: 800;
-  cursor: pointer; transition: all .15s;
-  box-shadow: 0 4px 14px rgba(245,158,11,.35);
-}
-.btn-order-check:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(245,158,11,.45); }
-.btn-order-check:disabled { opacity: .4; cursor: not-allowed; transform: none; }
-
-/* ── Feedback Banner (below card) ── */
-.feedback-banner {
-  max-width: 700px; width: 100%; margin-top: 14px;
-  padding: 14px 18px;
-  border-radius: 14px; display: none;
-  align-items: center; gap: 12px;
-  animation: slideUp .3s ease;
-  font-weight: 700; font-size: 15px;
-}
-@keyframes slideUp {
-  from { opacity:0; transform: translateY(10px); }
-  to   { opacity:1; transform: translateY(0); }
-}
-.feedback-banner.show { display: flex; }
-.feedback-banner.ok  { background: var(--green-l); border: 1.5px solid rgba(16,185,129,.4); color: #6ee7b7; }
-.feedback-banner.err { background: var(--red-l);   border: 1.5px solid rgba(239,68,68,.4);  color: #fca5a5; }
-.feedback-banner.timeout { background: var(--yellow-l); border: 1.5px solid rgba(234,179,8,.4); color: #fde047; }
-.feedback-icon { font-size: 26px; flex-shrink: 0; }
-.feedback-txt h4 { font-size: 16px; font-weight: 900; margin-bottom: 2px; }
-.feedback-txt p  { font-size: 13px; font-weight: 600; opacity: .8; }
-
-/* ── Next Button ── */
-.next-btn-row { max-width: 700px; width: 100%; margin-top: 12px; display: none; }
-.next-btn-row.show { display: flex; justify-content: flex-end; }
-.btn-next {
-  padding: 13px 32px;
-  background: linear-gradient(135deg, var(--purple), var(--purple2));
-  color: #fff; border: none; border-radius: 14px;
-  font-family: var(--font); font-size: 15px; font-weight: 800;
-  cursor: pointer; display: flex; align-items: center; gap: 10px;
-  box-shadow: 0 6px 20px rgba(124,58,237,.4);
-  transition: transform .15s, box-shadow .15s;
-}
-.btn-next:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(124,58,237,.5); }
-.btn-next:active { transform: scale(.97); }
-.btn-next-arrow { font-size: 18px; }
-
-/* ── Streak badge ── */
-.streak-badge {
-  position: fixed; top: 80px; right: 16px; z-index: 200;
-  background: linear-gradient(135deg, var(--orange), var(--yellow));
-  color: #1a0800; padding: 8px 14px;
-  border-radius: 20px; font-size: 13px; font-weight: 900;
-  box-shadow: 0 6px 20px rgba(249,115,22,.4);
-  display: none; align-items: center; gap: 6px;
-  animation: streakPop .4s cubic-bezier(.22,.68,0,1.4);
-}
-@keyframes streakPop { from{transform:scale(0) rotate(-10deg)} to{transform:scale(1) rotate(0)} }
-.streak-badge.show { display: flex; }
-
-/* ═══════════════════════════════════════════════════════
-   SCREEN 4 — RESULT
-═══════════════════════════════════════════════════════ */
-#resultScreen {
-  flex-direction: column; align-items: center;
-  padding: 24px 16px 60px;
-  background: radial-gradient(ellipse at 50% 10%, rgba(124,58,237,.2) 0%, transparent 60%), var(--bg);
-  overflow-y: auto;
-}
-.result-wrap { width: 100%; max-width: 560px; }
-
-.result-hero {
-  text-align: center;
-  background: var(--surface); border: 1.5px solid var(--border);
-  border-radius: 24px; padding: 36px 28px 28px;
-  margin-bottom: 16px; position: relative; overflow: hidden;
-}
-.result-hero::before {
-  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 5px;
-  background: linear-gradient(90deg, var(--purple), var(--pink), var(--blue));
-}
-.result-emoji { font-size: 64px; display: block; margin-bottom: 12px; }
-.result-title { font-size: 28px; font-weight: 900; margin-bottom: 6px; }
-.result-sub { font-size: 15px; color: var(--muted); margin-bottom: 24px; }
-
-.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
-.stat-box { background: var(--card2); border: 1.5px solid var(--border); border-radius: 14px; padding: 14px 10px; text-align: center; }
-.stat-box-label { font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: .4px; text-transform: uppercase; margin-bottom: 6px; }
-.stat-box-val { font-size: 26px; font-weight: 900; }
-.stat-box-val.green { color: var(--green); }
-.stat-box-val.red   { color: var(--red); }
-.stat-box-val.gold  { color: var(--gold); }
-
-.credit-box {
-  background: var(--gold-l); border: 1.5px solid rgba(245,158,11,.35);
-  border-radius: 16px; padding: 18px 20px; text-align: center;
-}
-.credit-box-main { font-size: 22px; font-weight: 900; color: var(--gold); margin-bottom: 4px; }
-.credit-box-sub { font-size: 13px; color: var(--muted); }
-.credit-box-total { font-size: 15px; font-weight: 800; color: var(--text); margin-top: 4px; }
-
-.result-section {
-  background: var(--surface); border: 1.5px solid var(--border);
-  border-radius: 20px; padding: 20px; margin-bottom: 14px;
-}
-.result-section-title {
-  font-size: 14px; font-weight: 800; color: var(--muted);
-  letter-spacing: .4px; text-transform: uppercase;
-  margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
-}
-
-/* Leaderboard */
-.lb-list { display: grid; gap: 8px; }
-.lb-row {
-  display: flex; align-items: center; gap: 12px;
-  padding: 12px 14px;
-  background: var(--card2); border: 1.5px solid var(--border);
-  border-radius: 12px; transition: border-color .2s;
-}
-.lb-row.me { border-color: var(--gold); background: var(--gold-l); }
-.lb-rank {
-  width: 30px; height: 30px; flex-shrink: 0;
-  border-radius: 50%; display: flex; align-items: center; justify-content: center;
-  font-size: 12px; font-weight: 900;
-  background: var(--border2); color: var(--muted);
-}
-.lb-rank.r1 { background: rgba(245,158,11,.2); color: var(--gold); }
-.lb-rank.r2 { background: rgba(176,196,222,.2); color: #b0c4de; }
-.lb-rank.r3 { background: rgba(205,127,50,.2);  color: #cd7f32; }
-.lb-name { flex: 1; font-size: 14px; font-weight: 700; }
-.lb-cred { font-size: 14px; font-weight: 800; color: var(--gold); }
-
-.btn-dashboard {
-  width: 100%; padding: 15px;
-  background: linear-gradient(135deg, var(--purple), var(--purple2));
-  color: #fff; border: none; border-radius: 14px;
-  font-family: var(--font); font-size: 16px; font-weight: 800;
-  cursor: pointer; margin-top: 4px;
-  box-shadow: 0 6px 24px rgba(124,58,237,.4);
-  transition: transform .15s, box-shadow .15s;
-}
-.btn-dashboard:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(124,58,237,.5); }
-
-/* ── Spinner ── */
-.spin {
-  width: 28px; height: 28px;
-  border: 3px solid var(--border); border-top-color: var(--purple);
-  border-radius: 50%; animation: sp .7s linear infinite; margin: 20px auto;
-}
-@keyframes sp { to { transform: rotate(360deg); } }
-
-/* ── Responsive ── */
-@media (max-width: 480px) {
-  .login-box { padding: 30px 22px; }
-  .lang-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
-  .lang-btn { padding: 18px 10px; }
-  .lang-btn .flag { font-size: 32px; }
-  .lang-btn .lang-name { font-size: 15px; }
-  .q-text { font-size: 16px; }
-  .q-text.bn { font-size: 17px; }
-  .match-cols { grid-template-columns: 1fr 1fr; gap: 7px; }
-  .match-item { font-size: 13px; padding: 10px 10px; }
-  .tf-grid { grid-template-columns: 1fr 1fr; gap: 9px; }
-  .tf-btn { padding: 20px 10px; }
-  .tf-icon { font-size: 28px; }
-  .tf-label { font-size: 14px; }
-  .stats-grid { grid-template-columns: repeat(3,1fr); gap: 8px; }
-  .stat-box-val { font-size: 22px; }
-  .topbar-title { font-size: 12px; }
-  .fill-sentence { font-size: 16px; }
-  .fill-sentence.bn { font-size: 17px; }
-  .choice-word { font-size: 14px; padding: 9px 14px; }
-}
-@media (max-width: 360px) {
-  .match-cols { grid-template-columns: 1fr; gap: 6px; }
-  .lang-grid  { grid-template-columns: 1fr 1fr; }
-  .tf-grid    { grid-template-columns: 1fr 1fr; }
+@media(max-width:360px){
+  .match-cols{grid-template-columns:1fr}
+  .lang-grid{grid-template-columns:1fr 1fr}
+  .tf-grid{grid-template-columns:1fr 1fr}
 }
 </style>
 </head>
 <body>
 <canvas id="confettiCanvas"></canvas>
 
-<!-- ══════════════════════════════════ SCREEN: LOGIN -->
+<!-- LOGIN -->
 <div id="loginScreen" class="screen active">
   <div class="login-box">
     <div class="login-logo">
@@ -761,9 +320,7 @@ body {
       <p id="examSub">Fardin (DU Physics)</p>
       <span class="exam-class" id="examClassBadge" style="display:none"></span>
     </div>
-    <div class="err-toast" id="errToast">
-      <span>⚠️</span><span id="errText">Something went wrong</span>
-    </div>
+    <div class="err-toast" id="errToast"><span>⚠️</span><span id="errText">Something went wrong</span></div>
     <div class="input-group">
       <label>Your Username</label>
       <div class="input-box">
@@ -777,35 +334,28 @@ body {
   </div>
 </div>
 
-<!-- <!-- ══════════════════════════════════ SCREEN: LANG -->
+<!-- LANG -->
 <div id="langScreen" class="screen">
   <div class="lang-card">
     <h2>🌐 Choose Language</h2>
     <p>Pick the language for your quiz</p>
     <div class="lang-grid">
       <div class="lang-btn" onclick="chooseLang('bn')">
-        <span class="flag">🇧🇩</span>
-        <span class="lang-name">বাংলা</span>
-        <span class="lang-sub">Bangla version</span>
+        <span class="flag">🇧🇩</span><span class="lang-name">বাংলা</span><span class="lang-sub">Bangla version</span>
       </div>
       <div class="lang-btn" onclick="chooseLang('en')">
-        <span class="flag">🇬🇧</span>
-        <span class="lang-name">English</span>
-        <span class="lang-sub">English version</span>
+        <span class="flag">🇬🇧</span><span class="lang-name">English</span><span class="lang-sub">English version</span>
       </div>
     </div>
   </div>
-</div> -->
+</div>
 
-<!-- ══════════════════════════════════ SCREEN: EXAM -->
+<!-- EXAM -->
 <div id="examScreen" class="screen">
-  <!-- Top bar -->
   <div class="topbar">
     <div class="topbar-inner">
       <div class="topbar-title" id="hdrTitle">Quiz</div>
-      <div class="progress-bar-wrap">
-        <div class="progress-bar-fill" id="progFill" style="width:0%"></div>
-      </div>
+      <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progFill" style="width:0%"></div></div>
       <div class="progress-label" id="progLabel">1/1</div>
       <div class="timer-ring-wrap" id="timerRing" style="display:none">
         <svg width="46" height="46" viewBox="0 0 46 46">
@@ -817,8 +367,6 @@ body {
       <div class="credit-pill" id="creditPill">⭐ <span id="liveCredits">0</span></div>
     </div>
   </div>
-
-  <!-- Question area -->
   <div class="q-area" id="qArea">
     <div class="q-container">
       <div class="q-meta">
@@ -827,28 +375,21 @@ body {
       </div>
       <div class="q-card">
         <div class="q-card-top"></div>
-        <div class="q-text-wrap">
-          <div class="q-text" id="qText"></div>
-        </div>
+        <div class="q-text-wrap"><div class="q-text" id="qText"></div></div>
         <div class="q-answer" id="qAnswerArea"></div>
       </div>
       <div class="feedback-banner" id="feedbackBanner">
         <div class="feedback-icon" id="feedbackIcon"></div>
-        <div class="feedback-txt">
-          <h4 id="feedbackTitle"></h4>
-          <p id="feedbackBody"></p>
-        </div>
+        <div class="feedback-txt"><h4 id="feedbackTitle"></h4><p id="feedbackBody"></p></div>
       </div>
       <div class="next-btn-row" id="nextBtnRow">
-        <button class="btn-next" onclick="nextQ()">
-          Next <span class="btn-next-arrow">→</span>
-        </button>
+        <button class="btn-next" onclick="nextQ()">Next <span class="btn-next-arrow">→</span></button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ══════════════════════════════════ SCREEN: RESULT -->
+<!-- RESULT -->
 <div id="resultScreen" class="screen">
   <div class="result-wrap">
     <div class="result-hero">
@@ -856,18 +397,9 @@ body {
       <div class="result-title" id="rTitle">Excellent!</div>
       <div class="result-sub" id="rSub">You did great!</div>
       <div class="stats-grid">
-        <div class="stat-box">
-          <div class="stat-box-label">Correct</div>
-          <div class="stat-box-val green" id="rCorrect">0</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-box-label">Wrong</div>
-          <div class="stat-box-val red" id="rWrong">0</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-box-label">Score</div>
-          <div class="stat-box-val gold" id="rScore">0%</div>
-        </div>
+        <div class="stat-box"><div class="stat-box-label">Correct</div><div class="stat-box-val green" id="rCorrect">0</div></div>
+        <div class="stat-box"><div class="stat-box-label">Wrong</div><div class="stat-box-val red" id="rWrong">0</div></div>
+        <div class="stat-box"><div class="stat-box-label">Score</div><div class="stat-box-val gold" id="rScore">0%</div></div>
       </div>
       <div class="credit-box">
         <div class="credit-box-main">⭐ <span id="rCreditsNet">+0</span> Credits</div>
@@ -875,128 +407,121 @@ body {
         <div class="credit-box-total">Total: ⭐ <span id="rTotal">0</span></div>
       </div>
     </div>
-
     <div class="result-section">
       <div class="result-section-title">🏆 Class Leaderboard</div>
       <div class="lb-list" id="lbList"><div class="spin"></div></div>
     </div>
-
     <button class="btn-dashboard" onclick="goBack()">← Back to Dashboard</button>
   </div>
 </div>
 
-<!-- Streak badge -->
 <div class="streak-badge" id="streakBadge">🔥 <span id="streakNum">2</span> in a row!</div>
 
 <script>
-// ══════════════════════════════════════════════════════════
-// FIREBASE
-// ══════════════════════════════════════════════════════════
+// ══ FIREBASE ══
 const firebaseConfig={apiKey:"AIzaSyAlR-WEX_HZjkE1hzh_rPRYAz7CrjQYB54",authDomain:"exammanagementsystem-a7720.firebaseapp.com",projectId:"exammanagementsystem-a7720",storageBucket:"exammanagementsystem-a7720.firebasestorage.app",messagingSenderId:"269325070232",appId:"1:269325070232:web:79bdf01e4f47ea36bd45ed"};
 firebase.initializeApp(firebaseConfig);
 const db=firebase.firestore();
 
-// ══════════════════════════════════════════════════════════
-// STATE
-// ══════════════════════════════════════════════════════════
-let examData=null, studentData=null, studentUsername=null;
+// ══ STATE ══
+let examData=null,studentData=null,studentUsername=null;
 let chosenLang='bn';
-let questions=[], currentQ=0, answered=false;
-let correctCount=0, wrongCount=0, sessionCredits=0, streak=0;
+let questions=[],currentQ=0,answered=false;
+let correctCount=0,wrongCount=0,sessionCredits=0,streak=0;
 let examId=null;
-let timerInterval=null, timerLeft=0, timerTotal=0;
+let timerInterval=null,timerLeft=0,timerTotal=0;
 
-// ══════════════════════════════════════════════════════════
-// CONFETTI
-// ══════════════════════════════════════════════════════════
+// ══ LOCALSTORAGE KEYS ══
+function lsKey(k){ return `quiz_${examId}_${studentUsername}_${k}`; }
+
+function saveProgress(){
+  if(!examId||!studentUsername) return;
+  const state={
+    currentQ, correctCount, wrongCount, sessionCredits, streak,
+    chosenLang, questions: questions.map(q=>q),  // full question order saved
+    answeredQuestions: getAnsweredList()
+  };
+  try{ localStorage.setItem(lsKey('progress'), JSON.stringify(state)); }catch(e){}
+}
+
+function getAnsweredList(){
+  try{ return JSON.parse(localStorage.getItem(lsKey('answered'))||'[]'); }catch(e){return[];}
+}
+function markAnswered(qIdx){
+  const list=getAnsweredList();
+  if(!list.includes(qIdx)){ list.push(qIdx); }
+  try{ localStorage.setItem(lsKey('answered'), JSON.stringify(list)); }catch(e){}
+}
+function isAnswered(qIdx){ return getAnsweredList().includes(qIdx); }
+
+function loadProgress(){
+  if(!examId||!studentUsername) return null;
+  try{
+    const raw=localStorage.getItem(lsKey('progress'));
+    return raw ? JSON.parse(raw) : null;
+  }catch(e){ return null; }
+}
+function clearProgress(){
+  if(!examId||!studentUsername) return;
+  try{
+    localStorage.removeItem(lsKey('progress'));
+    localStorage.removeItem(lsKey('answered'));
+  }catch(e){}
+}
+
+// ══ CONFETTI ══
 const confCanvas=document.getElementById('confettiCanvas');
 const confCtx=confCanvas.getContext('2d');
-let confParts=[], confRunning=false;
+let confParts=[],confRunning=false;
 function resizeConf(){confCanvas.width=window.innerWidth;confCanvas.height=window.innerHeight;}
-resizeConf(); window.addEventListener('resize',resizeConf);
+resizeConf();window.addEventListener('resize',resizeConf);
 function launchConfetti(big=false){
   const n=big?220:70;
   const colors=['#f59e0b','#10b981','#7c3aed','#ef4444','#3b82f6','#ec4899','#06b6d4','#84cc16'];
-  for(let i=0;i<n;i++){
-    confParts.push({
-      x:Math.random()*confCanvas.width, y:big?-30:confCanvas.height*0.35*Math.random()-50,
-      w:Math.random()*11+4, h:Math.random()*6+3,
-      r:Math.random()*Math.PI*2, dr:Math.random()*.35-.175,
-      color:colors[i%colors.length],
-      dy:Math.random()*(big?4:3)+2, dx:(Math.random()-0.5)*3,
-      gravity:big?.15:.12, opacity:1
-    });
-  }
+  for(let i=0;i<n;i++){confParts.push({x:Math.random()*confCanvas.width,y:big?-30:confCanvas.height*0.35*Math.random()-50,w:Math.random()*11+4,h:Math.random()*6+3,r:Math.random()*Math.PI*2,dr:Math.random()*.35-.175,color:colors[i%colors.length],dy:Math.random()*(big?4:3)+2,dx:(Math.random()-0.5)*3,gravity:big?.15:.12,opacity:1});}
   if(!confRunning)animConf();
 }
 function animConf(){
-  confRunning=true;
-  confCtx.clearRect(0,0,confCanvas.width,confCanvas.height);
+  confRunning=true;confCtx.clearRect(0,0,confCanvas.width,confCanvas.height);
   confParts=confParts.filter(p=>p.opacity>0.04);
-  confParts.forEach(p=>{
-    p.x+=p.dx; p.y+=p.dy; p.dy+=p.gravity; p.r+=p.dr; p.opacity-=0.014;
-    confCtx.save(); confCtx.translate(p.x,p.y); confCtx.rotate(p.r);
-    confCtx.globalAlpha=Math.max(0,p.opacity);
-    confCtx.fillStyle=p.color; confCtx.fillRect(-p.w/2,-p.h/2,p.w,p.h);
-    confCtx.restore();
-  });
-  if(confParts.length>0) requestAnimationFrame(animConf); else confRunning=false;
+  confParts.forEach(p=>{p.x+=p.dx;p.y+=p.dy;p.dy+=p.gravity;p.r+=p.dr;p.opacity-=0.014;confCtx.save();confCtx.translate(p.x,p.y);confCtx.rotate(p.r);confCtx.globalAlpha=Math.max(0,p.opacity);confCtx.fillStyle=p.color;confCtx.fillRect(-p.w/2,-p.h/2,p.w,p.h);confCtx.restore();});
+  if(confParts.length>0)requestAnimationFrame(animConf);else confRunning=false;
 }
 
-// ══════════════════════════════════════════════════════════
-// KATEX
-// ══════════════════════════════════════════════════════════
+// ══ KATEX ══
 function renderMath(el){
   if(!window.renderMathInElement||!el)return;
-  renderMathInElement(el,{delimiters:[
-    {left:'$$',right:'$$',display:true},
-    {left:'$',right:'$',display:false}
-  ],throwOnError:false,strict:false});
+  renderMathInElement(el,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false,strict:false});
 }
 
-// ══════════════════════════════════════════════════════════
-// SCREENS
-// ══════════════════════════════════════════════════════════
+// ══ SCREENS ══
 function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   const el=document.getElementById(id+'Screen');
-  if(el) el.classList.add('active');
+  if(el)el.classList.add('active');
 }
 
-// ══════════════════════════════════════════════════════════
-// INIT
-// ══════════════════════════════════════════════════════════
+// ══ INIT ══
 const examIdUrl=new URLSearchParams(location.search).get('id');
 document.addEventListener('DOMContentLoaded',async()=>{
-  if(!examIdUrl){
-    document.getElementById('examTitle').textContent='Invalid link';
-    return;
-  }
+  if(!examIdUrl){ document.getElementById('examTitle').textContent='Invalid link'; return; }
   examId=examIdUrl;
   try{
     const doc=await db.collection('gamifiedExams').doc(examId).get();
-    if(!doc.exists||!doc.data().isActive){
-      document.getElementById('examTitle').textContent='Exam not found or inactive';
-      return;
-    }
+    if(!doc.exists||!doc.data().isActive){ document.getElementById('examTitle').textContent='Exam not found or inactive'; return; }
     examData=doc.data();
     document.getElementById('examTitle').textContent=examData.title;
-    document.getElementById('examSub').textContent='Fardin (DU Physics)';
     if(examData.className){
       const cb=document.getElementById('examClassBadge');
       cb.textContent='Class: '+examData.className+' • '+examData.questions.length+' questions';
       cb.style.display='';
     }
-  }catch(e){
-    document.getElementById('examTitle').textContent='Connection error';
-  }
+  }catch(e){ document.getElementById('examTitle').textContent='Connection error'; }
   showScreen('login');
   document.getElementById('loginUser').addEventListener('keydown',e=>{ if(e.key==='Enter') doLogin(); });
 });
 
-// ══════════════════════════════════════════════════════════
-// LOGIN — username only, class check
-// ══════════════════════════════════════════════════════════
+// ══ LOGIN ══
 async function doLogin(){
   const u=document.getElementById('loginUser').value.trim();
   if(!u){ showErr('Please enter your username'); return; }
@@ -1005,13 +530,24 @@ async function doLogin(){
   document.getElementById('loginBtnTxt').textContent='Checking...';
   try{
     const doc=await db.collection('students').doc(u).get();
-    if(!doc.exists){ showErr('Username not found. Check with your teacher.'); resetBtn(); return; }
+    if(!doc.exists){ showErr('Username not found.'); resetBtn(); return; }
     const sd=doc.data();
     if(examData&&examData.className&&sd.className&&sd.className!==examData.className){
       showErr('This quiz is for Class '+examData.className+' only.'); resetBtn(); return;
     }
     studentData=sd; studentUsername=u;
     resetBtn();
+    // Check for saved progress
+    const saved=loadProgress();
+    if(saved && saved.questions && saved.questions.length){
+      const resume=confirm('You have a saved session. Resume from where you left off?');
+      if(resume){
+        restoreProgress(saved);
+        return;
+      } else {
+        clearProgress();
+      }
+    }
     if(examData.langMode==='both') showScreen('lang');
     else{ chosenLang=examData.langMode||'bn'; startExam(); }
   }catch(e){ showErr('Connection error. Try again.'); resetBtn(); }
@@ -1028,17 +564,31 @@ function showErr(msg){
   setTimeout(()=>t.classList.remove('show'),3800);
 }
 
-// ══════════════════════════════════════════════════════════
-// LANG
-// ══════════════════════════════════════════════════════════
+function restoreProgress(saved){
+  chosenLang=saved.chosenLang||'bn';
+  questions=saved.questions;
+  currentQ=saved.currentQ||0;
+  correctCount=saved.correctCount||0;
+  wrongCount=saved.wrongCount||0;
+  sessionCredits=saved.sessionCredits||0;
+  streak=saved.streak||0;
+  document.getElementById('hdrTitle').textContent=examData.title;
+  document.getElementById('liveCredits').textContent=sessionCredits;
+  showScreen('exam');
+  // If current question was already answered, advance to next unanswered
+  while(currentQ < questions.length && isAnswered(currentQ)){
+    currentQ++;
+  }
+  renderQ();
+}
+
+// ══ LANG ══
 function chooseLang(l){ chosenLang=l; startExam(); }
 
-// ══════════════════════════════════════════════════════════
-// START EXAM
-// ══════════════════════════════════════════════════════════
+// ══ START ══
 function startExam(){
   questions=[...examData.questions];
-  // shuffle
+  // shuffle question order
   for(let i=questions.length-1;i>0;i--){
     const j=Math.floor(Math.random()*(i+1));
     [questions[i],questions[j]]=[questions[j],questions[i]];
@@ -1046,19 +596,19 @@ function startExam(){
   currentQ=0; correctCount=0; wrongCount=0; sessionCredits=0; streak=0;
   document.getElementById('hdrTitle').textContent=examData.title;
   document.getElementById('liveCredits').textContent=0;
+  // Save initial state for resume
+  saveProgress();
   showScreen('exam');
   renderQ();
 }
 
-// ══════════════════════════════════════════════════════════
-// QUESTION RENDER
-// ══════════════════════════════════════════════════════════
+// ══ RENDER QUESTION ══
 const QTYPE_META={
-  mcq:     {label:'MCQ',        cls:'qb-mcq',   emoji:'🔘'},
-  truefalse:{label:'True / False',cls:'qb-tf',  emoji:'⚖️'},
-  matching:{label:'Matching',    cls:'qb-match', emoji:'🔗'},
-  fillblank:{label:'Fill Blank', cls:'qb-fill',  emoji:'✏️'},
-  ordering:{label:'Ordering',    cls:'qb-order', emoji:'📋'},
+  mcq:{label:'MCQ',cls:'qb-mcq',emoji:'🔘'},
+  truefalse:{label:'True / False',cls:'qb-tf',emoji:'⚖️'},
+  matching:{label:'Matching',cls:'qb-match',emoji:'🔗'},
+  fillblank:{label:'Fill Blank',cls:'qb-fill',emoji:'✏️'},
+  ordering:{label:'Ordering',cls:'qb-order',emoji:'📋'},
 };
 function isBn(){ return chosenLang==='bn'; }
 function getLang(o){ return isBn()?(o.bn||o.en||''):(o.en||o.bn||''); }
@@ -1070,54 +620,45 @@ function renderQ(){
   const q=questions[currentQ];
   answered=false;
 
-  // progress
   const pct=Math.round((currentQ/questions.length)*100);
   document.getElementById('progFill').style.width=pct+'%';
   document.getElementById('progLabel').textContent=(currentQ+1)+'/'+questions.length;
 
-  // meta badges
   const meta=QTYPE_META[q.type]||{label:q.type,cls:'qb-mcq',emoji:'❓'};
   const badge=document.getElementById('qtypeBadge');
   badge.textContent=meta.emoji+' '+meta.label;
   badge.className='q-badge '+meta.cls;
   document.getElementById('qNumBadge').textContent='Question '+(currentQ+1)+' of '+questions.length;
 
-  // question text — for fill blank, q-text is the sentence, rendered in answer area
   const qTextEl=document.getElementById('qText');
   if(q.type==='fillblank'){
-    qTextEl.textContent=''; // sentence shown inside answer area
+    qTextEl.textContent='';
   } else {
     qTextEl.className='q-text'+(isBn()?' bn':'');
     qTextEl.textContent=getQText(q);
     renderMath(qTextEl);
   }
 
-  // hide feedback & next
   hideFeedback();
   document.getElementById('nextBtnRow').classList.remove('show');
-
-  // render answer UI
   const area=document.getElementById('qAnswerArea');
   area.innerHTML='';
+
   if(q.type==='mcq')        renderMCQ(q,area);
   else if(q.type==='truefalse') renderTF(q,area);
   else if(q.type==='matching')  renderMatching(q,area);
   else if(q.type==='fillblank') renderFill(q,area);
   else if(q.type==='ordering')  renderOrdering(q,area);
 
-  // timer
   const tSec=Number(q.timerSeconds)||0;
   if(tSec>0) startTimer(tSec,q);
   else document.getElementById('timerRing').style.display='none';
 
-  // scroll to top of card
-  window.scrollTo({top:0, behavior:'smooth'});
+  window.scrollTo({top:0,behavior:'smooth'});
 }
 
-// ══════════════════════════════════════════════════════════
-// TIMER
-// ══════════════════════════════════════════════════════════
-const ARC_LEN=113; // 2π × 18
+// ══ TIMER ══
+const ARC_LEN=113;
 function startTimer(sec,q){
   timerLeft=sec; timerTotal=sec;
   const ring=document.getElementById('timerRing');
@@ -1128,46 +669,40 @@ function startTimer(sec,q){
   timerInterval=setInterval(()=>{
     timerLeft--;
     setTimerUI(timerLeft,timerTotal,arc,num);
-    if(timerLeft<=0){
-      stopTimer();
-      if(!answered) onTimeout(q);
-    }
+    if(timerLeft<=0){ stopTimer(); if(!answered) onTimeout(q); }
   },1000);
 }
 function setTimerUI(left,total,arc,num){
   const frac=Math.max(0,left/total);
   arc.style.strokeDashoffset=ARC_LEN*(1-frac);
   num.textContent=left;
-  const isWarn=frac<0.4, isDanger=frac<0.2;
+  const isWarn=frac<0.4,isDanger=frac<0.2;
   arc.className='timer-ring-fill'+(isDanger?' danger':isWarn?' warn':'');
   num.className='timer-num'+(isDanger?' danger':'');
 }
-function stopTimer(){
-  clearInterval(timerInterval); timerInterval=null;
-}
+function stopTimer(){ clearInterval(timerInterval); timerInterval=null; }
 function onTimeout(q){
   answered=true;
-  // disable all options
-  document.querySelectorAll('.opt,.tf-btn,.choice-word,.order-bank-item').forEach(el=>el.classList.add('disabled'));
-  document.querySelectorAll('.btn-match-check,.btn-order-check').forEach(b=>b.disabled=true);
-  // deduct credit (same as wrong)
+  document.querySelectorAll('.opt,.tf-btn,.choice-word,.order-bank-item,.match-item,.btn-fill-check').forEach(el=>el.classList.add('disabled'));
+  document.querySelectorAll('.btn-match-check,.btn-order-check,.btn-fill-check').forEach(b=>{ if(b) b.disabled=true; });
+  const blankInput=document.getElementById('blankInput');
+  if(blankInput){ blankInput.disabled=true; }
   const cw=examData.creditWrong||2;
   wrongCount++;
   sessionCredits=Math.max(0,sessionCredits-cw);
   updateCredits();
   streak=0;
+  markAnswered(currentQ);
+  saveProgress();
   showFeedback('timeout','⏰','Time\'s up!','No credit for this question. Try faster next time!');
   setTimeout(()=>document.getElementById('nextBtnRow').classList.add('show'),600);
 }
 
-// ══════════════════════════════════════════════════════════
-// MCQ
-// ══════════════════════════════════════════════════════════
+// ══ MCQ (no shuffle) ══
 function renderMCQ(q,area){
   const letters=['A','B','C','D'];
-  const shuffled=[...letters].sort(()=>Math.random()-.5);
   let html='<div class="opts">';
-  shuffled.forEach(l=>{
+  letters.forEach(l=>{
     const o=q.options[l];
     if(!o||(!(o.bn||o.en))) return;
     const txt=getLang(o);
@@ -1184,28 +719,21 @@ function pickMCQ(el,val,correct){
   const isOk=val===correct;
   el.classList.add(isOk?'state-correct':'state-wrong');
   if(!isOk){
-    document.querySelectorAll('.opt').forEach(o=>{
-      if(o.dataset.val===correct) o.classList.add('state-reveal');
-    });
+    document.querySelectorAll('.opt').forEach(o=>{ if(o.dataset.val===correct) o.classList.add('state-reveal'); });
   }
   document.querySelectorAll('.opt').forEach(o=>{ if(!o.classList.contains('state-correct')&&!o.classList.contains('state-wrong')&&!o.classList.contains('state-reveal')) o.classList.add('disabled'); });
+  markAnswered(currentQ);
   handleAnswer(isOk,val);
 }
 
-// ══════════════════════════════════════════════════════════
-// TRUE / FALSE
-// ══════════════════════════════════════════════════════════
+// ══ TRUE / FALSE ══
 function renderTF(q,area){
   area.innerHTML=`<div class="tf-grid">
     <div class="tf-btn" id="tfTrue" onclick="pickTF('true','${q.correct}')">
-      <span class="tf-icon">✅</span>
-      <span class="tf-label">True</span>
-      <span class="tf-label-sub">সত্য</span>
+      <span class="tf-icon">✅</span><span class="tf-label">True</span><span class="tf-label-sub">সত্য</span>
     </div>
     <div class="tf-btn" id="tfFalse" onclick="pickTF('false','${q.correct}')">
-      <span class="tf-icon">❌</span>
-      <span class="tf-label">False</span>
-      <span class="tf-label-sub">মিথ্যা</span>
+      <span class="tf-icon">❌</span><span class="tf-label">False</span><span class="tf-label-sub">মিথ্যা</span>
     </div>
   </div>`;
 }
@@ -1215,30 +743,48 @@ function pickTF(val,correct){
   document.getElementById('tf'+capitalize(val)).classList.add(isOk?'state-correct':'state-wrong');
   if(!isOk) document.getElementById('tf'+capitalize(correct)).classList.add('state-reveal');
   document.querySelectorAll('.tf-btn').forEach(b=>b.classList.add('disabled'));
+  markAnswered(currentQ);
   handleAnswer(isOk,val);
 }
 function capitalize(s){return s.charAt(0).toUpperCase()+s.slice(1);}
 
-// ══════════════════════════════════════════════════════════
-// MATCHING — select then submit, reveal after
-// ══════════════════════════════════════════════════════════
-let matchSel={l:null,r:null}, matchUserPairs=[], matchPairsRef=[];
+// ══ MATCHING (color-coded pairs) ══
+// Each pair index gets a distinct color
+const PAIR_COLORS=[
+  {color:'#7c3aed',light:'rgba(124,58,237,.25)',border:'rgba(124,58,237,.6)',name:'Purple'},
+  {color:'#3b82f6',light:'rgba(59,130,246,.25)',border:'rgba(59,130,246,.6)',name:'Blue'},
+  {color:'#10b981',light:'rgba(16,185,129,.25)',border:'rgba(16,185,129,.6)',name:'Green'},
+  {color:'#f59e0b',light:'rgba(245,158,11,.25)',border:'rgba(245,158,11,.6)',name:'Gold'},
+  {color:'#ec4899',light:'rgba(236,72,153,.25)',border:'rgba(236,72,153,.6)',name:'Pink'},
+  {color:'#06b6d4',light:'rgba(6,182,212,.25)',border:'rgba(6,182,212,.6)',name:'Cyan'},
+  {color:'#84cc16',light:'rgba(132,204,22,.25)',border:'rgba(132,204,22,.6)',name:'Lime'},
+  {color:'#f97316',light:'rgba(249,115,22,.25)',border:'rgba(249,115,22,.6)',name:'Orange'},
+];
+
+let matchSel={l:null,r:null},matchUserPairs=[],matchPairsRef=[];
+// Maps: leftIdx -> colorIdx (assigned when user pairs them)
+let matchPairColors={};
+// After submitting, we know which pairs are correct — map left to color
+let matchCorrectColors=[];
+
 function renderMatching(q,area){
-  matchSel={l:null,r:null}; matchUserPairs=[]; matchPairsRef=q.pairs;
+  matchSel={l:null,r:null}; matchUserPairs=[]; matchPairsRef=q.pairs; matchPairColors={};
   const rights=[...q.pairs].sort(()=>Math.random()-.5);
+
   area.innerHTML=`
-    <div class="match-hint">💡 ${isBn()?'বাম থেকে বেছে নিন, তারপর ডান পাশে মেলান':'Select from left, then tap matching right item'}</div>
+    <div class="match-hint">💡 ${isBn()?'বাম দিক থেকে একটি বেছে নিন, তারপর ডান দিকে মেলান। রঙ দিয়ে জোড়া বোঝা যাবে।':'Select from left, then tap matching right. Colors indicate paired items.'}</div>
+    <div class="pair-legend" id="pairLegend"></div>
     <div class="match-cols">
       <div>
         <div class="match-col-head">${isBn()?'বাম':'Left'}</div>
-        ${q.pairs.map((p,i)=>`<div class="match-item${isBn()?' bn':''}" data-li="${i}" onclick="matchPickL(this,${i})">${getLang({bn:p.lBn,en:p.lEn})}</div>`).join('')}
+        <div id="matchLeft">${q.pairs.map((p,i)=>`<div class="match-item${isBn()?' bn':''}" id="ml_${i}" data-li="${i}" onclick="matchPickL(this,${i})">${getLang({bn:p.lBn,en:p.lEn})}</div>`).join('')}</div>
       </div>
       <div>
         <div class="match-col-head">${isBn()?'ডান':'Right'}</div>
-        ${rights.map((p)=>{
+        <div id="matchRight">${rights.map(p=>{
           const origIdx=q.pairs.findIndex(x=>x===p);
-          return `<div class="match-item${isBn()?' bn':''}" data-ri="${origIdx}" onclick="matchPickR(this,${origIdx})">${getLang({bn:p.rBn,en:p.rEn})}</div>`;
-        }).join('')}
+          return `<div class="match-item${isBn()?' bn':''}" id="mr_${origIdx}" data-ri="${origIdx}" onclick="matchPickR(this,${origIdx})">${getLang({bn:p.rBn,en:p.rEn})}</div>`;
+        }).join('')}</div>
       </div>
     </div>
     <div class="match-submit-row">
@@ -1248,35 +794,99 @@ function renderMatching(q,area){
     </div>
     <div class="match-answer-reveal" id="matchReveal"></div>`;
 }
+
+function applyPairColor(liEl, riEl, colorIdx){
+  const c=PAIR_COLORS[colorIdx % PAIR_COLORS.length];
+  [liEl, riEl].forEach(el=>{
+    el.style.background=c.light;
+    el.style.borderColor=c.border;
+    el.style.color=c.color;
+  });
+  // update legend
+  updatePairLegend();
+}
+
+function clearPairColor(el){
+  el.style.background='';
+  el.style.borderColor='';
+  el.style.color='';
+}
+
+function updatePairLegend(){
+  const legend=document.getElementById('pairLegend');
+  if(!legend) return;
+  const entries=Object.entries(matchPairColors);
+  if(!entries.length){ legend.innerHTML=''; return; }
+  legend.innerHTML=entries.map(([li, colorIdx])=>{
+    const c=PAIR_COLORS[colorIdx % PAIR_COLORS.length];
+    const q=questions[currentQ];
+    const leftText=getLang({bn:q.pairs[li]?.lBn,en:q.pairs[li]?.lEn})||`Pair ${Number(li)+1}`;
+    return `<div class="pair-legend-item" style="color:${c.color};background:${c.light};border-color:${c.border}">
+      <span style="width:8px;height:8px;border-radius:50%;background:${c.color};display:inline-block"></span>
+      ${leftText.length>12?leftText.substring(0,12)+'...':leftText}
+    </div>`;
+  }).join('');
+}
+
+let matchColorCounter=0;
 function matchPickL(el,idx){
   if(answered)return;
-  document.querySelectorAll('.match-item[data-li]').forEach(e=>e.classList.remove('sel-l'));
+  // If already paired, unpair it
+  const existingPair=matchUserPairs.find(p=>p.li===idx);
+  if(existingPair){
+    // Unselect
+    const riEl=document.querySelector(`#matchRight .match-item[data-ri="${existingPair.ri}"]`);
+    clearPairColor(el); if(riEl) clearPairColor(riEl);
+    delete matchPairColors[idx];
+    matchUserPairs=matchUserPairs.filter(p=>p.li!==idx);
+    matchColorCounter=Object.keys(matchPairColors).length;
+    updatePairLegend();
+    document.getElementById('matchCheckBtn').disabled=(matchUserPairs.length!==matchPairsRef.length);
+    return;
+  }
+  // Select as pending left
+  document.querySelectorAll('#matchLeft .match-item').forEach(e=>{
+    if(!matchUserPairs.find(p=>p.li===Number(e.dataset.li))) e.style.outline='';
+  });
+  if(matchSel.l?.idx===idx){ matchSel.l=null; el.style.outline=''; return; }
   matchSel.l={el,idx};
-  el.classList.add('sel-l');
-  tryMatchPair();
+  el.style.outline='2px solid #a78bfa';
+  if(matchSel.r) tryMatchPair();
 }
 function matchPickR(el,idx){
   if(answered)return;
-  document.querySelectorAll('.match-item[data-ri]').forEach(e=>e.classList.remove('sel-r'));
+  // If already paired, unpair it
+  const existingPair=matchUserPairs.find(p=>p.ri===idx);
+  if(existingPair){
+    const liEl=document.querySelector(`#matchLeft .match-item[data-li="${existingPair.li}"]`);
+    clearPairColor(el); if(liEl) clearPairColor(liEl);
+    delete matchPairColors[existingPair.li];
+    matchUserPairs=matchUserPairs.filter(p=>p.ri!==idx);
+    matchColorCounter=Object.keys(matchPairColors).length;
+    updatePairLegend();
+    document.getElementById('matchCheckBtn').disabled=(matchUserPairs.length!==matchPairsRef.length);
+    return;
+  }
+  if(matchSel.r?.idx===idx){ matchSel.r=null; el.style.outline=''; return; }
   matchSel.r={el,idx};
-  el.classList.add('sel-r');
-  tryMatchPair();
+  el.style.outline='2px solid #a78bfa';
+  if(matchSel.l) tryMatchPair();
 }
 function tryMatchPair(){
   if(!matchSel.l||!matchSel.r)return;
   const li=matchSel.l.idx, ri=matchSel.r.idx;
-  // record the pair
-  const existing=matchUserPairs.findIndex(p=>p.li===li);
-  if(existing>=0) matchUserPairs[existing]={li,ri};
-  else matchUserPairs.push({li,ri});
-  // visual — mark as tentatively selected
-  matchSel.l.el.classList.remove('sel-l'); matchSel.l.el.classList.add('sel-r');
-  matchSel.r.el.classList.remove('sel-r'); matchSel.r.el.classList.add('sel-r');
+  const liEl=matchSel.l.el, riEl=matchSel.r.el;
+  // Remove outlines
+  liEl.style.outline=''; riEl.style.outline='';
+  // Assign color
+  const colorIdx=Object.keys(matchPairColors).length;
+  matchPairColors[li]=colorIdx;
+  applyPairColor(liEl,riEl,colorIdx);
+  // Remove any old pair for these indices
+  matchUserPairs=matchUserPairs.filter(p=>p.li!==li&&p.ri!==ri);
+  matchUserPairs.push({li,ri});
   matchSel={l:null,r:null};
-  // enable check when all paired
-  if(matchUserPairs.length===matchPairsRef.length){
-    document.getElementById('matchCheckBtn').disabled=false;
-  }
+  document.getElementById('matchCheckBtn').disabled=(matchUserPairs.length!==matchPairsRef.length);
 }
 function submitMatching(){
   if(answered)return; answered=true; stopTimer();
@@ -1284,7 +894,6 @@ function submitMatching(){
   document.querySelectorAll('.match-item').forEach(e=>e.classList.add('disabled'));
   let allOk=true;
   matchUserPairs.forEach(p=>{ if(p.li!==p.ri) allOk=false; });
-  // build reveal
   const reveal=document.getElementById('matchReveal');
   let revHTML=`<h4>${isBn()?'সঠিক উত্তর:':'Correct Answers:'}</h4>`;
   matchPairsRef.forEach((pair,i)=>{
@@ -1298,54 +907,72 @@ function submitMatching(){
   });
   reveal.innerHTML=revHTML;
   reveal.classList.add('show');
+  markAnswered(currentQ);
   handleAnswer(allOk,'matching');
 }
 
-// ══════════════════════════════════════════════════════════
-// FILL IN BLANK — show question as formatted sentence
-// ══════════════════════════════════════════════════════════
+// ══ FILL IN BLANK (text input) ══
 function renderFill(q,area){
   const qRaw=getQText(q);
-  // replace ___ with blank-box span
-  const withBlank=qRaw.replace(/___/g,`<span class="blank-box" id="blankSlot">___</span>`);
-  const words=[...q.words].sort(()=>Math.random()-.5);
+  // Replace ___ with an actual text input
+  const withInput=qRaw.replace(/___/g,`<span class="blank-input-wrap"><input type="text" id="blankInput" class="blank-input${isBn()?' bn':''}" placeholder="${isBn()?'উত্তর লিখুন':'Type answer'}" autocomplete="off" autocapitalize="off" spellcheck="false"></span>`);
   area.innerHTML=`
-    <div class="fill-sentence${isBn()?' bn':''}" id="fillSentence">${withBlank}</div>
-    <div class="word-choices">${words.map(w=>`
-      <div class="choice-word${isBn()?' bn':''}" data-wid="${w.id}" onclick="pickFill(this,'${w.id}','${q.correctWordId}')">
-        ${getLang(w)}
-      </div>`).join('')}
+    <div class="fill-sentence${isBn()?' bn':''}" id="fillSentence">${withInput}</div>
+    <div class="fill-submit-row">
+      <button class="btn-fill-check" id="fillCheckBtn" onclick="submitFill()">
+        ✅ ${isBn()?'উত্তর জমা দিন':'Submit Answer'}
+      </button>
+    </div>
+    <div class="fill-correct-reveal" id="fillReveal">
+      ${isBn()?'সঠিক উত্তর:':'Correct answer:'} <span id="fillCorrectVal"></span>
     </div>`;
-  // render math in sentence
+  // Render math in sentence
   const sentEl=area.querySelector('.fill-sentence');
   if(sentEl) renderMath(sentEl);
-}
-function pickFill(el,wid,correctId){
-  if(answered)return; answered=true; stopTimer();
-  const isOk=String(wid)===String(correctId);
-  const slot=document.getElementById('blankSlot');
-  if(slot){
-    slot.textContent=el.textContent.trim();
-    slot.classList.add('filled');
-    slot.classList.add(isOk?'correct-blank':'wrong-blank');
-  }
-  el.classList.add(isOk?'state-correct':'state-wrong');
-  if(!isOk){
-    const correctEl=document.querySelector(`.choice-word[data-wid="${correctId}"]`);
-    if(correctEl) correctEl.classList.add('state-reveal');
-  }
-  document.querySelectorAll('.choice-word').forEach(w=>{ if(!w.classList.contains('state-correct')&&!w.classList.contains('state-wrong')&&!w.classList.contains('state-reveal')) w.classList.add('disabled'); });
-  handleAnswer(isOk,wid);
+  // Allow Enter key to submit
+  setTimeout(()=>{
+    const inp=document.getElementById('blankInput');
+    if(inp) inp.addEventListener('keydown',e=>{ if(e.key==='Enter') submitFill(); });
+  },50);
 }
 
-// ══════════════════════════════════════════════════════════
-// ORDERING
-// ══════════════════════════════════════════════════════════
-let ordPlaced=[], ordBankItems=[];
+function submitFill(){
+  if(answered) return;
+  const q=questions[currentQ];
+  const inp=document.getElementById('blankInput');
+  if(!inp) return;
+  const userAns=inp.value.trim();
+  if(!userAns){ inp.focus(); return; }
+  answered=true; stopTimer();
+  const fillCheckBtn=document.getElementById('fillCheckBtn');
+  if(fillCheckBtn) fillCheckBtn.disabled=true;
+  inp.disabled=true;
+  // Compare case-insensitive
+  const correctBn=(q.correctAnswerBn||'').trim().toLowerCase();
+  const correctEn=(q.correctAnswerEn||'').trim().toLowerCase();
+  const userLower=userAns.toLowerCase();
+  const isOk = userLower===correctBn || userLower===correctEn ||
+               (correctBn && userLower.includes(correctBn)) ||
+               (correctEn && userLower.includes(correctEn));
+  inp.classList.add(isOk?'correct-blank':'wrong-blank');
+  if(!isOk){
+    const revealEl=document.getElementById('fillReveal');
+    const correctValEl=document.getElementById('fillCorrectVal');
+    if(revealEl && correctValEl){
+      correctValEl.textContent=isBn()?(q.correctAnswerBn||q.correctAnswerEn):(q.correctAnswerEn||q.correctAnswerBn);
+      revealEl.classList.add('show');
+    }
+  }
+  markAnswered(currentQ);
+  handleAnswer(isOk, userAns);
+}
+
+// ══ ORDERING ══
+let ordPlaced=[],ordBankItems=[];
 function renderOrdering(q,area){
   ordPlaced=[]; ordBankItems=[...q.items].sort(()=>Math.random()-.5);
   area.innerHTML=`
-    <div class="order-instruction">📋 ${isBn()?'সঠিক ক্রমে সাজাও:':'Tap items in the correct order:'}</div>
+    <div class="order-instruction">📋 ${isBn()?'সঠিক ক্রমে সাজাও — ক্লিক করে যোগ করো, আবার ক্লিক করে সরাও:':'Tap items in correct order — click to place, click placed to remove:'}</div>
     <div class="order-drop-zone" id="ordZone"><span style="color:var(--muted2);font-size:13px">${isBn()?'এখানে সাজানো হবে':'Your order appears here'}</span></div>
     <div class="order-bank" id="ordBank">${ordBankItems.map((it,i)=>`
       <div class="order-bank-item${isBn()?' bn':''}" data-i="${i}" onclick="placeOrd(this,${i})">${getLang(it)}</div>`).join('')}
@@ -1364,7 +991,7 @@ function placeOrd(el,i){
     el.classList.add('placed');
   }
   refreshOrdZone();
-  document.getElementById('ordCheckBtn').disabled=(ordPlaced.length!==ordBankItems.filter(it=>it).length);
+  document.getElementById('ordCheckBtn').disabled=(ordPlaced.length!==ordBankItems.length);
 }
 function refreshOrdZone(result=null){
   const zone=document.getElementById('ordZone');
@@ -1399,29 +1026,25 @@ function submitOrdering(){
   let isOk=true;
   ordPlaced.forEach((p,pos)=>{ if(p.item.correctPos!==pos+1) isOk=false; });
   refreshOrdZone(isOk);
+  markAnswered(currentQ);
   handleAnswer(isOk,'ordering');
 }
 
-// ══════════════════════════════════════════════════════════
-// ANSWER HANDLER
-// ══════════════════════════════════════════════════════════
+// ══ ANSWER HANDLER ══
 function handleAnswer(isOk){
   const cr=examData.creditRight||5;
   const cw=examData.creditWrong||2;
   if(isOk){
-    correctCount++;
-    sessionCredits+=cr;
-    streak++;
+    correctCount++; sessionCredits+=cr; streak++;
     launchConfetti(false);
     showFeedback('ok','🎉',streak>=3?'🔥 On Fire!':'✓ Correct!',streak>=3?'Streak: '+streak+' in a row!':'Keep it up!');
     if(streak>=3) showStreakBadge(streak);
   } else {
-    wrongCount++;
-    sessionCredits=Math.max(0,sessionCredits-cw);
-    streak=0;
+    wrongCount++; sessionCredits=Math.max(0,sessionCredits-cw); streak=0;
     showFeedback('err','😔','Wrong answer!','Review and do better next time!');
   }
   updateCredits();
+  saveProgress();
   setTimeout(()=>document.getElementById('nextBtnRow').classList.add('show'),700);
 }
 function updateCredits(){
@@ -1431,10 +1054,6 @@ function updateCredits(){
   pill.classList.add('bump');
   setTimeout(()=>pill.classList.remove('bump'),400);
 }
-
-// ══════════════════════════════════════════════════════════
-// FEEDBACK BANNER
-// ══════════════════════════════════════════════════════════
 function showFeedback(type,icon,title,body){
   const b=document.getElementById('feedbackBanner');
   b.className='feedback-banner show '+type;
@@ -1442,13 +1061,7 @@ function showFeedback(type,icon,title,body){
   document.getElementById('feedbackTitle').textContent=title;
   document.getElementById('feedbackBody').textContent=body;
 }
-function hideFeedback(){
-  document.getElementById('feedbackBanner').className='feedback-banner';
-}
-
-// ══════════════════════════════════════════════════════════
-// STREAK
-// ══════════════════════════════════════════════════════════
+function hideFeedback(){ document.getElementById('feedbackBanner').className='feedback-banner'; }
 let streakTimer=null;
 function showStreakBadge(n){
   const b=document.getElementById('streakBadge');
@@ -1458,16 +1071,21 @@ function showStreakBadge(n){
   streakTimer=setTimeout(()=>b.classList.remove('show'),2200);
 }
 
-// ══════════════════════════════════════════════════════════
-// NEXT QUESTION
-// ══════════════════════════════════════════════════════════
-function nextQ(){ currentQ++; renderQ(); }
+// ══ NEXT QUESTION ══
+function nextQ(){
+  currentQ++;
+  // Skip already-answered questions (in case of resume edge cases)
+  while(currentQ < questions.length && isAnswered(currentQ)){
+    currentQ++;
+  }
+  saveProgress();
+  renderQ();
+}
 
-// ══════════════════════════════════════════════════════════
-// RESULT
-// ══════════════════════════════════════════════════════════
+// ══ RESULT ══
 async function showResult(){
   stopTimer();
+  clearProgress(); // session complete, clear local storage
   launchConfetti(true);
   const total=questions.length;
   const pct=total>0?Math.round((correctCount/total)*100):0;
@@ -1503,16 +1121,13 @@ async function showResult(){
   }catch(e){console.error(e);}
   loadLeaderboard();
 }
-
 async function loadLeaderboard(){
   const el=document.getElementById('lbList');
   try{
-    const snap=await db.collection('students')
-      .where('className','==',studentData.className)
-      .orderBy('totalCredits','desc').limit(10).get();
+    const snap=await db.collection('students').where('className','==',studentData.className).orderBy('totalCredits','desc').limit(10).get();
     if(snap.empty){el.innerHTML='<p style="color:var(--muted);font-size:13px;text-align:center">No data yet</p>';return;}
     el.innerHTML=snap.docs.map((d,i)=>{
-      const sd=d.data(), isMe=d.id===studentUsername;
+      const sd=d.data(),isMe=d.id===studentUsername;
       const rc=i===0?'r1':i===1?'r2':i===2?'r3':'';
       return `<div class="lb-row${isMe?' me':''}">
         <div class="lb-rank ${rc}">${i+1}</div>
