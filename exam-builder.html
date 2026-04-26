@@ -7,6 +7,10 @@
     <link rel="shortcut icon" href="icon.jpg" type="image/x-icon">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <style>
@@ -38,6 +42,7 @@
         .btn-v{background:var(--purple);color:#fff}.btn-v:hover{background:#6d28d9;transform:translateY(-1px)}
         .btn-d{background:rgba(230,57,70,.15);color:var(--err);border:1px solid var(--err)}.btn-d:hover{background:var(--err);color:#fff}
         .btn-sm{padding:5px 11px;font-size:12px}
+        .btn-warn{background:rgba(233,196,106,.15);color:var(--warn);border:1px solid var(--warn)}.btn-warn:hover{background:var(--warn);color:#000}
 
         /* Lang mode */
         .lmg{display:flex;gap:10px;flex-wrap:wrap}
@@ -76,33 +81,39 @@
 
         /* MCQ */
         .mcq-opts{display:grid;gap:9px}
-        .mcq-or{display:grid;grid-template-columns:30px 1fr 1fr 22px;gap:8px;align-items:center}
-        .olabel{width:30px;height:30px;background:rgba(255,255,255,.08);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--muted);flex-shrink:0}
-        .cradio{width:17px;height:17px;accent-color:var(--ok);cursor:pointer;flex-shrink:0}
+        .mcq-or{display:grid;grid-template-columns:30px 1fr 1fr 22px;gap:8px;align-items:start;padding:8px;border-radius:var(--r);border:1px solid var(--border);background:rgba(0,0,0,.1)}
+        .olabel{width:30px;height:30px;background:rgba(255,255,255,.08);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--muted);flex-shrink:0;margin-top:4px}
+        .cradio{width:17px;height:17px;accent-color:var(--ok);cursor:pointer;flex-shrink:0;margin-top:8px}
+
+        /* LaTeX preview */
+        .latex-preview{background:rgba(0,0,0,.2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;margin-top:6px;font-size:14px;min-height:36px;color:var(--text);display:none}
+        .latex-preview.show{display:block}
+        .latex-hint{font-size:11px;color:var(--muted);margin-top:3px}
 
         /* Matching */
-        .mp{display:grid;grid-template-columns:1fr 24px 1fr;gap:8px;align-items:start;margin-bottom:8px}
+        .mp{display:grid;grid-template-columns:1fr 24px 1fr 30px;gap:8px;align-items:start;margin-bottom:8px;padding:8px;border:1px solid var(--border);border-radius:var(--r);background:rgba(0,0,0,.1)}
         .marr{color:var(--muted);font-size:16px;padding-top:22px;text-align:center}
+        .mrem{background:none;border:none;color:var(--err);cursor:pointer;font-size:14px;padding-top:22px;opacity:.6;transition:.2s}
+        .mrem:hover{opacity:1}
 
         /* Fill blank */
-        .word-row{display:flex;gap:8px;margin-top:9px}
-        .words-wrap{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
-        .wchip{background:rgba(124,58,237,.2);border:1px solid var(--purple);color:var(--text);padding:4px 11px;border-radius:20px;font-size:12px;display:flex;align-items:center;gap:5px}
-        .wchip .rx{cursor:pointer;color:var(--err);font-size:10px}
-        .cwsel{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
-        .cwbtn{padding:4px 13px;border-radius:20px;border:2px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-size:12px;transition:.2s}
-        .cwbtn.on{border-color:var(--ok);color:var(--ok);background:rgba(42,157,143,.1)}
+        .fill-answer-wrap{margin-top:10px}
+        .fill-answer-wrap label{font-size:13px;font-weight:500;color:var(--muted);margin-bottom:6px;display:block}
+        .fill-answer-input-row{display:flex;gap:8px;align-items:center}
+        .fill-answer-input-row input{flex:1}
 
         /* Order */
         .ord-items{display:grid;gap:8px}
-        .ord-row{display:grid;grid-template-columns:26px 1fr 1fr;gap:8px;align-items:start}
-        .onum{width:26px;height:26px;background:rgba(245,158,11,.2);border:1px solid var(--gold);color:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0;margin-top:2px}
+        .ord-row{display:grid;grid-template-columns:26px 1fr 1fr 30px;gap:8px;align-items:start;padding:8px;border:1px solid var(--border);border-radius:var(--r);background:rgba(0,0,0,.1)}
+        .onum{width:26px;height:26px;background:rgba(245,158,11,.2);border:1px solid var(--gold);color:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0;margin-top:4px}
+        .orem{background:none;border:none;color:var(--err);cursor:pointer;font-size:14px;padding-top:6px;opacity:.6;transition:.2s}
+        .orem:hover{opacity:1}
 
         /* Questions list */
         .qlist{min-height:50px}
         .noq{text-align:center;color:var(--muted);padding:24px;font-size:13px;border:2px dashed var(--border);border-radius:var(--r)}
         .qi{background:rgba(0,0,0,.2);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:13px;position:relative}
-        .qi-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:8px}
+        .qi-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:8px;flex-wrap:wrap}
         .qnum{font-size:12px;font-weight:600;color:var(--purple);background:rgba(124,58,237,.15);padding:3px 10px;border-radius:20px}
         .qtbadge{font-size:11px;color:var(--muted);background:rgba(255,255,255,.05);padding:3px 9px;border-radius:20px;margin-right:auto}
 
@@ -110,13 +121,14 @@
         .egrid{display:grid;gap:12px}
         .ecard{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:var(--r);padding:16px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;transition:.2s}
         .ecard:hover{border-color:var(--purple)}
+        .ecard.inactive{opacity:.6;border-color:rgba(255,255,255,.1)}
         .einfo h4{font-size:14px;margin-bottom:5px}
         .emeta{display:flex;flex-wrap:wrap;gap:6px}
         .mb{font-size:11px;padding:2px 9px;border-radius:20px;background:rgba(255,255,255,.06);color:var(--muted)}
         .mb-v{background:rgba(124,58,237,.2);color:#a78bfa}
         .mb-g{background:rgba(42,157,143,.2);color:var(--ok)}
         .mb-au{background:rgba(245,158,11,.2);color:var(--gold)}
-        .eacts{display:flex;gap:7px;flex-shrink:0}
+        .mb-inactive{background:rgba(230,57,70,.1);color:var(--err)}
 
         /* Alert */
         .al{padding:11px 15px;border-radius:var(--r);margin-bottom:14px;font-size:13px;display:flex;align-items:center;gap:9px}
@@ -127,6 +139,10 @@
         @keyframes sp{to{transform:rotate(360deg)}}
         .es{text-align:center;padding:26px;color:var(--muted);font-size:13px}
         .hint{font-size:11px;color:var(--muted);margin-top:4px}
+
+        /* Add pair/item buttons */
+        .add-row-btn{display:flex;align-items:center;gap:7px;color:var(--purple);background:rgba(124,58,237,.08);border:1.5px dashed rgba(124,58,237,.4);border-radius:var(--r);padding:8px 14px;cursor:pointer;font-size:13px;font-weight:500;transition:.2s;margin-top:8px;width:100%}
+        .add-row-btn:hover{background:rgba(124,58,237,.15);border-color:var(--purple)}
     </style>
 </head>
 <body>
@@ -188,10 +204,18 @@
           </div>
         </div>
         <div style="margin-bottom:12px">
-          <label style="display:block;font-size:13px;font-weight:500;margin-bottom:7px">Question Text</label>
+          <label style="display:block;font-size:13px;font-weight:500;margin-bottom:7px">Question Text <span style="color:var(--muted);font-weight:400">(LaTeX supported: $\sin\theta$, $$E=mc^2$$)</span></label>
           <div class="bi" id="qtxtbi">
-            <div id="qtbnw"><div class="ll">বাংলা</div><textarea id="qtbn" class="fc bn" placeholder="প্রশ্ন লিখুন (LaTeX: $\sin\theta$)"></textarea></div>
-            <div id="qtenw"><div class="ll">English</div><textarea id="qten" class="fc" placeholder="Write question (LaTeX: $\sin\theta$)"></textarea></div>
+            <div id="qtbnw">
+              <div class="ll">বাংলা</div>
+              <textarea id="qtbn" class="fc bn" placeholder="প্রশ্ন লিখুন" oninput="previewLatex('qtbn','qtbn_prev')"></textarea>
+              <div class="latex-preview" id="qtbn_prev"></div>
+            </div>
+            <div id="qtenw">
+              <div class="ll">English</div>
+              <textarea id="qten" class="fc" placeholder="Write question (LaTeX: $\sin\theta$)" oninput="previewLatex('qten','qten_prev')"></textarea>
+              <div class="latex-preview" id="qten_prev"></div>
+            </div>
           </div>
         </div>
         <div class="fg" style="margin-bottom:12px;max-width:240px">
@@ -233,9 +257,39 @@ const firebaseConfig={apiKey:"AIzaSyAlR-WEX_HZjkE1hzh_rPRYAz7CrjQYB54",authDomai
 firebase.initializeApp(firebaseConfig);
 const db=firebase.firestore();
 
-let lang='bn', qtype='mcq', questions=[], fillWords=[], correctFillId=null;
+let lang='bn', qtype='mcq', questions=[];
+// Matching: dynamic pairs
+let matchPairs=[{id:1},{id:2},{id:3},{id:4}];
+let matchPairCounter=4;
+// Ordering: dynamic items
+let orderItems=[{id:1},{id:2},{id:3},{id:4}];
+let orderItemCounter=4;
 
 const lhints={bn:'Students will answer in Bangla only.',en:'Students will answer in English only.',both:'Students can choose Bangla or English before starting.'};
+
+// ── LaTeX Preview ──
+function previewLatex(srcId, prevId){
+  const src = document.getElementById(srcId);
+  const prev = document.getElementById(prevId);
+  if(!src||!prev) return;
+  const val = src.value.trim();
+  if(!val){ prev.classList.remove('show'); return; }
+  prev.classList.add('show');
+  prev.innerHTML = val;
+  if(window.renderMathInElement){
+    renderMathInElement(prev,{delimiters:[
+      {left:'$$',right:'$$',display:true},
+      {left:'$',right:'$',display:false}
+    ],throwOnError:false});
+  }
+}
+function renderLatexEl(el){
+  if(!el||!window.renderMathInElement) return;
+  renderMathInElement(el,{delimiters:[
+    {left:'$$',right:'$$',display:true},
+    {left:'$',right:'$',display:false}
+  ],throwOnError:false});
+}
 
 function setLang(m,btn){
   lang=m;
@@ -246,19 +300,12 @@ function setLang(m,btn){
 }
 
 function refreshBiVisibility(){
-  // main question textarea
   document.getElementById('qtbnw').style.display=lang==='en'?'none':'';
   document.getElementById('qtenw').style.display=lang==='bn'?'none':'';
   document.getElementById('qtxtbi').className='bi'+(lang!=='both'?' one':'');
-  // all named bnw/enw inside ansBuilder
-  document.querySelectorAll('[id$="bnw"]').forEach(el=>el.style.display=lang==='en'?'none':'');
-  document.querySelectorAll('[id$="enw"]').forEach(el=>el.style.display=lang==='bn'?'none':'');
+  document.querySelectorAll('[data-bnw]').forEach(el=>el.style.display=lang==='en'?'none':'');
+  document.querySelectorAll('[data-enw]').forEach(el=>el.style.display=lang==='bn'?'none':'');
   document.querySelectorAll('.abi').forEach(el=>el.className='bi abi'+(lang!=='both'?' one':''));
-  // fill blank word inputs
-  ['#fwbn','#fwen'].forEach((sel,i)=>{
-    const el=document.querySelector(sel);
-    if(el)el.style.display=(i===0&&lang==='en')?'none':(i===1&&lang==='bn')?'none':'';
-  });
 }
 
 function setQType(t,btn){
@@ -268,11 +315,22 @@ function setQType(t,btn){
   buildAnsUI();
 }
 
-function bif(idBn,idEn,ph,ta=false){
+// Build bilingual field pair
+function bif(prefix, phEn, phBn, ta=false){
   const tag=ta?'textarea':'input';
-  const xtra=ta?'':`type="text"`;
-  return `<div id="${idBn}bnw"><div class="ll">বাংলা</div><${tag} ${xtra} id="${idBn}bn" class="fc bn${ta?' ':' '}" placeholder="${ph} (বাংলা)"></${tag}></div>
-          <div id="${idBn}enw"><div class="ll">English</div><${tag} ${xtra} id="${idEn}en" class="fc${ta?' ':' '}" placeholder="${ph} (English)"></${tag}></div>`;
+  const typeAttr=ta?'':' type="text"';
+  const cls=ta?'fc bn':'fc bn';
+  const clsEn=ta?'fc':'fc';
+  return `<div data-bnw="${prefix}">
+    <div class="ll">বাংলা</div>
+    <${tag}${typeAttr} id="${prefix}bn" class="${cls}" placeholder="${phBn}" oninput="previewLatex('${prefix}bn','${prefix}bn_prev')"></${tag}>
+    <div class="latex-preview" id="${prefix}bn_prev"></div>
+  </div>
+  <div data-enw="${prefix}">
+    <div class="ll">English</div>
+    <${tag}${typeAttr} id="${prefix}en" class="${clsEn}" placeholder="${phEn} (LaTeX OK)" oninput="previewLatex('${prefix}en','${prefix}en_prev')"></${tag}>
+    <div class="latex-preview" id="${prefix}en_prev"></div>
+  </div>`;
 }
 
 function buildAnsUI(){
@@ -282,11 +340,11 @@ function buildAnsUI(){
     ['A','B','C','D'].forEach(l=>{
       o+=`<div class="mcq-or">
         <div class="olabel">${l}</div>
-        <div class="bi abi" style="margin:0">${bif('opt'+l+'_','opt'+l+'_',`Option ${l}`)}</div>
+        <div class="bi abi" style="margin:0">${bif('opt'+l+'_','Option '+l,'Option '+l)}</div>
         <input type="radio" name="mcqc" value="${l}" class="cradio" title="Correct answer">
       </div>`;
     });
-    ab.innerHTML=`<label style="font-size:13px;font-weight:500;margin-bottom:9px;display:block;color:var(--muted)">Options (radio = correct)</label><div class="mcq-opts">${o}</div>`;
+    ab.innerHTML=`<label style="font-size:13px;font-weight:500;margin-bottom:9px;display:block;color:var(--muted)">Options (radio = correct) — LaTeX supported in each option</label><div class="mcq-opts">${o}</div>`;
   } else if(qtype==='truefalse'){
     ab.innerHTML=`<label style="font-size:13px;font-weight:500;margin-bottom:9px;display:block;color:var(--muted)">Correct Answer</label>
     <div style="display:flex;gap:12px">
@@ -298,37 +356,117 @@ function buildAnsUI(){
       </label>
     </div>`;
   } else if(qtype==='matching'){
-    let p='';
-    for(let i=1;i<=4;i++){
-      p+=`<div class="mp">
-        <div class="bi abi" style="margin:0">${bif('ml'+i+'_','ml'+i+'_','Left '+i)}</div>
-        <div class="marr">→</div>
-        <div class="bi abi" style="margin:0">${bif('mr'+i+'_','mr'+i+'_','Right '+i)}</div>
-      </div>`;
-    }
-    ab.innerHTML=`<label style="font-size:13px;font-weight:500;margin-bottom:9px;display:block;color:var(--muted)">Matching Pairs (correct order; right column will be shuffled)</label>${p}`;
+    matchPairs=[{id:1},{id:2},{id:3},{id:4}];
+    matchPairCounter=4;
+    renderMatchingUI(ab);
   } else if(qtype==='fillblank'){
-    fillWords=[];correctFillId=null;
-    ab.innerHTML=`<label style="font-size:13px;font-weight:500;margin-bottom:7px;display:block;color:var(--muted)">Word Bank</label>
-    <p class="hint" style="margin-bottom:8px">Use ___ in the question text to mark the blank.</p>
-    <div class="word-row">
-      <input type="text" id="fwbn" class="fc bn" placeholder="শব্দ (বাংলা)">
-      <input type="text" id="fwen" class="fc" placeholder="Word (English)">
-      <button class="btn btn-v btn-sm" onclick="addFW()"><i class="fas fa-plus"></i></button>
-    </div>
-    <div class="words-wrap" id="wwrap"></div>
-    <div style="margin-top:12px"><label style="font-size:12px;color:var(--muted);margin-bottom:7px;display:block">Select the correct word:</label><div class="cwsel" id="cwsel"></div></div>`;
-  } else if(qtype==='ordering'){
-    let it='';
-    for(let i=1;i<=4;i++){
-      it+=`<div class="ord-row">
-        <div class="onum">${i}</div>
-        <div class="bi abi" style="margin:0">${bif('or'+i+'_','or'+i+'_','Item '+i)}</div>
+    ab.innerHTML=`
+      <p class="hint" style="margin-bottom:8px">Use ___ in the question text above to mark the blank position.</p>
+      <div class="fill-answer-wrap">
+        <label>Correct Answer for the blank *</label>
+        <div class="fill-answer-input-row">
+          <div style="flex:1" data-bnw="fillans">
+            <div class="ll">বাংলা Answer</div>
+            <input type="text" id="fillansbn" class="fc bn" placeholder="সঠিক উত্তর">
+          </div>
+          <div style="flex:1" data-enw="fillans">
+            <div class="ll">English Answer</div>
+            <input type="text" id="fillansen" class="fc" placeholder="Correct answer">
+          </div>
+        </div>
+        <p class="hint" style="margin-top:6px">Student will type the answer. It will be matched (case-insensitive).</p>
       </div>`;
-    }
-    ab.innerHTML=`<label style="font-size:13px;font-weight:500;margin-bottom:9px;display:block;color:var(--muted)">Items in correct order (will be shuffled for students)</label><div class="ord-items">${it}</div>`;
+  } else if(qtype==='ordering'){
+    orderItems=[{id:1},{id:2},{id:3},{id:4}];
+    orderItemCounter=4;
+    renderOrderingUI(ab);
   }
   refreshBiVisibility();
+}
+
+function renderMatchingUI(ab){
+  let p='';
+  matchPairs.forEach((pair,idx)=>{
+    p+=`<div class="mp" id="mprow_${pair.id}">
+      <div class="bi abi" style="margin:0">${bif('ml'+pair.id+'_','Left item','বাম দিক')}</div>
+      <div class="marr">→</div>
+      <div class="bi abi" style="margin:0">${bif('mr'+pair.id+'_','Right item','ডান দিক')}</div>
+      <button class="mrem" onclick="removeMatchPair(${pair.id})" title="Remove pair"><i class="fas fa-times"></i></button>
+    </div>`;
+  });
+  ab.innerHTML=`<label style="font-size:13px;font-weight:500;margin-bottom:9px;display:block;color:var(--muted)">Matching Pairs — correct order; right column will be shuffled for students</label>
+    <div id="matchPairsContainer">${p}</div>
+    <button class="add-row-btn" onclick="addMatchPair()"><i class="fas fa-plus"></i> Add Another Pair</button>`;
+  refreshBiVisibility();
+}
+
+function addMatchPair(){
+  matchPairCounter++;
+  matchPairs.push({id:matchPairCounter});
+  const container=document.getElementById('matchPairsContainer');
+  const div=document.createElement('div');
+  div.className='mp';
+  div.id='mprow_'+matchPairCounter;
+  div.innerHTML=`<div class="bi abi" style="margin:0">${bif('ml'+matchPairCounter+'_','Left item','বাম দিক')}</div>
+    <div class="marr">→</div>
+    <div class="bi abi" style="margin:0">${bif('mr'+matchPairCounter+'_','Right item','ডান দিক')}</div>
+    <button class="mrem" onclick="removeMatchPair(${matchPairCounter})" title="Remove pair"><i class="fas fa-times"></i></button>`;
+  container.appendChild(div);
+  refreshBiVisibility();
+}
+
+function removeMatchPair(id){
+  if(matchPairs.length<=2){alert('Need at least 2 pairs');return;}
+  matchPairs=matchPairs.filter(p=>p.id!==id);
+  const el=document.getElementById('mprow_'+id);
+  if(el)el.remove();
+}
+
+function renderOrderingUI(ab){
+  let it='';
+  orderItems.forEach((item,idx)=>{
+    it+=`<div class="ord-row" id="orrow_${item.id}">
+      <div class="onum">${idx+1}</div>
+      <div class="bi abi" style="margin:0">${bif('or'+item.id+'_','Item in order','সঠিক ক্রমে আইটেম')}</div>
+      <button class="orem" onclick="removeOrderItem(${item.id})" title="Remove item"><i class="fas fa-times"></i></button>
+    </div>`;
+  });
+  ab.innerHTML=`<label style="font-size:13px;font-weight:500;margin-bottom:9px;display:block;color:var(--muted)">Items in correct order — will be shuffled for students</label>
+    <div class="ord-items" id="orderItemsContainer">${it}</div>
+    <button class="add-row-btn" onclick="addOrderItem()"><i class="fas fa-plus"></i> Add Another Item</button>`;
+  refreshBiVisibility();
+}
+
+function addOrderItem(){
+  orderItemCounter++;
+  orderItems.push({id:orderItemCounter});
+  const container=document.getElementById('orderItemsContainer');
+  const div=document.createElement('div');
+  div.className='ord-row';
+  div.id='orrow_'+orderItemCounter;
+  const idx=orderItems.length-1;
+  div.innerHTML=`<div class="onum">${idx+1}</div>
+    <div class="bi abi" style="margin:0">${bif('or'+orderItemCounter+'_','Item in order','সঠিক ক্রমে আইটেম')}</div>
+    <button class="orem" onclick="removeOrderItem(${orderItemCounter})" title="Remove item"><i class="fas fa-times"></i></button>`;
+  container.appendChild(div);
+  refreshBiVisibility();
+  // re-number
+  renumberOrderItems();
+}
+
+function removeOrderItem(id){
+  if(orderItems.length<=2){alert('Need at least 2 items');return;}
+  orderItems=orderItems.filter(it=>it.id!==id);
+  const el=document.getElementById('orrow_'+id);
+  if(el)el.remove();
+  renumberOrderItems();
+}
+
+function renumberOrderItems(){
+  document.querySelectorAll('#orderItemsContainer .ord-row').forEach((row,idx)=>{
+    const num=row.querySelector('.onum');
+    if(num)num.textContent=idx+1;
+  });
 }
 
 function tfhl(){
@@ -336,25 +474,6 @@ function tfhl(){
   document.getElementById('tftl').style.borderColor=v==='true'?'var(--ok)':'var(--border)';
   document.getElementById('tffl').style.borderColor=v==='false'?'var(--err)':'var(--border)';
 }
-
-function addFW(){
-  const bn=document.getElementById('fwbn')?.value.trim()||'';
-  const en=document.getElementById('fwen')?.value.trim()||'';
-  if(!bn&&!en){alert('Enter a word');return;}
-  fillWords.push({id:Date.now(),bn,en});
-  document.getElementById('fwbn').value='';
-  document.getElementById('fwen').value='';
-  renderFW();
-}
-function renderFW(){
-  const ww=document.getElementById('wwrap');
-  const cs=document.getElementById('cwsel');
-  if(!ww)return;
-  ww.innerHTML=fillWords.map(w=>`<div class="wchip">${w.bn||w.en}<span class="rx" onclick="remFW(${w.id})">✕</span></div>`).join('');
-  cs.innerHTML=fillWords.map(w=>`<button class="cwbtn${correctFillId===w.id?' on':''}" onclick="selCF(${w.id},this)">${w.bn||w.en}</button>`).join('');
-}
-function remFW(id){fillWords=fillWords.filter(w=>w.id!==id);if(correctFillId===id)correctFillId=null;renderFW();}
-function selCF(id,btn){correctFillId=id;document.querySelectorAll('.cwbtn').forEach(b=>b.classList.remove('on'));btn.classList.add('on');}
 
 function addQ(){
   const tbn=document.getElementById('qtbn')?.value.trim()||'';
@@ -374,12 +493,14 @@ function addQ(){
   renderQList();
   document.getElementById('qtbn').value='';
   document.getElementById('qten').value='';
-  fillWords=[];correctFillId=null;
+  document.getElementById('qtbn_prev').classList.remove('show');
+  document.getElementById('qten_prev').classList.remove('show');
   buildAnsUI();
   alert('Question '+(questions.length)+' added!');
 }
 
 function gv(id){return document.getElementById(id)?.value.trim()||'';}
+
 function cMCQ(){
   const c=document.querySelector('input[name="mcqc"]:checked')?.value;
   if(!c){alert('Select correct option');return null;}
@@ -394,24 +515,28 @@ function cTF(){
 }
 function cMatch(){
   const pairs=[];
-  for(let i=1;i<=4;i++){
+  for(const pair of matchPairs){
+    const i=pair.id;
     const lb=gv('ml'+i+'_bn'),le=gv('ml'+i+'_en'),rb=gv('mr'+i+'_bn'),re=gv('mr'+i+'_en');
     if(lb||le||rb||re)pairs.push({lBn:lb,lEn:le,rBn:rb,rEn:re});
   }
-  if(pairs.length<2){alert('Add at least 2 pairs');return null;}
+  if(pairs.length<2){alert('Add at least 2 matching pairs');return null;}
   return{pairs};
 }
 function cFill(){
-  if(fillWords.length<2){alert('Add at least 2 words');return null;}
-  if(!correctFillId){alert('Select the correct word');return null;}
-  return{words:[...fillWords],correctWordId:correctFillId};
+  const ansbn=gv('fillansbn');
+  const ansen=gv('fillansen');
+  if(lang==='bn'&&!ansbn){alert('Enter the correct answer in Bangla');return null;}
+  if(lang==='en'&&!ansen){alert('Enter the correct answer in English');return null;}
+  if(lang==='both'&&!ansbn&&!ansen){alert('Enter the correct answer');return null;}
+  return{correctAnswerBn:ansbn,correctAnswerEn:ansen};
 }
 function cOrder(){
   const items=[];
-  for(let i=1;i<=4;i++){
-    const bn=gv('or'+i+'_bn'),en=gv('or'+i+'_en');
-    if(bn||en)items.push({bn,en,correctPos:i});
-  }
+  orderItems.forEach((item,idx)=>{
+    const bn=gv('or'+item.id+'_bn'),en=gv('or'+item.id+'_en');
+    if(bn||en)items.push({bn,en,correctPos:idx+1});
+  });
   if(items.length<2){alert('Add at least 2 items');return null;}
   return{items};
 }
@@ -427,7 +552,7 @@ function renderQList(){
     if(q.type==='mcq')prev=`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">${Object.entries(q.options).map(([l,o])=>`<span style="font-size:11px;padding:3px 8px;border-radius:20px;border:1px solid ${l===q.correct?'var(--ok)':'var(--border)'};color:${l===q.correct?'var(--ok)':'var(--muted)'}">${l}: ${o.bn||o.en}</span>`).join('')}</div>`;
     if(q.type==='truefalse')prev=`<div style="margin-top:7px;font-size:12px;color:var(--ok)">✓ ${q.correct==='true'?'True / সত্য':'False / মিথ্যা'}</div>`;
     if(q.type==='matching')prev=`<div style="margin-top:7px;font-size:11px;color:var(--muted)">${q.pairs.map(p=>`${p.lBn||p.lEn} → ${p.rBn||p.rEn}`).join(' | ')}</div>`;
-    if(q.type==='fillblank')prev=`<div style="margin-top:7px;font-size:11px;color:var(--muted)">Words: ${q.words.map(w=>w.bn||w.en).join(', ')}</div>`;
+    if(q.type==='fillblank')prev=`<div style="margin-top:7px;font-size:11px;color:var(--muted)">Answer: <span style="color:var(--ok)">${q.correctAnswerBn||q.correctAnswerEn}</span></div>`;
     if(q.type==='ordering')prev=`<div style="margin-top:7px;font-size:11px;color:var(--muted)">${q.items.map((it,n)=>`${n+1}. ${it.bn||it.en}`).join(' → ')}</div>`;
     return `<div class="qi">
       <div class="qi-hd">
@@ -467,6 +592,14 @@ async function saveExam(){
   }catch(e){alert('Error: '+e.message);}
 }
 
+async function toggleExamActive(id, currentState){
+  const newState = !currentState;
+  try{
+    await db.collection('gamifiedExams').doc(id).update({isActive: newState});
+    loadExams();
+  }catch(e){ alert('Error: '+e.message); }
+}
+
 async function loadExams(){
   const el=document.getElementById('examsList');
   el.innerHTML='<div class="spin"></div>';
@@ -476,7 +609,8 @@ async function loadExams(){
     el.innerHTML='<div class="egrid">'+snap.docs.map(doc=>{
       const d=doc.data();
       const url=`gamified-exam.html?id=${doc.id}`;
-      return `<div class="ecard">
+      const isActive=d.isActive!==false;
+      return `<div class="ecard${isActive?'':' inactive'}">
         <div class="einfo">
           <h4>${d.title}</h4>
           <div class="emeta">
@@ -484,13 +618,18 @@ async function loadExams(){
             <span class="mb">${d.subject||'—'}</span>
             <span class="mb mb-v">${(d.questions||[]).length} questions</span>
             <span class="mb mb-au">${d.langMode==='bn'?'বাংলা':d.langMode==='en'?'English':'Bilingual'}</span>
-            <span class="mb ${d.isActive?'mb-g':''}">${d.isActive?'Active':'Inactive'}</span>
+            <span class="mb ${isActive?'mb-g':'mb-inactive'}">${isActive?'✅ Active':'🔒 Inactive'}</span>
             <span class="mb">+${d.creditRight||5} / -${d.creditWrong||2} credits</span>
           </div>
         </div>
-        <div class="eacts">
-          <button class="btn btn-s btn-sm" onclick="cpLink('${url}')"><i class="fas fa-link"></i></button>
-          <button class="btn btn-d btn-sm" onclick="delExam('${doc.id}')"><i class="fas fa-trash"></i></button>
+        <div class="eacts" style="flex-direction:column;gap:6px;align-items:flex-end">
+          <div style="display:flex;gap:7px">
+            <button class="btn btn-s btn-sm" onclick="cpLink('${url}')"><i class="fas fa-link"></i></button>
+            <button class="btn btn-d btn-sm" onclick="delExam('${doc.id}')"><i class="fas fa-trash"></i></button>
+          </div>
+          <button class="btn btn-sm ${isActive?'btn-warn':'btn-g'}" onclick="toggleExamActive('${doc.id}',${isActive})">
+            <i class="fas fa-${isActive?'ban':'check'}"></i> ${isActive?'Deactivate':'Activate'}
+          </button>
         </div>
       </div>`;
     }).join('')+'</div>';
@@ -506,10 +645,8 @@ async function delExam(id){
   loadExams();
 }
 
-// FIXED: load classes (using className & classCode) and subjects (name or subjectName)
 async function loadDropdowns(){
   try {
-    // Load classes: documents have "className" and "classCode"
     const classesSnapshot = await db.collection('classes').orderBy('classCode').get();
     const classSelect = document.getElementById('classSelect');
     classSelect.innerHTML = '<option value="">Select Class</option>';
@@ -520,8 +657,6 @@ async function loadDropdowns(){
       const option = new Option(displayName, displayName);
       classSelect.appendChild(option);
     });
-
-    // Load subjects: try "name" first, then "subjectName"
     const subjectsSnapshot = await db.collection('subjects').orderBy('name').get();
     const subjectSelect = document.getElementById('subjectSelect');
     subjectSelect.innerHTML = '<option value="">Select Subject</option>';
@@ -534,8 +669,6 @@ async function loadDropdowns(){
     });
   } catch(e) {
     console.error("Error loading dropdowns:", e);
-    document.getElementById('classSelect').innerHTML = '<option value="">Error loading classes</option>';
-    document.getElementById('subjectSelect').innerHTML = '<option value="">Error loading subjects</option>';
   }
 }
 
