@@ -1135,7 +1135,7 @@ async function loadLeaderboard(){
         <div class="lb-cred">⭐${sd.totalCredits||0}</div>
       </div>`;
     }).join('');
-  }catch(e){el.innerHTML='<p style="color:var(--muted);font-size:13px;text-align:center">Leaderboard needs multiple responses.</p>';}
+  }catch(e){el.innerHTML='<p style="color:var(--muted);font-size:13px;text-align:center">Leaderboard requires multiple responses.</p>';}
 }
 function goBack(){window.location.href=`student-dashboard.html?user=${studentUsername}`;}
 </script>
