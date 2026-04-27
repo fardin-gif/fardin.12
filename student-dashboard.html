@@ -379,7 +379,7 @@
                 container.innerHTML = '<div class="gexam-grid">' + snap.docs.map(doc => {
                     const d = doc.data();
                     const done = doneIds.has(doc.id);
-                    const langLabel = d.langMode === 'bn' ? 'বাংলা' : d.langMode === 'en' ? '🇬🇧 English' : '🌐 Choose Language';
+                    const langLabel = d.langMode === 'bn' ? 'বাংলা' : d.langMode === 'en' ? 'English' : '🌐 Choose Language';
                     return `<div class="gexam-card">
                         <div class="gexam-title">${d.title}</div>
                         <div class="gexam-meta">
