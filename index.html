@@ -1083,6 +1083,53 @@
                         </div>
                     </div>
 
+                    <!-- NEW: Add Materials Section -->
+            <section class="card" id="addMaterialsCard">
+                <div class="card-header">
+                    <h3><i class="fas fa-paperclip"></i> Add Materials</h3>
+                </div>
+                <div class="card-body">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="materialStudent">Student *</label>
+                            <select id="materialStudent" class="form-control form-select" required>
+                                <option value="">Select Student</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="materialSubject">Subject (Optional)</label>
+                            <input type="text" id="materialSubject" class="form-control" placeholder="e.g., Physics, Math">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="materialTitle">File Title *</label>
+                            <input type="text" id="materialTitle" class="form-control" placeholder="Descriptive title" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="materialType">File Type *</label>
+                            <select id="materialType" class="form-control form-select" required>
+                                <option value="">Select Type</option>
+                                <option value="Note">📘 Note</option>
+                                <option value="Question">❓ Question</option>
+                                <option value="Video">🎥 Video</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="materialLink">Link * (Google Drive, YouTube, etc.)</label>
+                            <input type="url" id="materialLink" class="form-control" placeholder="https://..." required>
+                        </div>
+                    </div>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button class="btn btn-success" onclick="saveMaterial()">
+                            <i class="fas fa-upload"></i> Upload Material
+                        </button>
+                    </div>
+                </div>
+            </section>
+                    
                     <!-- Preview Box -->
                     <div class="preview-box">
                         <div class="preview-title">Live Preview</div>
@@ -1243,32 +1290,23 @@
                 </div>
             </section>
 
-            <!-- Section B: Exam List -->
+           <!-- Exam List (Modified with Show More/Less) -->
             <section class="card">
                 <div class="card-header">
                     <h3><i class="fas fa-list"></i> Exam List</h3>
                 </div>
                 <div class="card-body">
                     <div class="search-box">
-                        <input type="text" id="examSearch" class="search-input" placeholder="Search exams by name, code, class, or subject...">
+                        <input type="text" id="examSearch" class="search-input" placeholder="Search exams...">
                     </div>
                     <div class="sort-buttons">
-                        <button class="btn btn-secondary btn-sm" onclick="sortExams('date')">
-                            <i class="fas fa-calendar"></i> Sort by Date
-                        </button>
-                        <button class="btn btn-secondary btn-sm" onclick="sortExams('code')">
-                            <i class="fas fa-barcode"></i> Sort by Code
-                        </button>
-                        <button class="btn btn-secondary btn-sm" onclick="sortExams('class')">
-                            <i class="fas fa-graduation-cap"></i> Sort by Class
-                        </button>
+                        <button class="btn btn-secondary btn-sm" onclick="sortExams('date')"><i class="fas fa-calendar"></i> Date</button>
+                        <button class="btn btn-secondary btn-sm" onclick="sortExams('code')"><i class="fas fa-barcode"></i> Code</button>
+                        <button class="btn btn-secondary btn-sm" onclick="sortExams('class')"><i class="fas fa-graduation-cap"></i> Class</button>
                     </div>
-                    <div class="exam-grid" id="examGrid">
-                        <!-- Exams will be loaded here -->
-                        <div class="empty-state">
-                            <div class="spinner"></div>
-                            <div class="empty-title">Loading exams...</div>
-                        </div>
+                    <div class="exam-grid" id="examGrid"></div>
+                    <div id="examShowMoreBtn" class="show-more-btn">
+                        <button class="btn btn-secondary" onclick="toggleExamShowAll()">Show More</button>
                     </div>
                 </div>
             </section>
@@ -1683,6 +1721,8 @@
         let currentSetId = null;
         let currentAttendanceStudent = null;
         let currentExamForCreation = null;
+        let examShowAll = false;   // NEW: flag for exam list
+        let submissionShowAll = false; // NEW: flag for submissions list
 
         // DOM Elements
         const adminName = document.getElementById('adminName');
