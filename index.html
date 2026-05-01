@@ -1082,53 +1082,6 @@
                             <input type="text" id="chapterInput" class="form-control" placeholder="Enter chapter name">
                         </div>
                     </div>
-
-                    <!-- NEW: Add Materials Section -->
-            <section class="card" id="addMaterialsCard">
-                <div class="card-header">
-                    <h3><i class="fas fa-paperclip"></i> Add Materials</h3>
-                </div>
-                <div class="card-body">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="materialStudent">Student *</label>
-                            <select id="materialStudent" class="form-control form-select" required>
-                                <option value="">Select Student</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="materialSubject">Subject (Optional)</label>
-                            <input type="text" id="materialSubject" class="form-control" placeholder="e.g., Physics, Math">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="materialTitle">File Title *</label>
-                            <input type="text" id="materialTitle" class="form-control" placeholder="Descriptive title" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="materialType">File Type *</label>
-                            <select id="materialType" class="form-control form-select" required>
-                                <option value="">Select Type</option>
-                                <option value="Note">📘 Note</option>
-                                <option value="Question">❓ Question</option>
-                                <option value="Video">🎥 Video</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="materialLink">Link * (Google Drive, YouTube, etc.)</label>
-                            <input type="url" id="materialLink" class="form-control" placeholder="https://..." required>
-                        </div>
-                    </div>
-                    <div style="text-align: center; margin-top: 20px;">
-                        <button class="btn btn-success" onclick="saveMaterial()">
-                            <i class="fas fa-upload"></i> Upload Material
-                        </button>
-                    </div>
-                </div>
-            </section>
                     
                     <!-- Preview Box -->
                     <div class="preview-box">
@@ -1290,6 +1243,53 @@
                 </div>
             </section>
 
+             <!-- NEW: Add Materials Section -->
+            <section class="card" id="addMaterialsCard">
+                <div class="card-header">
+                    <h3><i class="fas fa-paperclip"></i> Add Materials</h3>
+                </div>
+                <div class="card-body">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="materialStudent">Student *</label>
+                            <select id="materialStudent" class="form-control form-select" required>
+                                <option value="">Select Student</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="materialSubject">Subject (Optional)</label>
+                            <input type="text" id="materialSubject" class="form-control" placeholder="e.g., Physics, Math">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="materialTitle">File Title *</label>
+                            <input type="text" id="materialTitle" class="form-control" placeholder="Descriptive title" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="materialType">File Type *</label>
+                            <select id="materialType" class="form-control form-select" required>
+                                <option value="">Select Type</option>
+                                <option value="Note">📘 Note</option>
+                                <option value="Question">❓ Question</option>
+                                <option value="Video">🎥 Video</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="materialLink">Link * (Google Drive, YouTube, etc.)</label>
+                            <input type="url" id="materialLink" class="form-control" placeholder="https://..." required>
+                        </div>
+                    </div>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button class="btn btn-success" onclick="saveMaterial()">
+                            <i class="fas fa-upload"></i> Upload Material
+                        </button>
+                    </div>
+                </div>
+            </section>
+            
            <!-- Exam List (Modified with Show More/Less) -->
             <section class="card">
                 <div class="card-header">
