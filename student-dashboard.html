@@ -438,7 +438,7 @@
                 .where('studentUsername', '==', studentUsername)
                 .get();
             if (snapshot.empty) {
-                container.innerHTML = `<div class="empty-state"><div class="empty-icon"><i class="fas fa-folder-open"></i></div><div class="empty-title">No materials yet</div><div class="empty-subtitle">Your teacher will upload notes, questions or videos here.</div></div>`;
+                container.innerHTML = `<div class="empty-state"><div class="empty-icon"><i class="fas fa-folder-open"></i></div><div class="empty-title">No materials yet</div><div class="empty-subtitle">Fadin vaiya will upload notes, questions or videos here.</div></div>`;
                 return;
             }
             // Sort client‑side by createdAt descending
