@@ -489,7 +489,7 @@
                 .where('isActive', '==', true)
                 .get();
             if (snap.empty) {
-                container.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-gamepad"></i></div><div class="empty-title">No Gamified Exams Yet</div><div class="empty-subtitle">Your teacher hasn\'t published any gamified exams for your class yet.</div></div>';
+                container.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-gamepad"></i></div><div class="empty-title">No Gamified Exams Yet</div><div class="empty-subtitle">Fardin vaiya hasn\'t published any nano exams for you yet.</div></div>';
                 return;
             }
             const doneSnap = await db.collection('gamifiedSubmissions').where('username','==',studentUsername).get();
