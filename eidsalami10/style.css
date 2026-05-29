@@ -1,5 +1,4 @@
 /* Import Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap');
 
@@ -31,7 +30,7 @@
 }
 
 body {
-    font-family: 'Hind Siliguri', sans-serif;
+    font-family: "Hind Siliguri", sans-serif;
     min-height: 100vh;
     background: var(--bg-dark);
     position: relative;
@@ -241,7 +240,7 @@ body {
     color: var(--text-primary);
     border-radius: 50px;
     margin-bottom: 20px;
-    font-family: 'Hind Siliguri', sans-serif;
+   font-family: "Hind Siliguri", sans-serif;
     transition: all 0.3s;
 }
 
@@ -263,7 +262,7 @@ body {
     cursor: pointer;
     transition: all 0.3s;
     box-shadow: 0 0 20px var(--primary-neon);
-    font-family: 'Hind Siliguri', sans-serif;
+    font-family: "Hind Siliguri", sans-serif;
 }
 
 .glow-button:hover {
@@ -345,7 +344,7 @@ body {
     border: 2px solid var(--glass-border);
     color: var(--text-primary);
     border-radius: 10px;
-    font-family: 'Hind Siliguri', sans-serif;
+    font-family: "Hind Siliguri", sans-serif;
     width: 120px;
 }
 
@@ -367,7 +366,7 @@ body {
     border: 2px solid var(--glass-border);
     color: var(--text-primary);
     border-radius: 10px;
-    font-family: 'Hind Siliguri', sans-serif;
+    font-family: "Hind Siliguri", sans-serif;
     resize: vertical;
 }
 
@@ -394,7 +393,7 @@ body {
     border: 2px solid var(--glass-border);
     color: var(--text-primary);
     border-radius: 10px;
-    font-family: 'Quicksand', sans-serif;
+    font-family: "Hind Siliguri", sans-serif;
 }
 
 .correct-option {
@@ -499,7 +498,7 @@ body {
     color: var(--text-primary);
     border-radius: 10px;
     font-size: 0.9rem;
-    font-family: 'Hind Siliguri', sans-serif;
+    font-family: "Hind Siliguri", sans-serif;
 }
 
 .copy-btn {
@@ -570,7 +569,7 @@ body {
     color: var(--text-primary);
     border-radius: 50px;
     margin-bottom: 20px;
-    font-family: 'Hind Siliguri', sans-serif;
+    font-family: "Hind Siliguri", sans-serif;
     text-align: center;
 }
 
@@ -734,7 +733,7 @@ body {
     transition: all 0.3s;
     text-align: left;
     width: 100%;
-    font-family: 'Hind Siliguri', sans-serif;
+    font-family: "Hind Siliguri", sans-serif;
     font-weight: 600;
     color: var(--text-primary);
 }
@@ -918,7 +917,7 @@ body.result-page::-webkit-scrollbar {
 }
 
 .eid-title {
-    font-family: 'Poppins', sans-serif;
+    font-family: "Hind Siliguri", sans-serif;
     font-size: 3rem;
     color: var(--text-primary);
     margin-bottom: 20px;
@@ -997,7 +996,7 @@ body.result-page::-webkit-scrollbar {
     font-weight: bold;
     cursor: pointer;
     transition: all 0.3s;
-    font-family: 'Hind Siliguri', sans-serif;
+    font-family: "Hind Siliguri", sans-serif;
     min-width: 140px;
 }
 
@@ -1034,7 +1033,7 @@ body.result-page::-webkit-scrollbar {
     border: none;
     padding: 14px 0;
     font-size: 1rem;
-    font-family: 'Hind Siliguri', sans-serif;
+    font-family: "Hind Siliguri", sans-serif;
     background: transparent;
     color: var(--text-primary);
     outline: none;
