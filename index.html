@@ -33,6 +33,59 @@
             --shadow: 0 8px 16px rgba(0,0,0,0.3);
         }
 
+        /* ══ PAGE NAV (tabbed dashboard so everything isn't stacked in one long scroll) ══ */
+        .page-nav {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin: 22px 0 26px;
+            padding: 8px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            position: sticky;
+            top: 10px;
+            z-index: 90;
+            box-shadow: var(--shadow);
+        }
+        .page-nav-btn {
+            flex: 1;
+            min-width: 130px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 14px;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: calc(var(--radius) - 4px);
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .2s;
+        }
+        .page-nav-btn i { font-size: 15px; }
+        .page-nav-btn:hover { color: var(--text-light); background: rgba(255,255,255,0.05); }
+        .page-nav-btn.active {
+            color: #fff;
+            background: linear-gradient(135deg, var(--primary-red), var(--primary-hover));
+            box-shadow: 0 4px 14px rgba(214,40,57,0.35);
+        }
+        .page-nav-btn .pn-badge {
+            background: rgba(255,255,255,0.15);
+            padding: 1px 7px;
+            border-radius: 20px;
+            font-size: 11px;
+        }
+        .page-section { display: none; }
+        .page-section.active-page { display: block; animation: pageIn .25s ease; }
+        @keyframes pageIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+        @media (max-width: 768px) {
+            .page-nav { position: static; overflow-x: auto; flex-wrap: nowrap; }
+            .page-nav-btn { min-width: 110px; }
+        }
+
         body {
             background: var(--bg-dark);
             color: var(--text-light);
@@ -1023,8 +1076,16 @@
     <!-- Main Content -->
     <main>
         <div class="container">
+            <!-- Dashboard Navigation -->
+            <nav class="page-nav" id="pageNav">
+                <button class="page-nav-btn active" data-page="exams" onclick="showPage('exams')"><i class="fas fa-file-alt"></i> Exams</button>
+                <button class="page-nav-btn" data-page="students" onclick="showPage('students')"><i class="fas fa-users"></i> Students &amp; Attendance</button>
+                <button class="page-nav-btn" data-page="materials" onclick="showPage('materials')"><i class="fas fa-folder-open"></i> Materials</button>
+                <button class="page-nav-btn" data-page="submissions" onclick="showPage('submissions')"><i class="fas fa-clipboard-check"></i> Submissions</button>
+            </nav>
+
             <!-- Section D: Attendance Manager -->
-            <section class="card">
+            <section class="card page-section" data-page="students">
                 <div class="card-header">
                     <h3><i class="fas fa-calendar-check"></i> Attendance Manager</h3>
                 </div>
@@ -1049,7 +1110,7 @@
             </section>
             
             <!-- Section A: Create New Exam -->
-            <section class="card">
+            <section class="card page-section active-page" data-page="exams">
                 <div class="card-header">
                     <h3><i class="fas fa-plus-circle"></i> Create New Exam</h3>
                 </div>
@@ -1244,7 +1305,7 @@
             </section>
 
              <!-- NEW: Add Materials Section -->
-            <section class="card" id="addMaterialsCard">
+            <section class="card page-section" data-page="materials" id="addMaterialsCard">
                 <div class="card-header">
                     <h3><i class="fas fa-paperclip"></i> Add Materials</h3>
                 </div>
@@ -1289,9 +1350,77 @@
                     </div>
                 </div>
             </section>
+
+            <!-- NEW: Timed Material Series (part-by-part with countdown) -->
+            <section class="card page-section" data-page="materials" id="materialSeriesCard">
+                <div class="card-header">
+                    <h3><i class="fas fa-hourglass-half"></i> Timed Study Series (Part-by-Part)</h3>
+                </div>
+                <div class="card-body">
+                    <p style="color:var(--text-muted);font-size:13px;margin-bottom:16px;">
+                        Upload all parts up front. Only the current part is shown on a student's dashboard, with a live countdown.
+                        When you're ready, mark the part complete to unlock the next one for the whole class.
+                    </p>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="msClass">Class *</label>
+                            <select id="msClass" class="form-control form-select" required>
+                                <option value="">Select Class</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="msSubject">Subject (Optional)</label>
+                            <input type="text" id="msSubject" class="form-control" placeholder="e.g., Physics, Math">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="msTitle">Series Title *</label>
+                            <input type="text" id="msTitle" class="form-control" placeholder="e.g., Chapter 3 Practice Set">
+                        </div>
+                    </div>
+
+                    <div style="border:1px dashed var(--border-color);border-radius:var(--radius);padding:16px;margin:14px 0;background:rgba(255,255,255,0.02);">
+                        <label style="display:block;margin-bottom:10px;font-weight:600;">Add a Part</label>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="msPartTitle">Part Title *</label>
+                                <input type="text" id="msPartTitle" class="form-control" placeholder="e.g., Part 1 - Kinematics">
+                            </div>
+                            <div class="form-group">
+                                <label for="msPartDuration">Duration (hours) *</label>
+                                <input type="number" id="msPartDuration" class="form-control" min="1" value="48" placeholder="48">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="msPartLink">Link *</label>
+                                <input type="url" id="msPartLink" class="form-control" placeholder="https://...">
+                            </div>
+                            <div class="form-group">
+                                <label for="msPartDesc">Short Description (optional)</label>
+                                <input type="text" id="msPartDesc" class="form-control" placeholder="Notes on what this part covers">
+                            </div>
+                        </div>
+                        <button class="btn btn-secondary" onclick="addMsPart()"><i class="fas fa-plus"></i> Add Part to Queue</button>
+                        <div id="msPartsQueue" style="margin-top:14px;"></div>
+                    </div>
+
+                    <div style="text-align: center; margin-top: 10px;">
+                        <button class="btn btn-success" onclick="saveMaterialSeries()">
+                            <i class="fas fa-save"></i> Save Series
+                        </button>
+                    </div>
+
+                    <hr style="border-color: var(--border-color); margin: 26px 0;">
+
+                    <h4 style="margin-bottom:14px;"><i class="fas fa-list"></i> Existing Series</h4>
+                    <div id="msSeriesList"><div class="empty-state"><div class="empty-title">Loading...</div></div></div>
+                </div>
+            </section>
             
            <!-- Exam List (Modified with Show More/Less) -->
-            <section class="card">
+            <section class="card page-section" data-page="exams">
                 <div class="card-header">
                     <h3><i class="fas fa-list"></i> Exam List</h3>
                 </div>
@@ -1312,7 +1441,7 @@
             </section>
 
             <!-- Section C: Student Management -->
-            <section class="card">
+            <section class="card page-section" data-page="students">
                 <div class="card-header">
                     <h3><i class="fas fa-users"></i> Student Management</h3>
                 </div>
@@ -1384,7 +1513,7 @@
             </section>
 
             <!-- Section E: Submissions List -->
-            <section class="card">
+            <section class="card page-section" data-page="submissions">
                 <div class="card-header">
                     <h3><i class="fas fa-file-upload"></i> Student Submissions</h3>
                 </div>
@@ -1918,6 +2047,144 @@
         modal.style.display = 'flex';
     }
 
+    // ==================== TIMED MATERIAL SERIES (admin) ====================
+    let msPartsQueue = [];
+    function addMsPart(){
+        const title = document.getElementById('msPartTitle').value.trim();
+        const duration = Number(document.getElementById('msPartDuration').value);
+        const link = document.getElementById('msPartLink').value.trim();
+        const desc = document.getElementById('msPartDesc').value.trim();
+        if(!title){ showAlert('Enter a part title', 'error'); return; }
+        if(!duration || duration <= 0){ showAlert('Enter a valid duration in hours', 'error'); return; }
+        if(!link){ showAlert('Enter a link for this part', 'error'); return; }
+        msPartsQueue.push({ partNumber: msPartsQueue.length + 1, title, durationHours: duration, link, description: desc });
+        document.getElementById('msPartTitle').value = '';
+        document.getElementById('msPartDuration').value = '48';
+        document.getElementById('msPartLink').value = '';
+        document.getElementById('msPartDesc').value = '';
+        renderMsPartsQueue();
+    }
+    function removeMsPart(idx){
+        msPartsQueue.splice(idx, 1);
+        msPartsQueue.forEach((p,i)=>p.partNumber=i+1);
+        renderMsPartsQueue();
+    }
+    function renderMsPartsQueue(){
+        const el = document.getElementById('msPartsQueue');
+        if(!msPartsQueue.length){ el.innerHTML = '<p style="color:var(--text-muted);font-size:12px;">No parts added yet.</p>'; return; }
+        el.innerHTML = msPartsQueue.map((p,i)=>`
+            <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.04);border:1px solid var(--border-color);border-radius:8px;padding:10px 14px;margin-bottom:8px;">
+                <div>
+                    <strong>Part ${p.partNumber}: ${escapeHTML(p.title)}</strong>
+                    <div style="font-size:12px;color:var(--text-muted);">${p.durationHours}h countdown ${p.description ? '• '+escapeHTML(p.description) : ''}</div>
+                </div>
+                <button class="btn btn-danger" style="padding:6px 10px;" onclick="removeMsPart(${i})"><i class="fas fa-trash"></i></button>
+            </div>
+        `).join('');
+    }
+    async function saveMaterialSeries(){
+        const className = document.getElementById('msClass').value;
+        const subject = document.getElementById('msSubject').value.trim();
+        const title = document.getElementById('msTitle').value.trim();
+        if(!className){ showAlert('Select a class', 'error'); return; }
+        if(!title){ showAlert('Enter a series title', 'error'); return; }
+        if(!msPartsQueue.length){ showAlert('Add at least one part', 'error'); return; }
+        try{
+            await db.collection('materialSeries').add({
+                className, subject, title,
+                parts: msPartsQueue,
+                currentPart: 1,
+                unlockedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            showAlert('Timed material series saved!', 'success');
+            msPartsQueue = [];
+            renderMsPartsQueue();
+            document.getElementById('msTitle').value = '';
+            document.getElementById('msSubject').value = '';
+            loadMaterialSeriesAdmin();
+        }catch(e){
+            console.error(e);
+            showAlert('Failed to save series: ' + e.message, 'error');
+        }
+    }
+    async function loadMaterialSeriesAdmin(){
+        const el = document.getElementById('msSeriesList');
+        if(!el) return;
+        el.innerHTML = '<div class="empty-state"><div class="empty-title">Loading...</div></div>';
+        try{
+            const snapshot = await db.collection('materialSeries').orderBy('createdAt','desc').get();
+            if(snapshot.empty){
+                el.innerHTML = '<div class="empty-state"><div class="empty-title">No series created yet.</div></div>';
+                return;
+            }
+            el.innerHTML = snapshot.docs.map(doc=>{
+                const s = doc.data();
+                const parts = s.parts || [];
+                const curNum = s.currentPart || 1;
+                const isLast = curNum >= parts.length;
+                const unlockedStr = s.unlockedAt && s.unlockedAt.toDate ? s.unlockedAt.toDate().toLocaleString() : '—';
+                return `
+                <div style="border:1px solid var(--border-color);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px;background:rgba(255,255,255,0.02);">
+                    <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;align-items:flex-start;">
+                        <div>
+                            <strong>${escapeHTML(s.title)}</strong>
+                            <div style="font-size:12px;color:var(--text-muted);">Class: ${escapeHTML(s.className)} ${s.subject ? '• '+escapeHTML(s.subject) : ''} • ${parts.length} part(s)</div>
+                            <div style="font-size:12px;color:var(--info);margin-top:4px;">Current: Part ${curNum}${isLast ? ' (last part)' : ''} — unlocked ${unlockedStr}</div>
+                        </div>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                            ${!isLast ? `<button class="btn btn-success" style="padding:7px 12px;font-size:13px;" onclick="advanceMsPart('${doc.id}')"><i class="fas fa-forward"></i> Mark Complete &amp; Unlock Next</button>` : `<span style="font-size:12px;color:var(--success);align-self:center;">✓ All parts unlocked</span>`}
+                            <button class="btn btn-danger" style="padding:7px 12px;font-size:13px;" onclick="deleteMsSeries('${doc.id}')"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        }catch(e){
+            console.error(e);
+            el.innerHTML = '<div class="empty-state"><div class="empty-title">Failed to load series</div></div>';
+        }
+    }
+    async function advanceMsPart(seriesId){
+        if(!confirm('Mark the current part complete and unlock the next part for all students in this class?')) return;
+        try{
+            const ref = db.collection('materialSeries').doc(seriesId);
+            const doc = await ref.get();
+            if(!doc.exists) return;
+            const s = doc.data();
+            const parts = s.parts || [];
+            const next = (s.currentPart || 1) + 1;
+            if(next > parts.length){ showAlert('This is already the last part.', 'error'); return; }
+            await ref.update({ currentPart: next, unlockedAt: firebase.firestore.FieldValue.serverTimestamp() });
+            showAlert('Next part unlocked for students!', 'success');
+            loadMaterialSeriesAdmin();
+        }catch(e){
+            console.error(e);
+            showAlert('Failed to advance part: ' + e.message, 'error');
+        }
+    }
+    async function deleteMsSeries(seriesId){
+        if(!confirm('Delete this entire timed material series?')) return;
+        try{
+            await db.collection('materialSeries').doc(seriesId).delete();
+            loadMaterialSeriesAdmin();
+        }catch(e){
+            console.error(e);
+            showAlert('Failed to delete series: ' + e.message, 'error');
+        }
+    }
+
+    // ==================== DASHBOARD PAGE NAVIGATION ====================
+    function showPage(page){
+        document.querySelectorAll('.page-section').forEach(el=>{
+            el.classList.toggle('active-page', el.dataset.page===page);
+        });
+        document.querySelectorAll('.page-nav-btn').forEach(btn=>{
+            btn.classList.toggle('active', btn.dataset.page===page);
+        });
+        try{ localStorage.setItem('adminDashboardPage', page); }catch(e){}
+        window.scrollTo({top:0,behavior:'smooth'});
+    }
+
     // ==================== AUTH FUNCTIONS ====================
     function logout() {
         localStorage.removeItem('adminSession');
@@ -1952,6 +2219,8 @@
             classSelect.innerHTML = '<option value="">Select Class</option>';
             const studentClassSelect = document.getElementById('studentClass');
             studentClassSelect.innerHTML = '<option value="">Select Class</option>';
+            const msClassSelect = document.getElementById('msClass');
+            if (msClassSelect) msClassSelect.innerHTML = '<option value="">Select Class</option>';
             classes.forEach(cls => {
                 const option1 = document.createElement('option');
                 option1.value = cls.classCode;
@@ -1961,6 +2230,12 @@
                 option2.value = cls.classCode;
                 option2.textContent = cls.className;
                 studentClassSelect.appendChild(option2);
+                if (msClassSelect) {
+                    const option3 = document.createElement('option');
+                    option3.value = cls.classCode;
+                    option3.textContent = cls.className;
+                    msClassSelect.appendChild(option3);
+                }
             });
             updateAttendanceStudentSelect();
         } catch (error) {
@@ -3285,6 +3560,12 @@
             await loadInitialData();
             setupEventListeners();
             populateMaterialStudentDropdown(); // NEW
+            loadMaterialSeriesAdmin(); // Timed material series list
+            renderMsPartsQueue();
+            const savedPage = localStorage.getItem('adminDashboardPage');
+            if (savedPage && document.querySelector(`.page-section[data-page="${savedPage}"]`)) {
+                showPage(savedPage);
+            }
         } catch (error) {
             console.error('Initialization error:', error);
             showAlert('Error loading dashboard. Please refresh.', 'error');
