@@ -143,6 +143,35 @@
         /* Add pair/item buttons */
         .add-row-btn{display:flex;align-items:center;gap:7px;color:var(--purple);background:rgba(124,58,237,.08);border:1.5px dashed rgba(124,58,237,.4);border-radius:var(--r);padding:8px 14px;cursor:pointer;font-size:13px;font-weight:500;transition:.2s;margin-top:8px;width:100%}
         .add-row-btn:hover{background:rgba(124,58,237,.15);border-color:var(--purple)}
+
+        /* Submissions table */
+        .subs-toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+        .subs-toolbar select,.subs-toolbar input{padding:8px 12px;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:13px}
+        table.subs-table{width:100%;border-collapse:collapse;font-size:13px}
+        table.subs-table th{text-align:left;padding:9px 10px;color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--border)}
+        table.subs-table td{padding:10px;border-bottom:1px solid rgba(255,255,255,.05);vertical-align:middle}
+        table.subs-table tr:hover td{background:rgba(255,255,255,.03)}
+        .pct-pill{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+        .pct-hi{background:rgba(42,157,143,.18);color:var(--ok)}
+        .pct-mid{background:rgba(233,196,106,.18);color:var(--warn)}
+        .pct-lo{background:rgba(230,57,70,.18);color:var(--err)}
+
+        /* Modal / popup */
+        .modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;align-items:center;justify-content:center;padding:20px}
+        .modal-ov.show{display:flex}
+        .modal-box{background:var(--card);border:1px solid var(--border);border-radius:var(--r);max-width:640px;width:100%;max-height:82vh;display:flex;flex-direction:column;box-shadow:var(--shadow)}
+        .modal-box .mh{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+        .modal-box .mh h3{font-size:15px}
+        .modal-box .mbody{padding:16px 20px;overflow-y:auto}
+        .modal-close{background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer}
+        .modal-close:hover{color:var(--text)}
+        .wa-item{border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:10px;background:rgba(0,0,0,.15)}
+        .wa-item.skipped{border-color:rgba(233,196,106,.4)}
+        .wa-item .wa-q{font-size:13px;font-weight:600;margin-bottom:8px}
+        .wa-item .wa-row{font-size:12px;margin-bottom:3px}
+        .wa-item .wa-row b{color:var(--muted);font-weight:600}
+        .wa-user{color:var(--err)}
+        .wa-correct{color:var(--ok)}
     </style>
 </head>
 <body>
@@ -226,8 +255,12 @@
           </div>
         </div>
         <div id="ansBuilder"></div>
-        <div style="margin-top:14px;text-align:right">
-          <button class="btn btn-v" onclick="addQ()"><i class="fas fa-plus"></i> Add This Question</button>
+        <div id="editingBanner" style="display:none;margin-top:14px;padding:10px 14px;background:var(--purple-l,rgba(124,58,237,.12));border:1px solid var(--purple);border-radius:var(--r);font-size:13px;color:var(--purple)">
+          <i class="fas fa-pen"></i> Editing an existing question — saving will update it in place.
+        </div>
+        <div style="margin-top:14px;text-align:right;display:flex;gap:10px;justify-content:flex-end">
+          <button class="btn" id="cancelEditBtn" style="display:none;background:var(--card2,#333)" onclick="cancelEdit()"><i class="fas fa-times"></i> Cancel Edit</button>
+          <button class="btn btn-v" onclick="addQ()"><i class="fas fa-plus"></i> <span id="addQBtnLabel">Add This Question</span></button>
         </div>
       </div>
     </div>
@@ -249,15 +282,48 @@
       </div>
       <div class="cb"><div id="examsList"><div class="spin"></div></div></div>
     </div>
+
+    <!-- Submissions -->
+    <div class="card">
+      <div class="ch">
+        <h3><i class="fas fa-clipboard-list" style="color:var(--info)"></i> Nano Exam Submissions</h3>
+        <button class="btn btn-s btn-sm" onclick="loadSubmissions()"><i class="fas fa-sync"></i> Refresh</button>
+      </div>
+      <div class="cb">
+        <div class="subs-toolbar">
+          <select id="subExamFilter" class="fsel" onchange="renderSubmissions()"><option value="">All Exams</option></select>
+          <input type="text" id="subSearchInput" placeholder="Search student name/username..." oninput="renderSubmissions()" style="flex:1;min-width:180px">
+        </div>
+        <div style="overflow-x:auto">
+          <table class="subs-table">
+            <thead><tr>
+              <th>Student</th><th>Exam</th><th>Score</th><th>Credits</th><th>Device IP</th><th>Submitted</th><th>Wrong / Missed</th>
+            </tr></thead>
+            <tbody id="subsTableBody"><tr><td colspan="7"><div class="spin"></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   </div>
 </main>
+
+<!-- Wrong/Missed Answers Modal -->
+<div class="modal-ov" id="waModal">
+  <div class="modal-box">
+    <div class="mh">
+      <h3><i class="fas fa-triangle-exclamation" style="color:var(--err)"></i> Wrong / Missed Answers</h3>
+      <button class="modal-close" onclick="closeWaModal()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="mbody" id="waModalBody"></div>
+  </div>
+</div>
 
 <script>
 const firebaseConfig={apiKey:"AIzaSyAlR-WEX_HZjkE1hzh_rPRYAz7CrjQYB54",authDomain:"exammanagementsystem-a7720.firebaseapp.com",projectId:"exammanagementsystem-a7720",storageBucket:"exammanagementsystem-a7720.firebasestorage.app",messagingSenderId:"269325070232",appId:"1:269325070232:web:79bdf01e4f47ea36bd45ed"};
 firebase.initializeApp(firebaseConfig);
 const db=firebase.firestore();
 
-let lang='bn', qtype='mcq', questions=[];
+let lang='bn', qtype='mcq', questions=[], editingId=null;
 // Matching: dynamic pairs
 let matchPairs=[{id:1},{id:2},{id:3},{id:4}];
 let matchPairCounter=4;
@@ -489,14 +555,92 @@ function addQ(){
   else if(qtype==='ordering')ans=cOrder();
   if(!ans)return;
   const tSec=parseInt(document.getElementById('qTimer').value)||0;
-  questions.push({id:Date.now(),type:qtype,textBn:tbn,textEn:ten,timerSeconds:tSec,...ans});
+  const qObj={id:editingId||Date.now(),type:qtype,textBn:tbn,textEn:ten,timerSeconds:tSec,...ans};
+  let wasEdit=false;
+  if(editingId){
+    const idx=questions.findIndex(q=>q.id===editingId);
+    if(idx>-1){ questions[idx]=qObj; wasEdit=true; }
+    else questions.push(qObj);
+  } else {
+    questions.push(qObj);
+  }
   renderQList();
   document.getElementById('qtbn').value='';
   document.getElementById('qten').value='';
   document.getElementById('qtbn_prev').classList.remove('show');
   document.getElementById('qten_prev').classList.remove('show');
+  cancelEdit(false); // resets editing UI state (without wiping fields again)
   buildAnsUI();
-  alert('Question '+(questions.length)+' added!');
+  alert(wasEdit?'Question updated!':'Question '+(questions.length)+' added!');
+}
+
+function editQ(id){
+  const q=questions.find(x=>x.id===id);
+  if(!q) return;
+  editingId=id;
+  document.querySelectorAll('.qtb').forEach(b=>b.classList.remove('on'));
+  const typeBtn=document.querySelector(`.qtb[data-type="${q.type}"]`);
+  if(typeBtn) typeBtn.classList.add('on');
+  qtype=q.type;
+  if(q.type==='matching'){
+    matchPairs=q.pairs.map((_,i)=>({id:i+1}));
+    matchPairCounter=matchPairs.length;
+  }
+  if(q.type==='ordering'){
+    orderItems=q.items.map((_,i)=>({id:i+1}));
+    orderItemCounter=orderItems.length;
+  }
+  buildAnsUI();
+  document.getElementById('qtbn').value=q.textBn||'';
+  document.getElementById('qten').value=q.textEn||'';
+  previewLatex('qtbn','qtbn_prev'); previewLatex('qten','qten_prev');
+  document.getElementById('qTimer').value=q.timerSeconds||0;
+  if(q.type==='mcq'){
+    ['A','B','C','D'].forEach(l=>{
+      const bnEl=document.getElementById('opt'+l+'_bn'), enEl=document.getElementById('opt'+l+'_en');
+      if(bnEl) bnEl.value=q.options[l]?.bn||'';
+      if(enEl) enEl.value=q.options[l]?.en||'';
+      previewLatex('opt'+l+'_bn','opt'+l+'_bn_prev'); previewLatex('opt'+l+'_en','opt'+l+'_en_prev');
+    });
+    const radio=document.querySelector(`input[name="mcqc"][value="${q.correct}"]`);
+    if(radio) radio.checked=true;
+  } else if(q.type==='truefalse'){
+    const radio=document.querySelector(`input[name="tfa"][value="${q.correct}"]`);
+    if(radio){ radio.checked=true; tfhl(); }
+  } else if(q.type==='matching'){
+    q.pairs.forEach((p,i)=>{
+      const id=i+1;
+      const lb=document.getElementById('ml'+id+'_bn'), le=document.getElementById('ml'+id+'_en');
+      const rb=document.getElementById('mr'+id+'_bn'), re=document.getElementById('mr'+id+'_en');
+      if(lb) lb.value=p.lBn||''; if(le) le.value=p.lEn||'';
+      if(rb) rb.value=p.rBn||''; if(re) re.value=p.rEn||'';
+    });
+  } else if(q.type==='fillblank'){
+    document.getElementById('fillansbn').value=q.correctAnswerBn||'';
+    document.getElementById('fillansen').value=q.correctAnswerEn||'';
+  } else if(q.type==='ordering'){
+    q.items.forEach((it,i)=>{
+      const id=i+1;
+      const b=document.getElementById('or'+id+'_bn'), e=document.getElementById('or'+id+'_en');
+      if(b) b.value=it.bn||''; if(e) e.value=it.en||'';
+    });
+  }
+  document.getElementById('addQBtnLabel').textContent='Update Question';
+  document.getElementById('cancelEditBtn').style.display='';
+  document.getElementById('editingBanner').style.display='';
+  document.querySelector('.card .ch h3 .fa-plus-circle')?.closest('.card')?.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function cancelEdit(clearFields=true){
+  editingId=null;
+  document.getElementById('addQBtnLabel').textContent='Add This Question';
+  document.getElementById('cancelEditBtn').style.display='none';
+  document.getElementById('editingBanner').style.display='none';
+  if(clearFields){
+    document.getElementById('qtbn').value='';
+    document.getElementById('qten').value='';
+    buildAnsUI();
+  }
 }
 
 function gv(id){return document.getElementById(id)?.value.trim()||'';}
@@ -558,6 +702,7 @@ function renderQList(){
       <div class="qi-hd">
         <span class="qnum">Q${i+1}</span>
         <span class="qtbadge">${QTLABELS[q.type]}</span>
+        <button class="btn btn-sm" style="background:var(--blue,#3b82f6)" onclick="editQ(${q.id})"><i class="fas fa-pen"></i></button>
         <button class="btn btn-d btn-sm" onclick="remQ(${q.id})"><i class="fas fa-trash"></i></button>
       </div>
       <p style="font-size:13px;line-height:1.5;font-family:${q.textBn?'Hind Siliguri,':''}sans-serif">${txt}</p>
@@ -565,7 +710,7 @@ function renderQList(){
     </div>`;
   }).join('');
 }
-function remQ(id){questions=questions.filter(q=>q.id!==id);renderQList();}
+function remQ(id){questions=questions.filter(q=>q.id!==id);if(id===editingId)cancelEdit();renderQList();}
 
 async function saveExam(){
   const title=document.getElementById('examTitle').value.trim();
@@ -672,12 +817,75 @@ async function loadDropdowns(){
   }
 }
 
+// ══ SUBMISSIONS ══
+let allSubmissions=[];
+async function loadSubmissions(){
+  const tbody=document.getElementById('subsTableBody');
+  tbody.innerHTML='<tr><td colspan="7"><div class="spin"></div></td></tr>';
+  try{
+    const snap=await db.collection('gamifiedSubmissions').orderBy('submittedAt','desc').limit(300).get();
+    allSubmissions=snap.docs.map(d=>({id:d.id,...d.data()}));
+    // populate exam filter dropdown
+    const sel=document.getElementById('subExamFilter');
+    const seen=new Set(); let opts='<option value="">All Exams</option>';
+    allSubmissions.forEach(s=>{
+      if(s.examId && !seen.has(s.examId)){ seen.add(s.examId); opts+=`<option value="${s.examId}">${escapeAttr(s.examTitle||s.examId)}</option>`; }
+    });
+    sel.innerHTML=opts;
+    renderSubmissions();
+  }catch(e){ tbody.innerHTML=`<tr><td colspan="7"><div class="es">Error: ${e.message}</div></td></tr>`; }
+}
+function escapeAttr(s){ return String(s||'').replace(/"/g,'&quot;'); }
+function renderSubmissions(){
+  const tbody=document.getElementById('subsTableBody');
+  const examFilter=document.getElementById('subExamFilter').value;
+  const q=(document.getElementById('subSearchInput').value||'').toLowerCase().trim();
+  let list=allSubmissions;
+  if(examFilter) list=list.filter(s=>s.examId===examFilter);
+  if(q) list=list.filter(s=>(s.studentName||'').toLowerCase().includes(q)||(s.username||'').toLowerCase().includes(q));
+  if(!list.length){ tbody.innerHTML='<tr><td colspan="7"><div class="es">No submissions found.</div></td></tr>'; return; }
+  tbody.innerHTML=list.map(s=>{
+    const pct=s.pct!==undefined?s.pct:(s.total?Math.round((s.correct/s.total)*100):0);
+    const pctCls=pct>=80?'pct-hi':pct>=50?'pct-mid':'pct-lo';
+    const when=s.submittedAt&&s.submittedAt.toDate?s.submittedAt.toDate().toLocaleString():'—';
+    const wrongCount=(s.wrongAnswers||[]).length;
+    return `<tr>
+      <td><b>${s.studentName||s.username||'—'}</b><br><span style="color:var(--muted);font-size:11px">${s.username||''} ${s.className?'• '+s.className:''}</span></td>
+      <td>${s.examTitle||'—'}</td>
+      <td><span class="pct-pill ${pctCls}">${s.correct||0}/${s.total||0} (${pct}%)</span></td>
+      <td>${s.creditsEarned!==undefined?(s.creditsEarned>=0?'+':'')+s.creditsEarned:'—'}</td>
+      <td style="font-size:11px;color:var(--muted)">${s.deviceIp||'—'}</td>
+      <td style="font-size:12px;color:var(--muted)">${when}</td>
+      <td>${wrongCount?`<button class="btn btn-warn btn-sm" onclick="showWrongAnswers('${s.id}')"><i class="fas fa-triangle-exclamation"></i> ${wrongCount}</button>`:'<span style="color:var(--ok);font-size:12px">✓ All correct</span>'}</td>
+    </tr>`;
+  }).join('');
+}
+function showWrongAnswers(subId){
+  const s=allSubmissions.find(x=>x.id===subId);
+  if(!s) return;
+  const body=document.getElementById('waModalBody');
+  const items=s.wrongAnswers||[];
+  if(!items.length){ body.innerHTML='<div class="es">No wrong or skipped answers recorded.</div>'; }
+  else{
+    body.innerHTML=`<p style="font-size:12px;color:var(--muted);margin-bottom:12px">${s.studentName||s.username} — ${s.examTitle||''}</p>`+
+      items.map((w,i)=>`
+        <div class="wa-item${w.status==='skipped'?' skipped':''}">
+          <div class="wa-q">Q${(w.qIndex!==undefined?w.qIndex+1:i+1)}. ${escapeAttr(w.questionText)}${w.status==='skipped'?' <span style="color:var(--warn);font-size:11px">(Skipped/Timeout)</span>':''}</div>
+          <div class="wa-row"><b>Student's answer:</b> <span class="wa-user">${escapeAttr(w.userAnswer)||'—'}</span></div>
+          <div class="wa-row"><b>Correct answer:</b> <span class="wa-correct">${escapeAttr(w.correctAnswer)}</span></div>
+        </div>`).join('');
+  }
+  document.getElementById('waModal').classList.add('show');
+}
+function closeWaModal(){ document.getElementById('waModal').classList.remove('show'); }
+
 document.addEventListener('DOMContentLoaded',()=>{
   const s=JSON.parse(localStorage.getItem('adminSession')||'{}');
   if(!s.isAdmin){window.location.href='login.html';return;}
   loadDropdowns();
   buildAnsUI();
   loadExams();
+  loadSubmissions();
 });
 </script>
 </body>
