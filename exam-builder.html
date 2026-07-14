@@ -193,8 +193,19 @@
       <div class="cb">
         <div class="row">
           <div class="fg"><label>Exam Title *</label><input type="text" id="examTitle" class="fc" placeholder="e.g. Chapter 3 Practice"></div>
-          <div class="fg"><label>Class *</label><select id="classSelect" class="fc fsel"><option value="">Select Class</option></select></div>
           <div class="fg"><label>Subject</label><select id="subjectSelect" class="fc fsel"><option value="">Select Subject</option></select></div>
+        </div>
+        <div class="fg" style="margin-bottom:14px">
+          <label style="margin-bottom:9px;display:block">Assign to Students * <span style="color:var(--muted);font-weight:400">(only these students will see this exam on their dashboard)</span></label>
+          <input type="text" id="studentAssignSearch" class="fc" placeholder="Search students by name or username..." oninput="renderStudentAssignList()" style="margin-bottom:10px">
+          <div id="studentAssignList" style="max-height:220px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--r);padding:10px;display:grid;gap:6px">
+            <p style="color:var(--muted);font-size:12px">Loading students...</p>
+          </div>
+          <div style="display:flex;gap:14px;margin-top:8px;font-size:12px;color:var(--muted);align-items:center">
+            <span id="assignCountLabel">0 students selected</span>
+            <a href="#" onclick="selectAllStudents(event)" style="color:var(--purple);text-decoration:none">Select All</a>
+            <a href="#" onclick="clearAllStudents(event)" style="color:var(--muted);text-decoration:none">Clear</a>
+          </div>
         </div>
         <div class="fg" style="margin-bottom:14px">
           <label style="margin-bottom:9px;display:block">Language Mode *</label>
@@ -318,12 +329,34 @@
   </div>
 </div>
 
+<!-- Manage Assigned Students Modal -->
+<div class="modal-ov" id="manageStudentsModal">
+  <div class="modal-box">
+    <div class="mh">
+      <h3><i class="fas fa-users" style="color:var(--purple)"></i> Manage Assigned Students</h3>
+      <button class="modal-close" onclick="closeManageStudentsModal()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="mbody">
+      <input type="text" id="msmSearch" class="fc" placeholder="Search students by name or username..." oninput="renderManageStudentsList()" style="margin-bottom:10px">
+      <div id="msmList" style="max-height:320px;overflow-y:auto;display:grid;gap:6px"></div>
+      <div style="margin-top:16px;text-align:right">
+        <button class="btn btn-v" onclick="saveManageStudents()"><i class="fas fa-save"></i> Save Assigned Students</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 const firebaseConfig={apiKey:"AIzaSyAlR-WEX_HZjkE1hzh_rPRYAz7CrjQYB54",authDomain:"exammanagementsystem-a7720.firebaseapp.com",projectId:"exammanagementsystem-a7720",storageBucket:"exammanagementsystem-a7720.firebasestorage.app",messagingSenderId:"269325070232",appId:"1:269325070232:web:79bdf01e4f47ea36bd45ed"};
 firebase.initializeApp(firebaseConfig);
 const db=firebase.firestore();
 
 let lang='bn', qtype='mcq', questions=[], editingId=null;
+// Student assignment (for the exam currently being built)
+let allStudents=[], selectedStudents=new Set();
+// Manage-students modal (editing an already-saved exam)
+let msmExamId=null, msmSelected=new Set();
+let allExamsCache=[];
 // Matching: dynamic pairs
 let matchPairs=[{id:1},{id:2},{id:3},{id:4}];
 let matchPairCounter=4;
@@ -714,12 +747,12 @@ function remQ(id){questions=questions.filter(q=>q.id!==id);if(id===editingId)can
 
 async function saveExam(){
   const title=document.getElementById('examTitle').value.trim();
-  const cls=document.getElementById('classSelect').value;
   if(!title){alert('Enter exam title');return;}
-  if(!cls){alert('Select a class');return;}
   if(!questions.length){alert('Add at least 1 question');return;}
+  if(!selectedStudents.size){alert('Assign at least 1 student');return;}
   const data={
-    title,className:cls,
+    title,
+    assignedStudents:Array.from(selectedStudents),
     subject:document.getElementById('subjectSelect').value,
     langMode:lang,
     creditRight:Number(document.getElementById('creditR').value)||5,
@@ -733,6 +766,8 @@ async function saveExam(){
     alert('Exam saved! ID: '+ref.id);
     questions=[];renderQList();
     document.getElementById('examTitle').value='';
+    selectedStudents=new Set();
+    renderStudentAssignList();
     loadExams();
   }catch(e){alert('Error: '+e.message);}
 }
@@ -750,16 +785,17 @@ async function loadExams(){
   el.innerHTML='<div class="spin"></div>';
   try{
     const snap=await db.collection('gamifiedExams').orderBy('createdAt','desc').get();
-    if(snap.empty){el.innerHTML='<div class="es">No gamified exams yet.</div>';return;}
-    el.innerHTML='<div class="egrid">'+snap.docs.map(doc=>{
-      const d=doc.data();
-      const url=`gamified-exam.html?id=${doc.id}`;
+    allExamsCache=snap.docs.map(doc=>({id:doc.id,...doc.data()}));
+    if(!allExamsCache.length){el.innerHTML='<div class="es">No gamified exams yet.</div>';return;}
+    el.innerHTML='<div class="egrid">'+allExamsCache.map(d=>{
+      const url=`gamified-exam.html?id=${d.id}`;
       const isActive=d.isActive!==false;
+      const assignedCount=(d.assignedStudents||[]).length;
       return `<div class="ecard${isActive?'':' inactive'}">
         <div class="einfo">
           <h4>${d.title}</h4>
           <div class="emeta">
-            <span class="mb">${d.className||'—'}</span>
+            <span class="mb"><i class="fas fa-user-graduate"></i> ${assignedCount} student${assignedCount===1?'':'s'} assigned</span>
             <span class="mb">${d.subject||'—'}</span>
             <span class="mb mb-v">${(d.questions||[]).length} questions</span>
             <span class="mb mb-au">${d.langMode==='bn'?'বাংলা':d.langMode==='en'?'English':'Bilingual'}</span>
@@ -769,10 +805,11 @@ async function loadExams(){
         </div>
         <div class="eacts" style="flex-direction:column;gap:6px;align-items:flex-end">
           <div style="display:flex;gap:7px">
-            <button class="btn btn-s btn-sm" onclick="cpLink('${url}')"><i class="fas fa-link"></i></button>
-            <button class="btn btn-d btn-sm" onclick="delExam('${doc.id}')"><i class="fas fa-trash"></i></button>
+            <button class="btn btn-s btn-sm" onclick="cpLink('${url}')" title="Copy student link"><i class="fas fa-link"></i></button>
+            <button class="btn btn-s btn-sm" onclick="openManageStudents('${d.id}')" title="Manage assigned students"><i class="fas fa-users"></i></button>
+            <button class="btn btn-d btn-sm" onclick="delExam('${d.id}')"><i class="fas fa-trash"></i></button>
           </div>
-          <button class="btn btn-sm ${isActive?'btn-warn':'btn-g'}" onclick="toggleExamActive('${doc.id}',${isActive})">
+          <button class="btn btn-sm ${isActive?'btn-warn':'btn-g'}" onclick="toggleExamActive('${d.id}',${isActive})">
             <i class="fas fa-${isActive?'ban':'check'}"></i> ${isActive?'Deactivate':'Activate'}
           </button>
         </div>
@@ -792,16 +829,6 @@ async function delExam(id){
 
 async function loadDropdowns(){
   try {
-    const classesSnapshot = await db.collection('classes').orderBy('classCode').get();
-    const classSelect = document.getElementById('classSelect');
-    classSelect.innerHTML = '<option value="">Select Class</option>';
-    classesSnapshot.forEach(doc => {
-      const data = doc.data();
-      const displayName = data.className || data.name;
-      if (!displayName) return;
-      const option = new Option(displayName, displayName);
-      classSelect.appendChild(option);
-    });
     const subjectsSnapshot = await db.collection('subjects').orderBy('name').get();
     const subjectSelect = document.getElementById('subjectSelect');
     subjectSelect.innerHTML = '<option value="">Select Subject</option>';
@@ -815,6 +842,87 @@ async function loadDropdowns(){
   } catch(e) {
     console.error("Error loading dropdowns:", e);
   }
+}
+
+// ══ STUDENT ASSIGNMENT (new exam being built) ══
+async function loadStudentsForAssignment(){
+  try{
+    const snap=await db.collection('students').get();
+    allStudents=snap.docs.map(d=>({username:d.id,...d.data()}))
+      .sort((a,b)=>(a.studentName||a.username).localeCompare(b.studentName||b.username));
+    renderStudentAssignList();
+  }catch(e){
+    console.error(e);
+    document.getElementById('studentAssignList').innerHTML='<p style="color:var(--err);font-size:12px">Failed to load students.</p>';
+  }
+}
+function renderStudentAssignList(){
+  const el=document.getElementById('studentAssignList');
+  const q=(document.getElementById('studentAssignSearch').value||'').toLowerCase().trim();
+  let list=allStudents;
+  if(q) list=list.filter(s=>(s.studentName||'').toLowerCase().includes(q)||s.username.toLowerCase().includes(q));
+  if(!list.length){ el.innerHTML='<p style="color:var(--muted);font-size:12px">No students found.</p>'; return; }
+  el.innerHTML=list.map(s=>`
+    <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;padding:4px 2px">
+      <input type="checkbox" value="${s.username}" ${selectedStudents.has(s.username)?'checked':''} onchange="toggleStudentSelect('${s.username}',this.checked)">
+      <span>${s.studentName||s.username} <span style="color:var(--muted);font-size:11px">(${s.username}${s.className?' • '+s.className:''})</span></span>
+    </label>`).join('');
+  updateAssignCountLabel();
+}
+function toggleStudentSelect(username,checked){
+  if(checked) selectedStudents.add(username); else selectedStudents.delete(username);
+  updateAssignCountLabel();
+}
+function updateAssignCountLabel(){
+  const lbl=document.getElementById('assignCountLabel');
+  if(lbl) lbl.textContent=selectedStudents.size+' student(s) selected';
+}
+function selectAllStudents(e){
+  e.preventDefault();
+  const q=(document.getElementById('studentAssignSearch').value||'').toLowerCase().trim();
+  let list=allStudents;
+  if(q) list=list.filter(s=>(s.studentName||'').toLowerCase().includes(q)||s.username.toLowerCase().includes(q));
+  list.forEach(s=>selectedStudents.add(s.username));
+  renderStudentAssignList();
+}
+function clearAllStudents(e){
+  e.preventDefault();
+  selectedStudents.clear();
+  renderStudentAssignList();
+}
+
+// ══ MANAGE STUDENTS (editing an already-saved exam) ══
+function openManageStudents(examId){
+  const exam=allExamsCache.find(e=>e.id===examId);
+  if(!exam) return;
+  msmExamId=examId;
+  msmSelected=new Set(exam.assignedStudents||[]);
+  document.getElementById('msmSearch').value='';
+  renderManageStudentsList();
+  document.getElementById('manageStudentsModal').classList.add('show');
+}
+function closeManageStudentsModal(){ document.getElementById('manageStudentsModal').classList.remove('show'); }
+function renderManageStudentsList(){
+  const el=document.getElementById('msmList');
+  const q=(document.getElementById('msmSearch').value||'').toLowerCase().trim();
+  let list=allStudents;
+  if(q) list=list.filter(s=>(s.studentName||'').toLowerCase().includes(q)||s.username.toLowerCase().includes(q));
+  if(!list.length){ el.innerHTML='<p style="color:var(--muted);font-size:12px">No students found.</p>'; return; }
+  el.innerHTML=list.map(s=>`
+    <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;padding:4px 2px">
+      <input type="checkbox" value="${s.username}" ${msmSelected.has(s.username)?'checked':''} onchange="toggleMsmSelect('${s.username}',this.checked)">
+      <span>${s.studentName||s.username} <span style="color:var(--muted);font-size:11px">(${s.username}${s.className?' • '+s.className:''})</span></span>
+    </label>`).join('');
+}
+function toggleMsmSelect(username,checked){
+  if(checked) msmSelected.add(username); else msmSelected.delete(username);
+}
+async function saveManageStudents(){
+  try{
+    await db.collection('gamifiedExams').doc(msmExamId).update({assignedStudents:Array.from(msmSelected)});
+    closeManageStudentsModal();
+    loadExams();
+  }catch(e){ alert('Error: '+e.message); }
 }
 
 // ══ SUBMISSIONS ══
@@ -883,6 +991,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   const s=JSON.parse(localStorage.getItem('adminSession')||'{}');
   if(!s.isAdmin){window.location.href='login.html';return;}
   loadDropdowns();
+  loadStudentsForAssignment();
   buildAnsUI();
   loadExams();
   loadSubmissions();
