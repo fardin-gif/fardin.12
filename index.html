@@ -1358,25 +1358,30 @@
                 </div>
                 <div class="card-body">
                     <p style="color:var(--text-muted);font-size:13px;margin-bottom:16px;">
-                        Upload all parts up front. Only the current part is shown on a student's dashboard, with a live countdown.
-                        When you're ready, mark the part complete to unlock the next one for the whole class.
+                        Upload all parts up front. Only the current part is shown on the dashboard of each assigned student, with a live countdown.
+                        When you're ready, mark the part complete to unlock the next one for everyone assigned. You can add more students to a series later —
+                        they'll immediately see it on their own dashboard.
                     </p>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="msClass">Class *</label>
-                            <select id="msClass" class="form-control form-select" required>
-                                <option value="">Select Class</option>
-                            </select>
+                            <label for="msTitle">Series Title *</label>
+                            <input type="text" id="msTitle" class="form-control" placeholder="e.g., Chapter 3 Practice Set">
                         </div>
                         <div class="form-group">
                             <label for="msSubject">Subject (Optional)</label>
                             <input type="text" id="msSubject" class="form-control" placeholder="e.g., Physics, Math">
                         </div>
                     </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="msTitle">Series Title *</label>
-                            <input type="text" id="msTitle" class="form-control" placeholder="e.g., Chapter 3 Practice Set">
+                    <div class="form-group" style="margin-bottom:16px;">
+                        <label>Assign to Students * <span style="color:var(--text-muted);font-weight:400;font-size:12px;">(only these students will see this series)</span></label>
+                        <input type="text" id="msStudentSearch" class="form-control" placeholder="Search students by name or username..." oninput="renderMsStudentList()" style="margin-bottom:10px;">
+                        <div id="msStudentList" style="max-height:220px;overflow-y:auto;border:1px solid var(--border-color);border-radius:var(--radius);padding:10px;display:grid;gap:6px;">
+                            <p style="color:var(--text-muted);font-size:12px;">Loading students...</p>
+                        </div>
+                        <div style="display:flex;gap:14px;margin-top:8px;font-size:12px;color:var(--text-muted);align-items:center;">
+                            <span id="msAssignCountLabel">0 students selected</span>
+                            <a href="#" onclick="msSelectAllStudents(event)" style="color:var(--info);text-decoration:none">Select All</a>
+                            <a href="#" onclick="msClearAllStudents(event)" style="color:var(--text-muted);text-decoration:none">Clear</a>
                         </div>
                     </div>
 
@@ -1768,6 +1773,24 @@
         </div>
     </div>
 
+    <!-- Manage Series Students Modal -->
+    <div class="modal-overlay" id="msManageModal">
+        <div class="modal" style="max-width: 600px;">
+            <div class="modal-header">
+                <div class="modal-title">Manage Assigned Students</div>
+                <button class="modal-close" onclick="closeModal('msManageModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="text" id="msmSearch" class="form-control" placeholder="Search students by name or username..." oninput="renderMsmList()" style="margin-bottom:10px;">
+                <div id="msmList" style="max-height:320px;overflow-y:auto;display:grid;gap:6px;"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('msManageModal')">Cancel</button>
+                <button class="btn btn-success" onclick="saveMsManage()">Save Assigned Students</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Mark Written Modal -->
     <div class="modal-overlay" id="markWrittenModal">
         <div class="modal" style="max-width: 800px;">
@@ -2049,6 +2072,58 @@
 
     // ==================== TIMED MATERIAL SERIES (admin) ====================
     let msPartsQueue = [];
+    let msAllStudents = [], msSelectedStudents = new Set();
+    let msAllSeriesCache = [];
+    let msmSeriesId = null, msmSelected = new Set();
+
+    async function loadMsStudents(){
+        try{
+            const snap = await db.collection('students').get();
+            msAllStudents = snap.docs.map(d=>({username:d.id,...d.data()}))
+                .sort((a,b)=>(a.studentName||a.username).localeCompare(b.studentName||b.username));
+            renderMsStudentList();
+        }catch(e){
+            console.error(e);
+            const el=document.getElementById('msStudentList');
+            if(el) el.innerHTML = '<p style="color:var(--danger);font-size:12px;">Failed to load students.</p>';
+        }
+    }
+    function renderMsStudentList(){
+        const el = document.getElementById('msStudentList');
+        if(!el) return;
+        const q = (document.getElementById('msStudentSearch').value||'').toLowerCase().trim();
+        let list = msAllStudents;
+        if(q) list = list.filter(s=>(s.studentName||'').toLowerCase().includes(q)||s.username.toLowerCase().includes(q));
+        if(!list.length){ el.innerHTML = '<p style="color:var(--text-muted);font-size:12px;">No students found.</p>'; return; }
+        el.innerHTML = list.map(s=>`
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;padding:4px 2px;">
+                <input type="checkbox" value="${s.username}" ${msSelectedStudents.has(s.username)?'checked':''} onchange="toggleMsStudentSelect('${s.username}',this.checked)">
+                <span>${escapeHTML(s.studentName||s.username)} <span style="color:var(--text-muted);font-size:11px;">(${escapeHTML(s.username)}${s.className?' • '+escapeHTML(s.className):''})</span></span>
+            </label>`).join('');
+        updateMsAssignCountLabel();
+    }
+    function toggleMsStudentSelect(username, checked){
+        if(checked) msSelectedStudents.add(username); else msSelectedStudents.delete(username);
+        updateMsAssignCountLabel();
+    }
+    function updateMsAssignCountLabel(){
+        const lbl = document.getElementById('msAssignCountLabel');
+        if(lbl) lbl.textContent = msSelectedStudents.size + ' student(s) selected';
+    }
+    function msSelectAllStudents(e){
+        e.preventDefault();
+        const q = (document.getElementById('msStudentSearch').value||'').toLowerCase().trim();
+        let list = msAllStudents;
+        if(q) list = list.filter(s=>(s.studentName||'').toLowerCase().includes(q)||s.username.toLowerCase().includes(q));
+        list.forEach(s=>msSelectedStudents.add(s.username));
+        renderMsStudentList();
+    }
+    function msClearAllStudents(e){
+        e.preventDefault();
+        msSelectedStudents.clear();
+        renderMsStudentList();
+    }
+
     function addMsPart(){
         const title = document.getElementById('msPartTitle').value.trim();
         const duration = Number(document.getElementById('msPartDuration').value);
@@ -2083,15 +2158,15 @@
         `).join('');
     }
     async function saveMaterialSeries(){
-        const className = document.getElementById('msClass').value;
         const subject = document.getElementById('msSubject').value.trim();
         const title = document.getElementById('msTitle').value.trim();
-        if(!className){ showAlert('Select a class', 'error'); return; }
         if(!title){ showAlert('Enter a series title', 'error'); return; }
+        if(!msSelectedStudents.size){ showAlert('Assign at least 1 student', 'error'); return; }
         if(!msPartsQueue.length){ showAlert('Add at least one part', 'error'); return; }
         try{
             await db.collection('materialSeries').add({
-                className, subject, title,
+                assignedStudents: Array.from(msSelectedStudents),
+                subject, title,
                 parts: msPartsQueue,
                 currentPart: 1,
                 unlockedAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -2102,6 +2177,8 @@
             renderMsPartsQueue();
             document.getElementById('msTitle').value = '';
             document.getElementById('msSubject').value = '';
+            msSelectedStudents.clear();
+            renderMsStudentList();
             loadMaterialSeriesAdmin();
         }catch(e){
             console.error(e);
@@ -2114,27 +2191,29 @@
         el.innerHTML = '<div class="empty-state"><div class="empty-title">Loading...</div></div>';
         try{
             const snapshot = await db.collection('materialSeries').orderBy('createdAt','desc').get();
-            if(snapshot.empty){
+            msAllSeriesCache = snapshot.docs.map(doc=>({id:doc.id,...doc.data()}));
+            if(!msAllSeriesCache.length){
                 el.innerHTML = '<div class="empty-state"><div class="empty-title">No series created yet.</div></div>';
                 return;
             }
-            el.innerHTML = snapshot.docs.map(doc=>{
-                const s = doc.data();
+            el.innerHTML = msAllSeriesCache.map(s=>{
                 const parts = s.parts || [];
                 const curNum = s.currentPart || 1;
                 const isLast = curNum >= parts.length;
                 const unlockedStr = s.unlockedAt && s.unlockedAt.toDate ? s.unlockedAt.toDate().toLocaleString() : '—';
+                const assignedCount = (s.assignedStudents||[]).length;
                 return `
                 <div style="border:1px solid var(--border-color);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px;background:rgba(255,255,255,0.02);">
                     <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;align-items:flex-start;">
                         <div>
                             <strong>${escapeHTML(s.title)}</strong>
-                            <div style="font-size:12px;color:var(--text-muted);">Class: ${escapeHTML(s.className)} ${s.subject ? '• '+escapeHTML(s.subject) : ''} • ${parts.length} part(s)</div>
+                            <div style="font-size:12px;color:var(--text-muted);"><i class="fas fa-user-graduate"></i> ${assignedCount} student${assignedCount===1?'':'s'} assigned ${s.subject ? '• '+escapeHTML(s.subject) : ''} • ${parts.length} part(s)</div>
                             <div style="font-size:12px;color:var(--info);margin-top:4px;">Current: Part ${curNum}${isLast ? ' (last part)' : ''} — unlocked ${unlockedStr}</div>
                         </div>
                         <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                            ${!isLast ? `<button class="btn btn-success" style="padding:7px 12px;font-size:13px;" onclick="advanceMsPart('${doc.id}')"><i class="fas fa-forward"></i> Mark Complete &amp; Unlock Next</button>` : `<span style="font-size:12px;color:var(--success);align-self:center;">✓ All parts unlocked</span>`}
-                            <button class="btn btn-danger" style="padding:7px 12px;font-size:13px;" onclick="deleteMsSeries('${doc.id}')"><i class="fas fa-trash"></i></button>
+                            ${!isLast ? `<button class="btn btn-success" style="padding:7px 12px;font-size:13px;" onclick="advanceMsPart('${s.id}')"><i class="fas fa-forward"></i> Mark Complete &amp; Unlock Next</button>` : `<span style="font-size:12px;color:var(--success);align-self:center;">✓ All parts unlocked</span>`}
+                            <button class="btn btn-secondary" style="padding:7px 12px;font-size:13px;" onclick="openMsManage('${s.id}')"><i class="fas fa-users"></i> Manage Students</button>
+                            <button class="btn btn-danger" style="padding:7px 12px;font-size:13px;" onclick="deleteMsSeries('${s.id}')"><i class="fas fa-trash"></i></button>
                         </div>
                     </div>
                 </div>`;
@@ -2144,8 +2223,43 @@
             el.innerHTML = '<div class="empty-state"><div class="empty-title">Failed to load series</div></div>';
         }
     }
+    function openMsManage(seriesId){
+        const s = msAllSeriesCache.find(x=>x.id===seriesId);
+        if(!s) return;
+        msmSeriesId = seriesId;
+        msmSelected = new Set(s.assignedStudents||[]);
+        document.getElementById('msmSearch').value = '';
+        renderMsmList();
+        showModal('msManageModal');
+    }
+    function renderMsmList(){
+        const el = document.getElementById('msmList');
+        const q = (document.getElementById('msmSearch').value||'').toLowerCase().trim();
+        let list = msAllStudents;
+        if(q) list = list.filter(s=>(s.studentName||'').toLowerCase().includes(q)||s.username.toLowerCase().includes(q));
+        if(!list.length){ el.innerHTML = '<p style="color:var(--text-muted);font-size:12px;">No students found.</p>'; return; }
+        el.innerHTML = list.map(s=>`
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;padding:4px 2px;">
+                <input type="checkbox" value="${s.username}" ${msmSelected.has(s.username)?'checked':''} onchange="toggleMsmSelect('${s.username}',this.checked)">
+                <span>${escapeHTML(s.studentName||s.username)} <span style="color:var(--text-muted);font-size:11px;">(${escapeHTML(s.username)}${s.className?' • '+escapeHTML(s.className):''})</span></span>
+            </label>`).join('');
+    }
+    function toggleMsmSelect(username, checked){
+        if(checked) msmSelected.add(username); else msmSelected.delete(username);
+    }
+    async function saveMsManage(){
+        try{
+            await db.collection('materialSeries').doc(msmSeriesId).update({ assignedStudents: Array.from(msmSelected) });
+            closeModal('msManageModal');
+            loadMaterialSeriesAdmin();
+            showAlert('Assigned students updated!', 'success');
+        }catch(e){
+            console.error(e);
+            showAlert('Failed to update assigned students: ' + e.message, 'error');
+        }
+    }
     async function advanceMsPart(seriesId){
-        if(!confirm('Mark the current part complete and unlock the next part for all students in this class?')) return;
+        if(!confirm('Mark the current part complete and unlock the next part for all assigned students?')) return;
         try{
             const ref = db.collection('materialSeries').doc(seriesId);
             const doc = await ref.get();
@@ -2219,8 +2333,6 @@
             classSelect.innerHTML = '<option value="">Select Class</option>';
             const studentClassSelect = document.getElementById('studentClass');
             studentClassSelect.innerHTML = '<option value="">Select Class</option>';
-            const msClassSelect = document.getElementById('msClass');
-            if (msClassSelect) msClassSelect.innerHTML = '<option value="">Select Class</option>';
             classes.forEach(cls => {
                 const option1 = document.createElement('option');
                 option1.value = cls.classCode;
@@ -2230,12 +2342,6 @@
                 option2.value = cls.classCode;
                 option2.textContent = cls.className;
                 studentClassSelect.appendChild(option2);
-                if (msClassSelect) {
-                    const option3 = document.createElement('option');
-                    option3.value = cls.classCode;
-                    option3.textContent = cls.className;
-                    msClassSelect.appendChild(option3);
-                }
             });
             updateAttendanceStudentSelect();
         } catch (error) {
@@ -3561,6 +3667,7 @@
             setupEventListeners();
             populateMaterialStudentDropdown(); // NEW
             loadMaterialSeriesAdmin(); // Timed material series list
+            loadMsStudents(); // students for assignment widget
             renderMsPartsQueue();
             const savedPage = localStorage.getItem('adminDashboardPage');
             if (savedPage && document.querySelector(`.page-section[data-page="${savedPage}"]`)) {
