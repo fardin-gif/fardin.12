@@ -36,27 +36,45 @@
         .profile-mini-name { font-size: 15px; font-weight: 600; color: var(--text-light); }
         .profile-mini-class { font-size: 12.5px; color: var(--text-muted); }
 
-        .section-nav { border-top: 1px solid var(--border-color); background: rgba(0,0,0,0.15); overflow-x: auto; scrollbar-width: none; }
-        .section-nav::-webkit-scrollbar { display: none; }
-        .section-nav-inner { display: flex; gap: 8px; padding: 10px 20px; white-space: nowrap; }
+        /* ============ NAV (with right scroll-arrow indicator) ============ */
+        .section-nav { position: relative; border-top: 1px solid var(--border-color); background: rgba(0,0,0,0.15); }
+        .section-nav::after {
+            content: ''; position: absolute; top: 0; right: 0; bottom: 0; width: 54px;
+            background: linear-gradient(to right, transparent, var(--card-bg) 75%);
+            pointer-events: none; z-index: 4;
+        }
+        .section-nav-inner { display: flex; gap: 8px; padding: 10px 20px; white-space: nowrap; overflow-x: auto; scrollbar-width: none; }
+        .section-nav-inner::-webkit-scrollbar { display: none; }
         .nav-pill { flex-shrink: 0; background: transparent; border: 1px solid var(--border-color); color: var(--text-muted); padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all .15s; }
         .nav-pill:hover { color: var(--text-light); border-color: var(--border-color2); }
         .nav-pill.active { background: rgba(214,40,57,0.16); color: #ff8b95; border-color: rgba(214,40,57,0.4); }
+        .nav-scroll-arrow {
+            position: absolute; top: 50%; right: 8px; transform: translateY(-50%);
+            width: 30px; height: 30px; border-radius: 50%; border: none; cursor: pointer;
+            background: var(--primary-red); color: #fff; font-size: 12px;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.4); z-index: 5; transition: opacity .15s;
+        }
+        .nav-scroll-arrow:hover { background: var(--primary-hover); }
 
-        /* ============ OVERVIEW BAR (NOT sticky — scrolls away) ============ */
-        .overview-bar { padding: 20px 0 4px; }
-        .goal-card { background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.25); border-radius: var(--radius-sm); padding: 12px 16px; margin-bottom: 12px; }
-        .goal-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; font-size: 13px; }
+        /* ============ CREDIT GOAL PILL (opens modal) ============ */
+        .overview-bar { padding: 16px 0 4px; display: flex; }
+        .credit-pill-btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.35);
+            color: var(--gold); padding: 9px 18px; border-radius: 20px;
+            font-size: 14px; font-weight: 700; cursor: pointer; transition: all .15s;
+        }
+        .credit-pill-btn:hover { background: rgba(245,158,11,0.18); transform: translateY(-1px); }
+        .credit-pill-btn i.fa-chevron-right { font-size: 10px; opacity: .7; margin-left: 2px; }
+
+        /* Goal content (rendered inside modal) */
+        .goal-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; font-size: 14px; }
         .goal-label { font-weight: 700; color: var(--gold); }
-        .goal-value { font-weight: 700; color: var(--text-light); font-size: 14px; }
-        .goal-bar-track { height: 10px; background: rgba(255,255,255,0.06); border-radius: 20px; overflow: hidden; }
+        .goal-value { font-weight: 700; color: var(--text-light); font-size: 15px; }
+        .goal-bar-track { height: 12px; background: rgba(255,255,255,0.06); border-radius: 20px; overflow: hidden; }
         .goal-bar-fill { height: 100%; background: linear-gradient(90deg, var(--gold), #fbbf24); border-radius: 20px; transition: width 0.6s cubic-bezier(.22,.68,0,1.1); width: 0%; }
-        .goal-sub { font-size: 11.5px; color: var(--text-muted); margin-top: 6px; }
-
-        .stat-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 8px; }
-        .stat-chip { background: var(--card-bg-alt); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 10px 8px; text-align: center; }
-        .stat-chip-val { font-size: 18px; font-weight: 700; color: var(--text-light); }
-        .stat-chip-label { font-size: 10.5px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .03em; margin-top: 2px; }
+        .goal-sub { font-size: 12.5px; color: var(--text-muted); margin-top: 10px; }
 
         /* ============ TAB PANELS ============ */
         .tab-panel { display: none; padding: 22px 0 10px; }
@@ -116,7 +134,7 @@
         .btn-start:hover { opacity: 0.92; transform: translateY(-1px); }
         .btn-start.review { background: rgba(42,157,143,0.15); color: var(--success); border: 1px solid rgba(42,157,143,0.4); }
 
-        /* ============ NANO HISTORY (credit history restored) ============ */
+        /* ============ NANO HISTORY (credit history) ============ */
         .credit-hist-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--card-bg-alt); border-radius: var(--radius-sm); border: 1px solid var(--border-color); margin-bottom: 9px; }
         .ch-icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
         .ch-icon.pos { background: rgba(42,157,143,0.2); }
@@ -224,7 +242,6 @@
         footer { border-top: 1px solid var(--border-color); padding: 20px 0; margin-top: 20px; text-align: center; color: var(--text-muted); font-size: 13px; }
 
         @media (max-width: 768px) {
-            .stat-strip { grid-template-columns: repeat(2, 1fr); }
             .results-grid, .gexam-grid, .materials-grid { grid-template-columns: 1fr; }
             .toolbar { flex-direction: column; align-items: stretch; }
             .search-mini { max-width: none; }
@@ -249,32 +266,24 @@
             </div>
         </div>
         <nav class="section-nav">
-            <div class="container section-nav-inner" id="sectionNav">
+            <div class="section-nav-inner" id="sectionNav">
                 <button class="nav-pill active" data-target="nano">🎮 Nano Exams</button>
                 <button class="nav-pill" data-target="materials">📎 Materials</button>
                 <button class="nav-pill" data-target="attendance">📅 Attendance</button>
                 <button class="nav-pill" data-target="results">📊 Results</button>
                 <button class="nav-pill" data-target="profile">👤 Profile</button>
             </div>
+            <button class="nav-scroll-arrow" id="navScrollArrow" aria-label="More options" style="display:none;">
+                <i class="fas fa-chevron-right"></i>
+            </button>
         </nav>
     </header>
 
-    <!-- ============ OVERVIEW BAR (scrolls normally, NOT sticky) ============ -->
+    <!-- ============ CREDIT GOAL PILL (click → modal) ============ -->
     <div class="container overview-bar">
-        <div class="goal-card">
-            <div class="goal-row">
-                <span class="goal-label">⭐ Credit Goal</span>
-                <span class="goal-value"><span id="goalCurrent">0</span> / <span id="goalTarget">5000</span></span>
-            </div>
-            <div class="goal-bar-track"><div class="goal-bar-fill" id="goalBarFill"></div></div>
-            <div class="goal-sub" id="goalSub">Earn credits by completing Nano Exams!</div>
-        </div>
-        <div class="stat-strip">
-            <div class="stat-chip"><div class="stat-chip-val" id="statAvg">0%</div><div class="stat-chip-label">Avg Score</div></div>
-            <div class="stat-chip"><div class="stat-chip-val" id="statExams">0</div><div class="stat-chip-label">Exams Taken</div></div>
-            <div class="stat-chip"><div class="stat-chip-val" id="statNano">0</div><div class="stat-chip-label">Nano Done</div></div>
-            <div class="stat-chip"><div class="stat-chip-val" id="statAttendance">0</div><div class="stat-chip-label">Classes (This Month)</div></div>
-        </div>
+        <button class="credit-pill-btn" id="creditPillBtn">
+            ⭐ <span id="creditPillValue">0</span> credits <i class="fas fa-chevron-right"></i>
+        </button>
     </div>
 
     <main class="container">
@@ -378,6 +387,27 @@
 
     <footer><div class="container"><p>© <span id="currentYear"></span> Fardin (DU Physics). All rights reserved.</p></div></footer>
 
+    <!-- Credit Goal Modal -->
+    <div class="modal-overlay" id="creditGoalModal">
+        <div class="modal" style="max-width: 420px;">
+            <div class="modal-header">
+                <div class="modal-title">⭐ Credit Goal Progress</div>
+                <button class="modal-close" onclick="closeModal('creditGoalModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="goal-row">
+                    <span class="goal-label">Credits Earned</span>
+                    <span class="goal-value"><span id="goalCurrent">0</span> / <span id="goalTarget">5000</span></span>
+                </div>
+                <div class="goal-bar-track"><div class="goal-bar-fill" id="goalBarFill"></div></div>
+                <div class="goal-sub" id="goalSub">Earn credits by completing Nano Exams!</div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="closeModal('creditGoalModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
     <!-- OMR Modal -->
     <div class="modal-overlay" id="omrModal">
         <div class="modal">
@@ -470,6 +500,27 @@
         });
     }
 
+    // ==================== NAV RIGHT-SCROLL ARROW ====================
+    function setupNavScrollArrow() {
+        const navScroll = document.getElementById('sectionNav');
+        const arrowBtn = document.getElementById('navScrollArrow');
+        if (!navScroll || !arrowBtn) return;
+        function updateArrow() {
+            const canScrollMore = navScroll.scrollWidth - navScroll.clientWidth - navScroll.scrollLeft > 10;
+            arrowBtn.style.display = canScrollMore ? 'flex' : 'none';
+        }
+        arrowBtn.addEventListener('click', () => {
+            navScroll.scrollBy({ left: 160, behavior: 'smooth' });
+        });
+        navScroll.addEventListener('scroll', updateArrow);
+        window.addEventListener('resize', updateArrow);
+        // Give layout a tick to settle before measuring
+        setTimeout(updateArrow, 50);
+    }
+
+    // ==================== CREDIT GOAL MODAL ====================
+    document.getElementById('creditPillBtn').addEventListener('click', () => showModal('creditGoalModal'));
+
     // ==================== SETTINGS (credit goal) ====================
     async function loadSettings() {
         try {
@@ -480,6 +531,7 @@
     }
     function updateGoalBar() {
         const tc = currentStudent?.totalCredits || 0;
+        document.getElementById('creditPillValue').textContent = tc;
         document.getElementById('goalCurrent').textContent = tc;
         document.getElementById('goalTarget').textContent = creditGoal;
         const pct = creditGoal > 0 ? Math.min(100, Math.round((tc / creditGoal) * 100)) : 0;
@@ -523,13 +575,11 @@
         if (!container) return;
         if (!currentStudent.attendance || !currentStudent.attendance.months || !currentStudent.attendance.months.length) {
             container.innerHTML = `<div class="empty-state"><div class="empty-icon"><i class="fas fa-calendar-times"></i></div><div class="empty-title">No attendance records</div><div class="empty-subtitle">Attendance will appear here once recorded</div></div>`;
-            document.getElementById('statAttendance').textContent = '0';
             return;
         }
         let months = [...currentStudent.attendance.months].sort((a,b) => (b.monthNumber||0) - (a.monthNumber||0));
         const mostRecent = months[0];
         const previous = months.slice(1);
-        document.getElementById('statAttendance').textContent = mostRecent.days?.length || 0;
         let html = renderMonthCard(mostRecent, false);
         previous.forEach(m => html += renderMonthCard(m, true));
         if (previous.length > 0) {
@@ -675,7 +725,6 @@
             nanoHistory = doneSnap.docs.map(d => d.data());
             nanoHistory.sort((a, b) => (tsToDate(b.submittedAt)?.getTime() || 0) - (tsToDate(a.submittedAt)?.getTime() || 0));
 
-            document.getElementById('statNano').textContent = doneNanoIds.size;
             renderNanoExams();
             renderNanoHistory();
         } catch(e) {
@@ -729,7 +778,7 @@
         renderNanoExams();
     });
 
-    // ==================== NANO EXAM HISTORY (restored) ====================
+    // ==================== NANO EXAM HISTORY ====================
     function renderNanoHistory() {
         const container = document.getElementById('nanoHistoryContainer');
         const moreWrap = document.getElementById('nanoHistoryShowMoreWrap');
@@ -768,14 +817,7 @@
             buildSubjectChips();
             renderResults();
             updateStatsAndChart();
-            updateHeaderExamStats();
         } catch(e) { console.error(e); showError('Failed to load exam results.'); }
-    }
-    function updateHeaderExamStats() {
-        const finalSubs = submissions.filter(s => s.status === 'FINAL_PUBLISHED');
-        const pcts = finalSubs.map(s => getSubmissionPercentage(s)).filter(p => p !== null);
-        document.getElementById('statAvg').textContent = pcts.length ? Math.round(pcts.reduce((a,b)=>a+b,0)/pcts.length)+'%' : '0%';
-        document.getElementById('statExams').textContent = submissions.length;
     }
     function buildSubjectChips() {
         const subjects = [...new Set(submissions.map(s => s.subjectName).filter(Boolean))];
@@ -969,6 +1011,7 @@
         if (!studentUsername) { showError('No student specified.'); return; }
         document.getElementById('currentYear').textContent = new Date().getFullYear();
         setupSectionNav();
+        setupNavScrollArrow();
         await loadSettings();
         await loadStudentData();
         updateGoalBar();
