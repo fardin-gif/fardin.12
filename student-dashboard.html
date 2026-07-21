@@ -26,28 +26,15 @@
         .container { max-width: 1180px; margin: 0 auto; padding: 0 20px; }
         a { color: inherit; }
 
-        /* ============ STICKY HEADER ============ */
+        /* ============ STICKY HEADER (brand + nav ONLY) ============ */
         .app-header { position: sticky; top: 0; z-index: 500; background: var(--card-bg); border-bottom: 1px solid var(--border-color); box-shadow: 0 4px 18px rgba(0,0,0,0.25); }
-        .header-top { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px 10px; gap: 16px; flex-wrap: wrap; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; gap: 16px; flex-wrap: wrap; }
         .brand h1 { font-size: 19px; background: linear-gradient(90deg, var(--primary-red), #ff6b6b); -webkit-background-clip: text; background-clip: text; color: transparent; }
         .brand p { color: var(--text-muted); font-size: 12px; }
         .profile-mini { display: flex; align-items: center; gap: 12px; }
         .avatar { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, var(--purple-solid), var(--primary-red)); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15px; color: #fff; flex-shrink: 0; }
         .profile-mini-name { font-size: 15px; font-weight: 600; color: var(--text-light); }
         .profile-mini-class { font-size: 12.5px; color: var(--text-muted); }
-
-        .goal-card { background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.25); border-radius: var(--radius-sm); padding: 12px 16px; margin-bottom: 12px; }
-        .goal-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; font-size: 13px; }
-        .goal-label { font-weight: 700; color: var(--gold); }
-        .goal-value { font-weight: 700; color: var(--text-light); font-size: 14px; }
-        .goal-bar-track { height: 10px; background: rgba(255,255,255,0.06); border-radius: 20px; overflow: hidden; }
-        .goal-bar-fill { height: 100%; background: linear-gradient(90deg, var(--gold), #fbbf24); border-radius: 20px; transition: width 0.6s cubic-bezier(.22,.68,0,1.1); width: 0%; }
-        .goal-sub { font-size: 11.5px; color: var(--text-muted); margin-top: 6px; }
-
-        .stat-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 12px; }
-        .stat-chip { background: var(--card-bg-alt); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 10px 8px; text-align: center; }
-        .stat-chip-val { font-size: 18px; font-weight: 700; color: var(--text-light); }
-        .stat-chip-label { font-size: 10.5px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .03em; margin-top: 2px; }
 
         .section-nav { border-top: 1px solid var(--border-color); background: rgba(0,0,0,0.15); overflow-x: auto; scrollbar-width: none; }
         .section-nav::-webkit-scrollbar { display: none; }
@@ -56,8 +43,26 @@
         .nav-pill:hover { color: var(--text-light); border-color: var(--border-color2); }
         .nav-pill.active { background: rgba(214,40,57,0.16); color: #ff8b95; border-color: rgba(214,40,57,0.4); }
 
-        /* ============ SECTIONS ============ */
-        .page-section { padding: 30px 0 6px; scroll-margin-top: 210px; }
+        /* ============ OVERVIEW BAR (NOT sticky — scrolls away) ============ */
+        .overview-bar { padding: 20px 0 4px; }
+        .goal-card { background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.25); border-radius: var(--radius-sm); padding: 12px 16px; margin-bottom: 12px; }
+        .goal-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; font-size: 13px; }
+        .goal-label { font-weight: 700; color: var(--gold); }
+        .goal-value { font-weight: 700; color: var(--text-light); font-size: 14px; }
+        .goal-bar-track { height: 10px; background: rgba(255,255,255,0.06); border-radius: 20px; overflow: hidden; }
+        .goal-bar-fill { height: 100%; background: linear-gradient(90deg, var(--gold), #fbbf24); border-radius: 20px; transition: width 0.6s cubic-bezier(.22,.68,0,1.1); width: 0%; }
+        .goal-sub { font-size: 11.5px; color: var(--text-muted); margin-top: 6px; }
+
+        .stat-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 8px; }
+        .stat-chip { background: var(--card-bg-alt); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 10px 8px; text-align: center; }
+        .stat-chip-val { font-size: 18px; font-weight: 700; color: var(--text-light); }
+        .stat-chip-label { font-size: 10.5px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .03em; margin-top: 2px; }
+
+        /* ============ TAB PANELS ============ */
+        .tab-panel { display: none; padding: 22px 0 10px; }
+        .tab-panel.active { display: block; animation: fadeIn 0.2s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
         .section-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
         .section-head h2 { font-size: 19px; font-weight: 600; }
         .section-count { background: var(--card-bg-alt); border: 1px solid var(--border-color); color: var(--text-muted); font-size: 12px; font-weight: 700; padding: 2px 10px; border-radius: 20px; }
@@ -110,6 +115,18 @@
         .btn-start { width: 100%; padding: 11px; background: linear-gradient(135deg, var(--purple-solid), var(--primary-red)); color: white; border: none; border-radius: 10px; font-size: 13.5px; font-weight: 600; cursor: pointer; transition: opacity .2s, transform .2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-start:hover { opacity: 0.92; transform: translateY(-1px); }
         .btn-start.review { background: rgba(42,157,143,0.15); color: var(--success); border: 1px solid rgba(42,157,143,0.4); }
+
+        /* ============ NANO HISTORY (credit history restored) ============ */
+        .credit-hist-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--card-bg-alt); border-radius: var(--radius-sm); border: 1px solid var(--border-color); margin-bottom: 9px; }
+        .ch-icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+        .ch-icon.pos { background: rgba(42,157,143,0.2); }
+        .ch-icon.neg { background: rgba(230,57,70,0.15); }
+        .ch-info { flex: 1; min-width: 0; }
+        .ch-title { font-size: 14px; color: var(--text-light); margin-bottom: 2px; font-weight: 600; }
+        .ch-date { font-size: 12px; color: var(--text-muted); }
+        .ch-amount { font-size: 15px; font-weight: 700; flex-shrink: 0; }
+        .ch-amount.pos { color: var(--success); }
+        .ch-amount.neg { color: var(--danger); }
 
         /* ============ RESULT CARDS ============ */
         .results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; margin-bottom: 6px; }
@@ -173,12 +190,8 @@
         .month-days { display: flex; flex-wrap: wrap; gap: 8px; }
         .day-badge { background: rgba(42,157,143,0.15); color: var(--success); padding: 5px 11px; border-radius: 20px; font-size: 12px; }
 
-        /* ============ PROFILE (collapsed) ============ */
-        .profile-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--radius); overflow: hidden; }
-        .profile-toggle { width: 100%; text-align: left; background: rgba(0,0,0,0.15); border: none; color: var(--text-light); padding: 16px 20px; font-size: 15px; font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
-        .profile-toggle .chev { transition: transform .2s; color: var(--text-muted); }
-        .profile-toggle.open .chev { transform: rotate(180deg); }
-        .profile-body { padding: 20px; }
+        /* ============ PROFILE ============ */
+        .profile-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 20px; }
         .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
         .info-item { background: rgba(255,255,255,0.03); padding: 13px; border-radius: 8px; }
         .info-label { font-size: 11.5px; color: var(--text-muted); margin-bottom: 4px; }
@@ -208,7 +221,7 @@
         .omr-view-option.selected { background: var(--success); color: white; }
         .omr-view-option.wrong { background: var(--primary-red); color: white; }
 
-        footer { border-top: 1px solid var(--border-color); padding: 20px 0; margin-top: 40px; text-align: center; color: var(--text-muted); font-size: 13px; }
+        footer { border-top: 1px solid var(--border-color); padding: 20px 0; margin-top: 20px; text-align: center; color: var(--text-muted); font-size: 13px; }
 
         @media (max-width: 768px) {
             .stat-strip { grid-template-columns: repeat(2, 1fr); }
@@ -220,7 +233,7 @@
 </head>
 <body>
 
-    <!-- ============ STICKY HEADER ============ -->
+    <!-- ============ STICKY HEADER: brand + nav ONLY ============ -->
     <header class="app-header">
         <div class="container header-top">
             <div class="brand">
@@ -235,138 +248,132 @@
                 </div>
             </div>
         </div>
-        <div class="container">
-            <div class="goal-card">
-                <div class="goal-row">
-                    <span class="goal-label">⭐ Credit Goal</span>
-                    <span class="goal-value"><span id="goalCurrent">0</span> / <span id="goalTarget">5000</span></span>
-                </div>
-                <div class="goal-bar-track"><div class="goal-bar-fill" id="goalBarFill"></div></div>
-                <div class="goal-sub" id="goalSub">Earn credits by completing Nano Exams!</div>
-            </div>
-            <div class="stat-strip">
-                <div class="stat-chip"><div class="stat-chip-val" id="statAvg">0%</div><div class="stat-chip-label">Avg Score</div></div>
-                <div class="stat-chip"><div class="stat-chip-val" id="statExams">0</div><div class="stat-chip-label">Exams Taken</div></div>
-                <div class="stat-chip"><div class="stat-chip-val" id="statNano">0</div><div class="stat-chip-label">Nano Done</div></div>
-                <div class="stat-chip"><div class="stat-chip-val" id="statAttendance">0</div><div class="stat-chip-label">Classes (This Month)</div></div>
-            </div>
-        </div>
         <nav class="section-nav">
             <div class="container section-nav-inner" id="sectionNav">
-                <button class="nav-pill active" data-target="nanoSection">🎮 Nano Exams</button>
-                <button class="nav-pill" data-target="resultsSection">📊 Results</button>
-                <button class="nav-pill" data-target="materialsSection">📎 Materials</button>
-                <button class="nav-pill" data-target="attendanceSection">📅 Attendance</button>
-                <button class="nav-pill" data-target="profileSection">👤 Profile</button>
+                <button class="nav-pill active" data-target="nano">🎮 Nano Exams</button>
+                <button class="nav-pill" data-target="materials">📎 Materials</button>
+                <button class="nav-pill" data-target="attendance">📅 Attendance</button>
+                <button class="nav-pill" data-target="results">📊 Results</button>
+                <button class="nav-pill" data-target="profile">👤 Profile</button>
             </div>
         </nav>
     </header>
 
-    <main>
-        <!-- ============ NANO EXAMS ============ -->
-        <section class="page-section" id="nanoSection">
-            <div class="container">
-                <div class="section-head"><h2>🎮 Nano Exams</h2><span class="section-count" id="nanoCount">0</span></div>
-                <div class="toolbar">
-                    <div class="chip-group" id="nanoFilterChips">
-                        <button class="chip active" data-filter="all">All</button>
-                        <button class="chip" data-filter="notdone">Not Attempted</button>
-                        <button class="chip" data-filter="done">Completed</button>
-                    </div>
-                    <div class="search-mini"><input type="text" id="nanoSearch" placeholder="Search nano exams..."></div>
-                </div>
-                <div id="gamifiedExamsContainer"><div class="spinner"></div></div>
+    <!-- ============ OVERVIEW BAR (scrolls normally, NOT sticky) ============ -->
+    <div class="container overview-bar">
+        <div class="goal-card">
+            <div class="goal-row">
+                <span class="goal-label">⭐ Credit Goal</span>
+                <span class="goal-value"><span id="goalCurrent">0</span> / <span id="goalTarget">5000</span></span>
             </div>
+            <div class="goal-bar-track"><div class="goal-bar-fill" id="goalBarFill"></div></div>
+            <div class="goal-sub" id="goalSub">Earn credits by completing Nano Exams!</div>
+        </div>
+        <div class="stat-strip">
+            <div class="stat-chip"><div class="stat-chip-val" id="statAvg">0%</div><div class="stat-chip-label">Avg Score</div></div>
+            <div class="stat-chip"><div class="stat-chip-val" id="statExams">0</div><div class="stat-chip-label">Exams Taken</div></div>
+            <div class="stat-chip"><div class="stat-chip-val" id="statNano">0</div><div class="stat-chip-label">Nano Done</div></div>
+            <div class="stat-chip"><div class="stat-chip-val" id="statAttendance">0</div><div class="stat-chip-label">Classes (This Month)</div></div>
+        </div>
+    </div>
+
+    <main class="container">
+
+        <!-- ============ NANO EXAMS TAB ============ -->
+        <section class="tab-panel active" id="panel-nano">
+            <div class="section-head"><h2>🎮 Nano Exams</h2><span class="section-count" id="nanoCount">0</span></div>
+            <div class="toolbar">
+                <div class="chip-group" id="nanoFilterChips">
+                    <button class="chip active" data-filter="all">All</button>
+                    <button class="chip" data-filter="notdone">Not Attempted</button>
+                    <button class="chip" data-filter="done">Completed</button>
+                </div>
+                <div class="search-mini"><input type="text" id="nanoSearch" placeholder="Search nano exams..."></div>
+            </div>
+            <div id="gamifiedExamsContainer"><div class="spinner"></div></div>
+
+            <div class="section-head" style="margin-top:30px"><h2 style="font-size:16px">🕘 Your Nano Exam History</h2><span class="section-count" id="nanoHistoryCount">0</span></div>
+            <div id="nanoHistoryContainer"><div class="spinner"></div></div>
+            <div class="show-more-wrap" id="nanoHistoryShowMoreWrap"></div>
         </section>
 
-        <!-- ============ RESULTS ============ -->
-        <section class="page-section" id="resultsSection">
-            <div class="container">
-                <div class="section-head"><h2>📊 Exam Results</h2><span class="section-count" id="resultsCount">0</span></div>
-                <div class="toolbar toolbar-col">
-                    <div class="chip-group" id="statusFilterChips">
-                        <button class="chip active" data-filter="all">All Status</button>
-                        <button class="chip" data-filter="FINAL_PUBLISHED">Final Published</button>
-                        <button class="chip" data-filter="PENDING_WRITTEN">Pending</button>
-                    </div>
-                    <div class="chip-group" id="subjectFilterChips"></div>
-                    <div class="toolbar-row">
-                        <div class="search-mini"><input type="text" id="resultSearch" placeholder="Search by name or code..."></div>
-                        <div class="sort-group" id="sortGroup">
-                            <button class="sort-btn active" data-sort="date">Date</button>
-                            <button class="sort-btn" data-sort="score">Score</button>
-                            <button class="sort-btn" data-sort="code">Code</button>
-                        </div>
-                    </div>
+        <!-- ============ MATERIALS TAB ============ -->
+        <section class="tab-panel" id="panel-materials">
+            <div class="section-head"><h2>📎 Materials</h2><span class="section-count" id="materialsCount">0</span></div>
+            <div class="toolbar toolbar-col">
+                <div class="chip-group" id="materialTypeChips">
+                    <button class="chip active" data-filter="all">All</button>
+                    <button class="chip" data-filter="Note">📘 Notes</button>
+                    <button class="chip" data-filter="Question">❓ Questions</button>
+                    <button class="chip" data-filter="Video">🎥 Videos</button>
                 </div>
-                <div class="results-grid" id="resultsGrid">
-                    <div class="empty-state"><div class="spinner"></div><div class="empty-title">Loading results...</div></div>
-                </div>
-                <div class="show-more-wrap" id="resultsShowMoreWrap"></div>
-
-                <div class="chart-card">
-                    <div class="section-head" style="margin-bottom:14px"><h2 style="font-size:16px">📈 Performance Progress</h2></div>
-                    <div class="mini-stats-row">
-                        <div class="mini-stat"><div class="mini-stat-label">Average Percentage</div><div class="mini-stat-val" id="avgPercentage">0%</div></div>
-                        <div class="mini-stat"><div class="mini-stat-label">Best Percentage</div><div class="mini-stat-val" id="bestPercentage">0%</div></div>
-                        <div class="mini-stat"><div class="mini-stat-label">Total Exams</div><div class="mini-stat-val" id="totalExams">0</div></div>
-                    </div>
-                    <div class="chart-controls">
-                        <select id="chartFilter" class="filter-select" onchange="updateChart()">
-                            <option value="finalOnly">Final Results Only</option>
-                            <option value="includePending">Include Pending MCQ</option>
-                        </select>
-                        <div class="sort-group">
-                            <button class="sort-btn active" onclick="filterChart('all')">All</button>
-                            <button class="sort-btn" onclick="filterChart('last5')">Last 5</button>
-                            <button class="sort-btn" onclick="filterChart('top5')">Top 5</button>
-                        </div>
-                    </div>
-                    <div class="chart-container"><canvas id="performanceChart"></canvas></div>
-                </div>
+                <div class="chip-group" id="materialSubjectChips"></div>
+                <div class="search-mini"><input type="text" id="materialSearch" placeholder="Search materials..."></div>
             </div>
+            <div class="materials-grid" id="materialsContainer"><div class="spinner"></div></div>
+            <div class="show-more-wrap" id="materialsShowMoreWrap"></div>
         </section>
 
-        <!-- ============ MATERIALS ============ -->
-        <section class="page-section" id="materialsSection">
-            <div class="container">
-                <div class="section-head"><h2>📎 Materials</h2><span class="section-count" id="materialsCount">0</span></div>
-                <div class="toolbar toolbar-col">
-                    <div class="chip-group" id="materialTypeChips">
-                        <button class="chip active" data-filter="all">All</button>
-                        <button class="chip" data-filter="Note">📘 Notes</button>
-                        <button class="chip" data-filter="Question">❓ Questions</button>
-                        <button class="chip" data-filter="Video">🎥 Videos</button>
-                    </div>
-                    <div class="chip-group" id="materialSubjectChips"></div>
-                    <div class="search-mini"><input type="text" id="materialSearch" placeholder="Search materials..."></div>
+        <!-- ============ ATTENDANCE TAB ============ -->
+        <section class="tab-panel" id="panel-attendance">
+            <div class="section-head"><h2>📅 Attendance</h2></div>
+            <div id="attendanceContainer"><div class="spinner"></div></div>
+        </section>
+
+        <!-- ============ RESULTS TAB ============ -->
+        <section class="tab-panel" id="panel-results">
+            <div class="section-head"><h2>📊 Exam Results</h2><span class="section-count" id="resultsCount">0</span></div>
+            <div class="toolbar toolbar-col">
+                <div class="chip-group" id="statusFilterChips">
+                    <button class="chip active" data-filter="all">All Status</button>
+                    <button class="chip" data-filter="FINAL_PUBLISHED">Final Published</button>
+                    <button class="chip" data-filter="PENDING_WRITTEN">Pending</button>
                 </div>
-                <div class="materials-grid" id="materialsContainer"><div class="spinner"></div></div>
-                <div class="show-more-wrap" id="materialsShowMoreWrap"></div>
-            </div>
-        </section>
-
-        <!-- ============ ATTENDANCE ============ -->
-        <section class="page-section" id="attendanceSection">
-            <div class="container">
-                <div class="section-head"><h2>📅 Attendance</h2></div>
-                <div id="attendanceContainer"><div class="spinner"></div></div>
-            </div>
-        </section>
-
-        <!-- ============ PROFILE ============ -->
-        <section class="page-section" id="profileSection">
-            <div class="container">
-                <div class="profile-card">
-                    <button class="profile-toggle" id="profileToggleBtn">
-                        <span>👤 My Profile</span><span class="chev">▾</span>
-                    </button>
-                    <div class="profile-body" id="profileBody" style="display:none">
-                        <div class="info-grid" id="studentInfo"></div>
+                <div class="chip-group" id="subjectFilterChips"></div>
+                <div class="toolbar-row">
+                    <div class="search-mini"><input type="text" id="resultSearch" placeholder="Search by name or code..."></div>
+                    <div class="sort-group" id="sortGroup">
+                        <button class="sort-btn active" data-sort="date">Date</button>
+                        <button class="sort-btn" data-sort="score">Score</button>
+                        <button class="sort-btn" data-sort="code">Code</button>
                     </div>
                 </div>
             </div>
+            <div class="results-grid" id="resultsGrid">
+                <div class="empty-state"><div class="spinner"></div><div class="empty-title">Loading results...</div></div>
+            </div>
+            <div class="show-more-wrap" id="resultsShowMoreWrap"></div>
+
+            <div class="chart-card">
+                <div class="section-head" style="margin-bottom:14px"><h2 style="font-size:16px">📈 Performance Progress</h2></div>
+                <div class="mini-stats-row">
+                    <div class="mini-stat"><div class="mini-stat-label">Average Percentage</div><div class="mini-stat-val" id="avgPercentage">0%</div></div>
+                    <div class="mini-stat"><div class="mini-stat-label">Best Percentage</div><div class="mini-stat-val" id="bestPercentage">0%</div></div>
+                    <div class="mini-stat"><div class="mini-stat-label">Total Exams</div><div class="mini-stat-val" id="totalExams">0</div></div>
+                </div>
+                <div class="chart-controls">
+                    <select id="chartFilter" class="filter-select" onchange="updateChart()">
+                        <option value="finalOnly">Final Results Only</option>
+                        <option value="includePending">Include Pending MCQ</option>
+                    </select>
+                    <div class="sort-group">
+                        <button class="sort-btn active" onclick="filterChart('all')">All</button>
+                        <button class="sort-btn" onclick="filterChart('last5')">Last 5</button>
+                        <button class="sort-btn" onclick="filterChart('top5')">Top 5</button>
+                    </div>
+                </div>
+                <div class="chart-container"><canvas id="performanceChart"></canvas></div>
+            </div>
         </section>
+
+        <!-- ============ PROFILE TAB ============ -->
+        <section class="tab-panel" id="panel-profile">
+            <div class="section-head"><h2>👤 My Profile</h2></div>
+            <div class="profile-card">
+                <div class="info-grid" id="studentInfo"></div>
+            </div>
+        </section>
+
     </main>
 
     <footer><div class="container"><p>© <span id="currentYear"></span> Fardin (DU Physics). All rights reserved.</p></div></footer>
@@ -399,6 +406,8 @@
     let allMaterials = [];         // materials for this student
     let allGamifiedExams = [];     // gamified exams for this student's class
     let doneNanoIds = new Set();   // gamifiedExam ids the student already completed
+    let nanoHistory = [];          // gamifiedSubmissions docs (attempt history)
+    let nanoHistoryShowAll = false;
     let performanceChart = null;
     let creditGoal = 5000;
 
@@ -426,6 +435,17 @@
     function ringColor(pct) { if (pct === null) return 'var(--text-muted)'; if (pct >= 80) return 'var(--success)'; if (pct >= 50) return 'var(--warning)'; return 'var(--danger)'; }
     function formatDateShort(iso) { const d = new Date(iso); return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`; }
     function formatDate(iso) { return new Date(iso).toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' }); }
+    function tsToDate(ts) {
+        if (!ts) return null;
+        if (typeof ts.toDate === 'function') return ts.toDate();
+        const d = new Date(ts);
+        return isNaN(d.getTime()) ? null : d;
+    }
+    function formatDateTime(ts) {
+        const d = tsToDate(ts);
+        if (!d) return 'N/A';
+        return d.toLocaleString('en-US', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+    }
     function maskPhoneNumber(number) { if(!number) return 'N/A'; const digits=String(number).replace(/\D/g,''); if(digits.length<7) return number; return `${digits.substring(0,4)}*****${digits.substring(digits.length-3)}`; }
     function showModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
@@ -436,21 +456,18 @@
         return ((parts[0]?.[0]||'') + (parts[1]?.[0]||'')).toUpperCase() || name.substring(0,2).toUpperCase();
     }
 
-    // ==================== SECTION NAV ====================
+    // ==================== TAB NAVIGATION ====================
+    function switchTab(tabName) {
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        const target = document.getElementById('panel-' + tabName);
+        if (target) target.classList.add('active');
+        document.querySelectorAll('.nav-pill').forEach(p => p.classList.toggle('active', p.dataset.target === tabName));
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
     function setupSectionNav() {
-        const pills = document.querySelectorAll('.nav-pill');
-        pills.forEach(p => p.addEventListener('click', () => {
-            document.getElementById(p.dataset.target)?.scrollIntoView({ behavior: 'smooth' });
-        }));
-        const sections = Array.from(pills).map(p => document.getElementById(p.dataset.target)).filter(Boolean);
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    pills.forEach(p => p.classList.toggle('active', p.dataset.target === entry.target.id));
-                }
-            });
-        }, { rootMargin: '-40% 0px -50% 0px', threshold: 0 });
-        sections.forEach(s => observer.observe(s));
+        document.querySelectorAll('.nav-pill').forEach(p => {
+            p.addEventListener('click', () => switchTab(p.dataset.target));
+        });
     }
 
     // ==================== SETTINGS (credit goal) ====================
@@ -499,13 +516,6 @@
         const container = document.getElementById('studentInfo');
         if (container) container.innerHTML = info.map(i => `<div class="info-item"><div class="info-label">${i.label}</div><div class="info-value ${i.cls||''}">${i.value}</div></div>`).join('');
     }
-
-    document.getElementById('profileToggleBtn').addEventListener('click', function() {
-        const body = document.getElementById('profileBody');
-        const open = body.style.display !== 'none';
-        body.style.display = open ? 'none' : 'block';
-        this.classList.toggle('open', !open);
-    });
 
     // ==================== ATTENDANCE ====================
     function renderAttendance() {
@@ -637,6 +647,7 @@
         if (!container) return;
         if (!currentStudent || !currentStudent.className) {
             container.innerHTML = '<div class="empty-state"><div class="empty-subtitle">No class assigned to your account.</div></div>';
+            renderNanoHistory();
             return;
         }
         try {
@@ -653,13 +664,20 @@
                 const bm = bt?.toMillis ? bt.toMillis() : new Date(bt || 0).getTime();
                 return bm - am;
             });
+
             const doneSnap = await db.collection('gamifiedSubmissions').where('username','==',studentUsername).get();
             doneNanoIds = new Set(doneSnap.docs.map(d => d.data().examId));
             const doneDataMap = {};
             doneSnap.docs.forEach(d => { doneDataMap[d.data().examId] = d.data(); });
             allGamifiedExams.forEach(ex => { ex._done = doneNanoIds.has(ex.id); ex._doneData = doneDataMap[ex.id] || null; });
+
+            // Build full attempt history (each gamifiedSubmissions doc is one attempt)
+            nanoHistory = doneSnap.docs.map(d => d.data());
+            nanoHistory.sort((a, b) => (tsToDate(b.submittedAt)?.getTime() || 0) - (tsToDate(a.submittedAt)?.getTime() || 0));
+
             document.getElementById('statNano').textContent = doneNanoIds.size;
             renderNanoExams();
+            renderNanoHistory();
         } catch(e) {
             console.error(e);
             container.innerHTML = '<div class="empty-state"><div class="empty-subtitle">Error loading exams. Please refresh.</div></div>';
@@ -710,6 +728,37 @@
         nanoState.search = e.target.value.trim();
         renderNanoExams();
     });
+
+    // ==================== NANO EXAM HISTORY (restored) ====================
+    function renderNanoHistory() {
+        const container = document.getElementById('nanoHistoryContainer');
+        const moreWrap = document.getElementById('nanoHistoryShowMoreWrap');
+        if (!container) return;
+        document.getElementById('nanoHistoryCount').textContent = nanoHistory.length;
+        if (!nanoHistory.length) {
+            container.innerHTML = `<div class="empty-state"><div class="empty-icon"><i class="fas fa-clock-rotate-left"></i></div><div class="empty-title">No attempts yet</div><div class="empty-subtitle">Completed Nano Exams will show up here with date, time and credits earned.</div></div>`;
+            moreWrap.innerHTML = '';
+            return;
+        }
+        const LIMIT = 5;
+        const display = nanoHistoryShowAll ? nanoHistory : nanoHistory.slice(0, LIMIT);
+        container.innerHTML = display.map(h => {
+            const earned = h.creditsEarned ?? 0;
+            const pos = earned >= 0;
+            return `<div class="credit-hist-item">
+                <div class="ch-icon ${pos?'pos':'neg'}">${pos?'⭐':'📉'}</div>
+                <div class="ch-info">
+                    <div class="ch-title">${escapeHTML(h.examTitle || 'Nano Exam')}</div>
+                    <div class="ch-date">${formatDateTime(h.submittedAt)}${h.total !== undefined ? ` • ${h.correct ?? 0}/${h.total} correct` : ''}${h.pct !== undefined ? ` • ${h.pct}%` : ''}</div>
+                </div>
+                <div class="ch-amount ${pos?'pos':'neg'}">${pos?'+':''}${earned}</div>
+            </div>`;
+        }).join('');
+        if (nanoHistory.length > LIMIT) {
+            moreWrap.innerHTML = `<button class="btn-showmore" onclick="toggleNanoHistoryShowAll()">${nanoHistoryShowAll ? 'Show Less' : `Show More (${nanoHistory.length - LIMIT} more)`}</button>`;
+        } else { moreWrap.innerHTML = ''; }
+    }
+    function toggleNanoHistoryShowAll() { nanoHistoryShowAll = !nanoHistoryShowAll; renderNanoHistory(); }
 
     // ==================== EXAM RESULTS ====================
     async function loadSubmissions() {
