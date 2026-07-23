@@ -1,0 +1,1285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Fardin (DU Physics)</title>
+
+<!-- Google Fonts: Hind Siliguri + Noto Sans Bengali for Bangla, Poppins + Nunito for English -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@100..900&display=swap');
+</style>
+
+<style>
+/* ==========================================================================
+   0. DESIGN TOKENS — identical to Mission 1 so this feels like the same app
+   ========================================================================== */
+:root{
+  --blue:        #5FBEE8;
+  --blue-deep:   #2D9CD1;
+  --blue-pale:   #E4F6FF;
+  --green:       #64D4A0;
+  --green-deep:  #2FB57F;
+  --green-pale:  #E4FBF1;
+  --orange:      #FFA552;
+  --orange-deep: #F0822A;
+  --orange-pale: #FFF1E1;
+  --yellow:      #FFD23F;
+  --yellow-deep: #F5B700;
+  --yellow-pale: #FFF9E1;
+  --white:       #FFFFFF;
+  --ink:         #3C3854;
+  --ink-soft:    #6D6A85;
+  --bg:          #FBFCFF;
+  --shadow-soft: 0 12px 30px rgba(60, 56, 84, 0.10);
+  --shadow-pop:  0 18px 40px rgba(60, 56, 84, 0.16);
+  --radius-lg:   32px;
+  --radius-md:   24px;
+  --radius-sm:   16px;
+  --font-bn:     'Hind Siliguri', 'Noto Sans Bengali', sans-serif;   /* All Bangla text uses this font */
+  --font-en:     'Poppins', 'Nunito', sans-serif;
+  --font-body:   'Nunito', sans-serif;
+}
+
+*{ box-sizing: border-box; }
+html{ scroll-behavior: smooth; }
+body{
+  margin:0;
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--ink);
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+img, svg{ display:block; max-width:100%; }
+button{ font-family: inherit; cursor:pointer; border:none; background:none; }
+button:focus-visible, [tabindex]:focus-visible, a:focus-visible{
+  outline: 4px solid var(--blue-deep);
+  outline-offset: 3px;
+}
+[lang="bn"]{ font-family: var(--font-bn); }
+
+@media (prefers-reduced-motion: reduce){
+  *{ animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior:auto !important; }
+}
+
+/* ==========================================================================
+   1. BACKGROUND DECOR
+   ========================================================================== */
+.bg-decor{ position: fixed; inset:0; z-index:-1; overflow:hidden; pointer-events:none; }
+.bg-decor .blob{ position:absolute; border-radius:50%; opacity:0.35; animation: float 14s ease-in-out infinite; }
+.bg-decor .blob:nth-child(1){ width:260px; height:260px; background:var(--blue-pale); top:-60px; left:-60px; }
+.bg-decor .blob:nth-child(2){ width:220px; height:220px; background:var(--yellow-pale); top:20%; right:-80px; animation-delay:2s; }
+.bg-decor .blob:nth-child(3){ width:300px; height:300px; background:var(--green-pale); bottom:5%; left:-100px; animation-delay:4s; }
+.bg-decor .blob:nth-child(4){ width:200px; height:200px; background:var(--orange-pale); bottom:-60px; right:10%; animation-delay:1s; }
+@keyframes float{ 0%,100%{ transform: translateY(0) translateX(0);} 50%{ transform: translateY(-24px) translateX(14px);} }
+
+/* ==========================================================================
+   2. MISSION NAV (fixed top) — 3 big pills: Basic / Practice / Home
+      All three are free to enter — no completion gating between them.
+   ========================================================================== */
+.mission-nav{
+  position: fixed; top:0; left:0; right:0; z-index:100;
+  display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap;
+  padding: 14px 16px;
+  background: rgba(255,255,255,0.88);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 18px rgba(60,56,84,0.06);
+}
+.mission-nav .brand{
+  font-family: var(--font-en); font-weight:800; font-size:0.85rem; color:var(--ink);
+  margin-right:10px; white-space:nowrap; display:flex; align-items:center; gap:6px;
+}
+.mission-pill{
+  font-family: var(--font-en); font-weight:700; font-size:0.85rem;
+  padding: 10px 20px; border-radius:100px; background:#EDEBF7; color:var(--ink-soft);
+  display:flex; align-items:center; gap:6px; transition: all 0.25s ease;
+}
+.mission-pill.unlocked{ background: var(--white); box-shadow: var(--shadow-soft); color:var(--ink); cursor:pointer; }
+.mission-pill.unlocked:hover{ transform: translateY(-2px); }
+.mission-pill.active{
+  background: linear-gradient(135deg, var(--orange), var(--orange-deep)); color:var(--white);
+  box-shadow: 0 8px 20px rgba(240,130,42,0.35);
+}
+
+/* ==========================================================================
+   3. LAYOUT — TOP-LEVEL SECTIONS (Welcome / Basic / Practice / Home)
+   ========================================================================== */
+.section{
+  min-height:100vh;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding: 110px 20px 70px;
+  position:relative;
+  opacity:0; transform: translateY(40px);
+  pointer-events:none;
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.section.locked{ display:none; }
+.section.revealed{ opacity:1; transform:none; pointer-events:auto; }
+
+.section-eyebrow{
+  font-family: var(--font-en); font-weight:700; letter-spacing:0.08em;
+  text-transform:uppercase; font-size:0.8rem; color: var(--blue-deep);
+  background: var(--blue-pale); padding:8px 20px; border-radius:100px; margin-bottom:14px;
+}
+.section-eyebrow.orange{ color:var(--orange-deep); background:var(--orange-pale); }
+.section-eyebrow.green{ color:var(--green-deep); background:var(--green-pale); }
+.section-title{
+  font-family: var(--font-en); font-weight:800; font-size: clamp(1.6rem, 4vw, 2.4rem);
+  text-align:center; margin:0 0 8px;
+}
+.section-sub{
+  font-family: var(--font-body); font-weight:600; color: var(--ink-soft);
+  text-align:center; margin:0 0 30px; font-size:1.05rem; max-width:480px;
+}
+
+.card{
+  background: var(--white); border-radius: var(--radius-lg); box-shadow: var(--shadow-soft);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.btn{
+  font-family: var(--font-en); font-weight:700; font-size:1.05rem;
+  padding: 18px 40px; border-radius:100px; color:var(--white);
+  background: linear-gradient(135deg, var(--blue), var(--blue-deep));
+  box-shadow: 0 10px 24px rgba(45,156,209,0.35);
+  display:inline-flex; align-items:center; gap:10px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  min-height:60px;
+}
+.btn:hover{ transform: translateY(-3px) scale(1.02); box-shadow: 0 14px 30px rgba(45,156,209,0.4); }
+.btn:active{ transform: translateY(0) scale(0.98); }
+.btn.green{ background: linear-gradient(135deg, var(--green), var(--green-deep)); box-shadow:0 10px 24px rgba(47,181,127,0.35); }
+.btn.orange{ background: linear-gradient(135deg, var(--orange), var(--orange-deep)); box-shadow:0 10px 24px rgba(240,130,42,0.35); }
+.btn.ghost{ background: var(--white); color: var(--ink); box-shadow: var(--shadow-soft); border: 2px solid #ECEAF6; }
+.btn.ghost:hover{ transform: translateY(-2px); }
+.btn:disabled{ opacity:0.4; pointer-events:none; }
+.btn-row{ display:flex; gap:16px; flex-wrap:wrap; justify-content:center; margin-top:28px; }
+
+.speaker-btn{
+  width:64px; height:64px; border-radius:50%;
+  background: linear-gradient(135deg, var(--yellow), var(--yellow-deep));
+  box-shadow: 0 8px 20px rgba(245,183,0,0.4);
+  display:flex; align-items:center; justify-content:center; font-size:1.6rem;
+  transition: transform 0.15s ease;
+}
+.speaker-btn:hover{ transform: scale(1.08); }
+.speaker-btn:active{ transform: scale(0.94); }
+.speaker-btn.pulse{ animation: pulse-ring 1.4s ease-out; }
+@keyframes pulse-ring{
+  0%{ box-shadow:0 8px 20px rgba(245,183,0,0.4), 0 0 0 0 rgba(245,183,0,0.5); }
+  100%{ box-shadow:0 8px 20px rgba(245,183,0,0.4), 0 0 0 18px rgba(245,183,0,0); }
+}
+
+/* ==========================================================================
+   4. MASCOT — "Tubu the Cloud" (inline SVG, reused via template)
+   ========================================================================== */
+.mascot-wrap{ display:flex; flex-direction:column; align-items:center; margin-bottom:18px; }
+.mascot{ width:150px; height:auto; animation: bob 3.2s ease-in-out infinite; }
+@keyframes bob{ 0%,100%{ transform: translateY(0);} 50%{ transform: translateY(-10px);} }
+.speech-bubble{
+  background: var(--white); border-radius: 22px; padding:14px 26px;
+  box-shadow: var(--shadow-soft); font-family:var(--font-en); font-weight:700;
+  font-size:1.05rem; margin-top:10px; position:relative; text-align:center; max-width:360px;
+}
+.speech-bubble[lang="bn"]{ font-family: var(--font-bn); font-size:1.3rem; }
+.speech-bubble::after{
+  content:''; position:absolute; top:-10px; left:50%; transform:translateX(-50%);
+  border-width:0 10px 12px 10px; border-style:solid;
+  border-color: transparent transparent var(--white) transparent;
+}
+
+/* ==========================================================================
+   5. WELCOME SCREEN
+   ========================================================================== */
+#welcome{ text-align:center; }
+.welcome-badge{
+  font-family:var(--font-en); font-weight:800; letter-spacing:0.1em; text-transform:uppercase;
+  font-size:0.85rem; color:var(--orange-deep); background:var(--orange-pale);
+  padding:10px 24px; border-radius:100px; margin-bottom:18px; display:inline-block;
+}
+.welcome-title{
+  font-family: var(--font-en); font-weight:800; font-size:clamp(2.2rem,7vw,3.6rem);
+  margin: 6px 0 4px; background: linear-gradient(135deg, var(--blue-deep), var(--green-deep));
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.welcome-sub{ font-size:1.2rem; color:var(--ink-soft); font-weight:700; margin-bottom:6px; }
+.welcome-emoji-row{ font-size:2.4rem; margin: 18px 0 8px; letter-spacing:10px; }
+
+/* ==========================================================================
+   6. SUB-STEP NAV (used inside Basic and Practice sections)
+   ========================================================================== */
+.substep-nav{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-bottom:34px; }
+.substep-btn{
+  font-family: var(--font-en); font-weight:700; font-size:0.82rem;
+  padding: 12px 20px; border-radius:100px; background: var(--white);
+  box-shadow: var(--shadow-soft); color: var(--ink-soft);
+  display:flex; align-items:center; gap:8px; transition: all 0.2s ease; border:2px solid transparent;
+}
+.substep-btn .num{
+  width:22px; height:22px; border-radius:50%; background:#EDEBF7;
+  display:flex; align-items:center; justify-content:center; font-size:0.72rem; font-weight:800; color:var(--ink-soft);
+}
+.substep-btn.current{
+  background: linear-gradient(135deg, var(--blue), var(--blue-deep)); color:var(--white);
+  box-shadow: 0 8px 20px rgba(45,156,209,0.35);
+}
+.substep-btn.current .num{ background: rgba(255,255,255,0.3); color:var(--white); }
+.substep-btn.done{ border-color: var(--green); color: var(--green-deep); }
+.substep-btn.done .num{ background: var(--green); color:var(--white); }
+.substep-btn.locked{ opacity:0.45; cursor:not-allowed; pointer-events:none; }
+.substep-btn:not(.locked):not(.current):hover{ transform: translateY(-2px); }
+
+.step-panel{ display:flex; flex-direction:column; align-items:center; width:100%; animation: panelIn 0.4s ease; }
+.step-panel[hidden]{ display:none; }
+@keyframes panelIn{ from{ opacity:0; transform:translateY(12px);} to{ opacity:1; transform:none;} }
+
+/* ==========================================================================
+   7. LEARNING PANEL — one word carousel
+   ========================================================================== */
+.word-card{ width:min(90vw, 380px); padding: 46px 32px 38px; text-align:center; display:flex; flex-direction:column; align-items:center; gap:6px; }
+.word-illustration{ font-size:6.5rem; line-height:1; margin-bottom:10px; filter: drop-shadow(0 10px 14px rgba(60,56,84,0.15)); }
+.word-bangla{ font-family: var(--font-bn); font-weight:700; font-size: clamp(3.4rem, 12vw, 4.6rem); color: var(--ink); margin:0; line-height:1; }
+.word-english{ font-family: var(--font-en); font-weight:600; font-size:1rem; color: var(--ink-soft); text-transform:uppercase; letter-spacing:0.06em; margin: 6px 0 20px; }
+.word-nav{ display:flex; align-items:center; gap:22px; margin-top:30px; }
+.nav-arrow{ width:54px; height:54px; border-radius:50%; background:var(--white); box-shadow: var(--shadow-soft); font-size:1.4rem; display:flex; align-items:center; justify-content:center; color: var(--blue-deep); transition: transform 0.15s ease; }
+.nav-arrow:hover{ transform: scale(1.08); }
+.nav-arrow:disabled{ opacity:0.3; pointer-events:none; }
+.progress-dots{ display:flex; gap:8px; }
+.progress-dots .pd{ width:9px; height:9px; border-radius:50%; background:#E4E2F0; transition: all 0.3s ease; }
+.progress-dots .pd.active{ background: var(--blue-deep); width:22px; border-radius:6px; }
+
+/* ==========================================================================
+   8. PRONUNCIATION PANEL
+   ========================================================================== */
+.practice-mode-toggle{ display:flex; gap:10px; background:var(--white); padding:6px; border-radius:100px; box-shadow: var(--shadow-soft); margin-bottom: 30px; }
+.practice-mode-toggle button{ font-family:var(--font-en); font-weight:700; padding:10px 22px; border-radius:100px; color:var(--ink-soft); font-size:0.9rem; transition: all 0.2s ease; }
+.practice-mode-toggle button.active{ background: linear-gradient(135deg, var(--blue), var(--blue-deep)); color:var(--white); }
+.practice-stage{ width:min(90vw, 380px); text-align:center; padding: 46px 32px; display:flex; flex-direction:column; align-items:center; }
+.repeat-hint{ font-family:var(--font-en); font-weight:700; font-size:0.9rem; color: var(--green-deep); background: var(--green-pale); padding:8px 18px; border-radius:100px; margin-top:18px; }
+
+/* ==========================================================================
+   9. READING PANEL — flashcard grid (with a speaker button on every card)
+   ========================================================================== */
+.flash-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap:20px; width:min(92vw, 780px); margin-top:10px; }
+.flash-card{ position:relative; aspect-ratio: 3/4; border-radius: var(--radius-md); background:var(--white); box-shadow: var(--shadow-soft); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; padding:16px; transition: transform 0.35s cubic-bezier(.34,1.56,.64,1), box-shadow 0.3s ease; }
+.flash-card:hover{ transform: translateY(-6px) rotate(-1deg); box-shadow: var(--shadow-pop); }
+.flash-card .fc-emoji{ font-size:3rem; }
+.flash-card .fc-bn{ font-family:var(--font-bn); font-weight:700; font-size:1.8rem; }
+.fc-speak{
+  position:absolute; top:10px; right:10px; width:32px; height:32px; border-radius:50%;
+  background: var(--yellow-pale); display:flex; align-items:center; justify-content:center;
+  font-size:0.95rem; box-shadow: 0 4px 10px rgba(245,183,0,0.3); transition: transform 0.15s ease;
+}
+.fc-speak:hover{ transform: scale(1.12); }
+.flash-card.enlarged{ position:fixed; inset:0; margin:auto; width:min(85vw,360px); height:min(70vh,420px); z-index:200; transform:none; box-shadow: 0 30px 60px rgba(0,0,0,0.3); }
+.flash-card.enlarged .fc-emoji{ font-size:6rem; }
+.flash-card.enlarged .fc-bn{ font-size:3.6rem; }
+.flash-card.enlarged .fc-speak{ width:44px; height:44px; font-size:1.2rem; }
+.overlay-dim{ position:fixed; inset:0; background:rgba(60,56,84,0.35); z-index:190; opacity:0; pointer-events:none; transition:opacity 0.3s ease; }
+.overlay-dim.show{ opacity:1; pointer-events:auto; }
+
+/* ==========================================================================
+   10. GAMES — shared chrome
+   ========================================================================== */
+.game-panel{ width:min(94vw, 720px); display:flex; flex-direction:column; align-items:center; }
+.game-hud{ display:flex; align-items:center; gap:16px; margin-bottom:26px; flex-wrap:wrap; justify-content:center; }
+.hud-chip{ font-family:var(--font-en); font-weight:700; font-size:0.9rem; background:var(--white); padding:10px 18px; border-radius:100px; box-shadow: var(--shadow-soft); display:flex; align-items:center; gap:6px; }
+.stars-row{ display:flex; gap:6px; font-size:1.3rem; }
+.stars-row .star{ opacity:0.25; transition: all 0.3s ease; }
+.stars-row .star.earned{ opacity:1; transform: scale(1.15); }
+.game-prompt{ text-align:center; margin-bottom:26px; display:flex; flex-direction:column; align-items:center; gap:14px; }
+
+/* Generic multiple-choice cards — reused by Picture Match, Who's This?,
+   Listen & Click, and the Mini Review Challenge, so every activity looks
+   and behaves the same way. */
+.choice-grid{ display:grid; grid-template-columns: repeat(2, 1fr); gap:18px; width:min(90vw, 460px); }
+.choice-grid.five{ grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); width:min(94vw, 640px); }
+.choice-card{
+  border-radius: var(--radius-md); background:var(--white); box-shadow: var(--shadow-soft);
+  display:flex; align-items:center; justify-content:center; padding:18px 12px; min-height:100px;
+  text-align:center; border:4px solid transparent;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease;
+}
+.choice-card:hover{ transform: translateY(-4px) scale(1.03); }
+.choice-card.emoji{ aspect-ratio:1; font-size:3.4rem; }
+.choice-card.word{ font-family:var(--font-bn); font-weight:700; font-size:1.7rem; }
+.choice-card.meaning{ font-family:var(--font-en); font-weight:700; font-size:1rem; }
+.choice-card.flash-good{ border-color: var(--green); background: var(--green-pale); animation: correct-pop 0.5s ease; }
+.choice-card.flash-bad{ border-color: var(--orange); background: var(--orange-pale); animation: shake 0.5s ease; }
+@keyframes correct-pop{ 0%{transform:scale(1);} 50%{transform:scale(1.12);} 100%{transform:scale(1);} }
+@keyframes shake{ 0%,100%{transform:translateX(0);} 25%{transform:translateX(-8px);} 75%{transform:translateX(8px);} }
+.feedback-msg{ font-family:var(--font-en); font-weight:800; font-size:1.2rem; margin-top:22px; min-height:34px; text-align:center; }
+.feedback-msg.good{ color: var(--green-deep); }
+.feedback-msg.retry{ color: var(--orange-deep); }
+
+/* ==========================================================================
+   11. WRITING PRACTICE PANEL (Teacher Mode)
+   ========================================================================== */
+.dictation-card{ width:min(90vw, 420px); padding:44px 34px; text-align:center; }
+.write-box{ margin-top:26px; border-radius: var(--radius-sm); border:3px dashed #D7D4EA; background: repeating-linear-gradient( to bottom, transparent 0, transparent 38px, #EFEDF7 39px, #EFEDF7 40px ); height:130px; display:flex; align-items:center; justify-content:center; color: var(--ink-soft); font-family:var(--font-en); font-weight:600; font-size:0.9rem; text-align:center; padding:10px; }
+.teacher-tag{ font-family:var(--font-en); font-weight:700; font-size:0.75rem; letter-spacing:0.06em; text-transform:uppercase; color:var(--orange-deep); background:var(--orange-pale); padding:6px 16px; border-radius:100px; margin-bottom:18px; display:inline-block; }
+
+/* ==========================================================================
+   12. MINI REVIEW CHALLENGE
+   ========================================================================== */
+.review-prompt-emoji{ font-size:6rem; margin-bottom:4px; filter: drop-shadow(0 10px 14px rgba(60,56,84,0.15)); }
+.review-prompt-word{ font-family:var(--font-bn); font-weight:700; font-size: clamp(3rem, 10vw, 4rem); margin-bottom:4px; }
+.review-prompt-label{ font-family:var(--font-en); font-weight:700; color:var(--ink-soft); }
+.review-score-card{ text-align:center; padding:44px 36px; width:min(90vw,380px); }
+.review-score-big{ font-family:var(--font-en); font-weight:800; font-size:3rem; color:var(--blue-deep); margin:8px 0; }
+
+/* ==========================================================================
+   13. HOME SECTION — homework + reward
+   ========================================================================== */
+.homework-card{ width:min(92vw, 560px); padding: 40px 34px; }
+.hw-item{ display:flex; align-items:flex-start; gap:16px; padding:16px 0; border-bottom:2px solid #F3F1FA; }
+.hw-item:last-child{ border-bottom:none; }
+.hw-num{ width:38px; height:38px; min-width:38px; border-radius:50%; background: var(--yellow-pale); color:var(--yellow-deep); font-weight:800; font-family:var(--font-en); display:flex; align-items:center; justify-content:center; font-size:1.1rem; }
+.hw-text{ font-weight:700; font-size:1.02rem; padding-top:6px; }
+.hw-text .bn-inline{ font-family:var(--font-bn); font-size:1.3rem; color:var(--blue-deep); }
+.hw-emoji{ font-size:1.6rem; margin-left:auto; padding-top:2px; }
+
+.reward-block{ text-align:center; margin-top:40px; }
+.trophy{ font-size:5.5rem; animation: trophy-in 0.8s cubic-bezier(.34,1.56,.64,1); }
+@keyframes trophy-in{ 0%{ transform: scale(0) rotate(-20deg); opacity:0;} 100%{ transform:scale(1) rotate(0); opacity:1;} }
+.reward-stars{ font-size:2.4rem; margin: 12px 0 4px; display:flex; gap:10px; justify-content:center; }
+.reward-stars span{ opacity:0; transform: scale(0.2); transition: all 0.4s cubic-bezier(.34,1.56,.64,1); }
+.reward-stars span.show{ opacity:1; transform: scale(1); }
+.badge{ width:110px; height:110px; margin: 20px auto 8px; }
+.reward-title{ font-family:var(--font-bn); font-weight:700; font-size:2.2rem; margin: 6px 0 2px; }
+.reward-sub{ font-weight:700; color:var(--ink-soft); margin-bottom: 6px; }
+.reward-sub[lang="bn"]{ font-family:var(--font-bn); font-size:1.2rem; }
+.reward-mission-tag{
+  font-family:var(--font-en); font-weight:800; font-size:0.85rem; color:var(--green-deep);
+  background:var(--green-pale); padding:8px 20px; border-radius:100px; display:inline-block; margin-top:8px;
+}
+
+/* ==========================================================================
+   14. CONFETTI CANVAS
+   ========================================================================== */
+#confetti-canvas{ position:fixed; inset:0; pointer-events:none; z-index:300; }
+
+/* ==========================================================================
+   15. RESPONSIVE TWEAKS
+   ========================================================================== */
+@media (max-width:480px){
+  .section{ padding:150px 14px 60px; }
+  .word-illustration{ font-size:5.2rem; }
+  .choice-grid{ gap:12px; }
+  .choice-card.emoji{ font-size:2.8rem; }
+  .mission-nav{ justify-content:flex-start; overflow-x:auto; }
+}
+</style>
+</head>
+<body>
+
+<div class="bg-decor" aria-hidden="true"><div class="blob"></div><div class="blob"></div><div class="blob"></div><div class="blob"></div></div>
+<canvas id="confetti-canvas" aria-hidden="true"></canvas>
+<div class="overlay-dim" id="overlayDim"></div>
+
+<!-- ============================================================
+     FIXED MISSION NAV — Basic / Practice / Home (all free to enter)
+     ============================================================ -->
+<nav class="mission-nav" aria-label="Mission sections">
+  <span class="brand">🎓 Fardin (DU Physics)</span>
+  <button class="mission-pill unlocked" id="pillBasic" data-target="basic">📘 Basic</button>
+  <button class="mission-pill unlocked" id="pillPractice" data-target="practice">🎮 Practice</button>
+  <button class="mission-pill unlocked" id="pillHome" data-target="home">🏠 Home</button>
+</nav>
+
+<template id="mascotTemplate">
+  <svg class="mascot" viewBox="0 0 200 180" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Tubu the cloud mascot">
+    <ellipse cx="100" cy="130" rx="70" ry="14" fill="#3C3854" opacity="0.06"/>
+    <path d="M40 100 a30 30 0 0 1 8-58 a38 38 0 0 1 72-14 a34 34 0 0 1 40 46 a28 28 0 0 1 -6 56 z" fill="#5FBEE8"/>
+    <circle cx="78" cy="88" r="9" fill="#3C3854"/>
+    <circle cx="122" cy="88" r="9" fill="#3C3854"/>
+    <circle cx="81" cy="85" r="3" fill="#ffffff"/>
+    <circle cx="125" cy="85" r="3" fill="#ffffff"/>
+    <circle cx="70" cy="104" r="7" fill="#FFA552" opacity="0.55"/>
+    <circle cx="130" cy="104" r="7" fill="#FFA552" opacity="0.55"/>
+    <path d="M85 108 q15 14 30 0" stroke="#3C3854" stroke-width="4" fill="none" stroke-linecap="round"/>
+  </svg>
+</template>
+
+<!-- ============================================================
+     WELCOME SCREEN
+     ============================================================ -->
+<section id="welcome" class="section revealed">
+  <div class="mascot-wrap" id="mascotWelcome"></div>
+  <span class="welcome-badge">✨ Mission 2</span>
+  <h1 class="welcome-title">Extended Family</h1>
+  <p class="welcome-sub">আজ আমরা পরিবারের আরও কিছু সদস্যের নাম শিখব!</p>
+  <div class="welcome-emoji-row" aria-hidden="true">👵🧓👨👩‍🦳👩‍🦱</div>
+  <div class="speech-bubble" lang="bn">আজ আমরা পরিবারের আরও কিছু সদস্যের নাম শিখব!</div>
+  <div class="btn-row">
+    <button class="btn orange" id="startBtn">🚀 Start Mission</button>
+  </div>
+</section>
+
+<!-- ============================================================
+     BASIC SECTION — taught by teacher, strictly sequential
+     Step 1 Learn → Step 2 Pronounce → Step 3 Read
+     ============================================================ -->
+<section id="basic" class="section locked">
+  <span class="section-eyebrow">Basic · Taught With Teacher</span>
+  <h2 class="section-title">Learn the Basics</h2>
+  <p class="section-sub">We'll go through these together, one step at a time.</p>
+
+  <div class="substep-nav" id="basicSubNav">
+    <button class="substep-btn current" data-step="learning"><span class="num">1</span> Learn Words</button>
+    <button class="substep-btn locked" data-step="pronunciation" disabled><span class="num">2</span> Pronounce</button>
+    <button class="substep-btn locked" data-step="reading" disabled><span class="num">3</span> Read</button>
+  </div>
+
+  <!-- Basic Step 1: Learning -->
+  <div class="step-panel" id="panel-learning">
+    <div class="card word-card">
+      <div class="word-illustration" id="learnEmoji">👵</div>
+      <div class="word-bangla" id="learnBangla" lang="bn">দাদি</div>
+      <div class="word-english" id="learnEnglish">Grandmother (Paternal)</div>
+      <button class="speaker-btn" id="learnSpeaker" aria-label="Play pronunciation">🔊</button>
+    </div>
+    <div class="word-nav">
+      <button class="nav-arrow" id="learnPrev" aria-label="Previous word">←</button>
+      <div class="progress-dots" id="learnDots"></div>
+      <button class="nav-arrow" id="learnNext" aria-label="Next word">→</button>
+    </div>
+    <div class="btn-row" id="learnDoneRow" style="display:none;">
+      <button class="btn green" id="learnContinue">Great, I know them! ⭐</button>
+    </div>
+  </div>
+
+  <!-- Basic Step 2: Pronunciation -->
+  <div class="step-panel" id="panel-pronunciation" hidden>
+    <div class="practice-mode-toggle">
+      <button id="modeOrder" class="active">🔢 In Order</button>
+      <button id="modeRandom">🎲 Random Mode</button>
+    </div>
+    <div class="card practice-stage">
+      <div class="word-illustration" id="pracEmoji">👵</div>
+      <div class="word-bangla" id="pracBangla" lang="bn">দাদি</div>
+      <div class="word-english" id="pracEnglish">Grandmother (Paternal)</div>
+      <button class="speaker-btn" id="pracSpeaker" aria-label="Play pronunciation">🔊</button>
+      <div class="repeat-hint">🎤 Now say it!</div>
+    </div>
+    <div class="btn-row">
+      <button class="btn ghost" id="pracAnother">🔁 Another Word</button>
+      <button class="btn green" id="pracContinue">I'm Ready, Next Step ⭐</button>
+    </div>
+  </div>
+
+  <!-- Basic Step 3: Reading -->
+  <div class="step-panel" id="panel-reading" hidden>
+    <div class="flash-grid" id="flashGrid"></div>
+    <div class="btn-row">
+      <button class="btn ghost" id="shuffleBtn">🔀 Shuffle</button>
+      <button class="btn green" id="readingContinue">I Can Read Them! ⭐</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     PRACTICE SECTION — free navigation, any order, any time
+     ============================================================ -->
+<section id="practice" class="section locked">
+  <span class="section-eyebrow orange">Practice · On Your Own</span>
+  <h2 class="section-title">Practice Time!</h2>
+  <p class="section-sub">Jump to any activity below, in any order you like.</p>
+
+  <div class="substep-nav" id="practiceSubNav">
+    <button class="substep-btn current" data-step="picture">🖼️ Picture Match</button>
+    <button class="substep-btn" data-step="whois">🙋 Who's This?</button>
+    <button class="substep-btn" data-step="listen">🎧 Listen &amp; Click</button>
+    <button class="substep-btn" data-step="writing">✍️ Writing</button>
+    <button class="substep-btn" data-step="review">🌟 Mini Review</button>
+  </div>
+
+  <!-- Practice: Picture Match -->
+  <div class="step-panel" id="panel-picture">
+    <div class="game-panel">
+      <div class="game-hud">
+        <div class="hud-chip">🎯 Round <span id="pmRound">1</span>/5</div>
+        <div class="hud-chip"><span class="stars-row" id="pmStars">
+          <span class="star">⭐</span><span class="star">⭐</span><span class="star">⭐</span><span class="star">⭐</span><span class="star">⭐</span>
+        </span></div>
+      </div>
+      <div class="game-prompt">
+        <div class="word-bangla" id="pmTargetWord" style="font-size:3rem;" lang="bn">দাদি</div>
+        <button class="speaker-btn" id="pmSpeaker" aria-label="Play the word">🔊</button>
+      </div>
+      <div class="choice-grid" id="pmOptions"></div>
+      <div class="feedback-msg" id="pmFeedback" aria-live="polite"></div>
+      <div class="btn-row" id="pmDoneRow" style="display:none;">
+        <button class="btn ghost" id="pmPlayAgain">🔁 Play Again</button>
+        <button class="btn green" id="pmGoNext">Next Activity →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Practice: Who's This? -->
+  <div class="step-panel" id="panel-whois" hidden>
+    <div class="game-panel">
+      <div class="game-hud">
+        <div class="hud-chip">🎯 Round <span id="wiRound">1</span>/5</div>
+        <div class="hud-chip"><span class="stars-row" id="wiStars">
+          <span class="star">⭐</span><span class="star">⭐</span><span class="star">⭐</span><span class="star">⭐</span><span class="star">⭐</span>
+        </span></div>
+      </div>
+      <div class="game-prompt">
+        <div class="word-illustration" id="wiEmoji" style="font-size:5.5rem; margin-bottom:0;">👵</div>
+        <div class="word-bangla" style="font-size:2rem;" lang="bn">এটি কে?</div>
+      </div>
+      <div class="choice-grid" id="wiOptions"></div>
+      <div class="feedback-msg" id="wiFeedback" aria-live="polite"></div>
+      <div class="btn-row" id="wiDoneRow" style="display:none;">
+        <button class="btn ghost" id="wiPlayAgain">🔁 Play Again</button>
+        <button class="btn green" id="wiGoNext">Next Activity →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Practice: Listen & Click -->
+  <div class="step-panel" id="panel-listen" hidden>
+    <div class="game-panel">
+      <div class="game-hud">
+        <div class="hud-chip">🎯 Round <span id="lcRound">1</span>/5</div>
+        <div class="hud-chip"><span class="stars-row" id="lcStars">
+          <span class="star">⭐</span><span class="star">⭐</span><span class="star">⭐</span><span class="star">⭐</span><span class="star">⭐</span>
+        </span></div>
+      </div>
+      <div class="game-prompt">
+        <button class="speaker-btn" id="lcSpeaker" aria-label="Play the word">🔊</button>
+      </div>
+      <div class="choice-grid five" id="lcOptions"></div>
+      <div class="feedback-msg" id="lcFeedback" aria-live="polite"></div>
+      <div class="btn-row" id="lcDoneRow" style="display:none;">
+        <button class="btn ghost" id="lcPlayAgain">🔁 Play Again</button>
+        <button class="btn green" id="lcGoNext">Next Activity →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Practice: Writing (Teacher Mode) -->
+  <div class="step-panel" id="panel-writing" hidden>
+    <div class="card dictation-card">
+      <span class="teacher-tag">👩‍🏫 Teacher Mode</span><br>
+      <div class="word-bangla" style="font-size:2.6rem; margin-bottom:4px;" id="dictBanglaHidden">•••</div>
+      <button class="speaker-btn" id="dictSpeaker" aria-label="Play pronunciation" style="margin:14px auto;">🔊</button>
+      <div class="write-box" id="dictWriteBox">📓 Write this word in your notebook.</div>
+      <div style="font-family:var(--font-en); font-weight:700; color:var(--ink-soft); margin-top:16px; font-size:0.9rem;">
+        Word <span id="dictIndex">1</span> of <span id="dictTotal">5</span>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn ghost" id="dictPrev">← Previous</button>
+      <button class="btn orange" id="dictReveal">👀 Reveal Word</button>
+      <button class="btn green" id="dictNext">Next →</button>
+    </div>
+  </div>
+
+  <!-- Practice: Mini Review Challenge -->
+  <div class="step-panel" id="panel-review" hidden>
+    <div class="game-panel">
+      <div class="game-hud">
+        <div class="hud-chip">🌟 Question <span id="rvRound">1</span>/5</div>
+        <div class="hud-chip">✅ Score <span id="rvScore">0</span>/5</div>
+      </div>
+      <div id="rvQuestionArea"></div>
+      <div class="feedback-msg" id="rvFeedback" aria-live="polite"></div>
+
+      <div class="card review-score-card" id="rvResultCard" hidden>
+        <div class="trophy" style="font-size:4rem;">🏆</div>
+        <div class="review-score-big" id="rvFinalScore">5/5</div>
+        <div class="reward-sub" id="rvResultMsg">Perfect!</div>
+        <div class="btn-row">
+          <button class="btn green" id="rvPlayAgain">🔁 Try Again</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     HOME SECTION — homework + mission reward
+     ============================================================ -->
+<section id="home" class="section locked">
+  <span class="section-eyebrow green">🏠 Home</span>
+  <h2 class="section-title">Today's Homework</h2>
+  <p class="section-sub">A little practice at home makes the next mission even easier!</p>
+
+  <div class="card homework-card">
+    <div class="hw-item">
+      <div class="hw-num">1</div>
+      <div class="hw-text">Read every word <b>five</b> times.</div>
+      <div class="hw-emoji">📖</div>
+    </div>
+    <div class="hw-item">
+      <div class="hw-num">2</div>
+      <div class="hw-text">Write every word <b>three</b> times.</div>
+      <div class="hw-emoji">✏️</div>
+    </div>
+    <div class="hw-item">
+      <div class="hw-num">3</div>
+      <div class="hw-text">Point to each family member (or picture) and say their Bangla name.</div>
+      <div class="hw-emoji">👉</div>
+    </div>
+    <div class="hw-item">
+      <div class="hw-num">4</div>
+      <div class="hw-text">Tell your parents today's <b>five</b> new Bangla words.</div>
+      <div class="hw-emoji">👨‍👩‍👧‍👦</div>
+    </div>
+  </div>
+
+  <div class="btn-row" id="homeworkBtnRow">
+    <button class="btn green" id="homeworkContinue">Finish Mission 🏆</button>
+  </div>
+
+  <div class="reward-block" id="rewardBlock" hidden>
+    <div class="trophy">🏆</div>
+    <div class="reward-stars" id="rewardStars"><span>⭐</span><span>⭐</span><span>⭐</span></div>
+    <h2 class="reward-title" lang="bn">দারুণ!</h2>
+    <p class="reward-sub" lang="bn">তুমি আজ পরিবারের নতুন সদস্যদের নাম শিখেছ!</p>
+    <span class="reward-mission-tag">Mission 2 Completed</span>
+    <svg class="badge" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Extended family badge">
+      <circle cx="60" cy="60" r="54" fill="#FFD23F"/>
+      <circle cx="60" cy="60" r="54" fill="none" stroke="#F5B700" stroke-width="6"/>
+      <text x="60" y="72" font-size="46" text-anchor="middle">🏅</text>
+    </svg>
+  </div>
+</section>
+
+<script>
+/* ==========================================================================
+   DATA — single source of truth. Swapping this array (and welcome/homework
+   copy) is all a future mission needs.
+   ========================================================================== */
+const WORDS = [
+  { id:'dadi', bn:'দাদি', en:"Grandmother (Paternal)", emoji:'👵' },
+  { id:'nani', bn:'নানি', en:"Grandmother (Maternal)", emoji:'🧓' },
+  { id:'chacha', bn:'চাচা', en:"Uncle (Father's Brother)", emoji:'👨' },
+  { id:'khala', bn:'খালা', en:"Aunt (Mother's Sister)", emoji:'👩‍🦳' },
+  { id:'fufu', bn:'ফুফু', en:"Aunt (Father's Sister)", emoji:'👩‍🦱' },
+];
+
+/* ==========================================================================
+   AUDIO ENGINE
+   ========================================================================== */
+const AudioEngine = (() => {
+  let bnVoice = null;
+  function pickVoice(){
+    const voices = window.speechSynthesis ? speechSynthesis.getVoices() : [];
+    bnVoice = voices.find(v => /bn/i.test(v.lang)) || null;
+  }
+  if ('speechSynthesis' in window){ pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+
+  function speak(text){
+    if (!('speechSynthesis' in window)){ beep('click'); return; }
+    speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = bnVoice ? bnVoice.lang : 'bn-BD';
+    if (bnVoice) utter.voice = bnVoice;
+    utter.rate = 0.85; utter.pitch = 1.05;
+    speechSynthesis.speak(utter);
+  }
+
+  let ctx = null;
+  function getCtx(){ if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)(); return ctx; }
+  function tone(freq, start, duration, type='sine', gainPeak=0.14){
+    const c = getCtx();
+    const osc = c.createOscillator(); const gain = c.createGain();
+    osc.type = type; osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0, c.currentTime + start);
+    gain.gain.linearRampToValueAtTime(gainPeak, c.currentTime + start + 0.03);
+    gain.gain.exponentialRampToValueAtTime(0.001, c.currentTime + start + duration);
+    osc.connect(gain).connect(c.destination);
+    osc.start(c.currentTime + start); osc.stop(c.currentTime + start + duration + 0.05);
+  }
+  function beep(kind){
+    try{
+      if (kind === 'correct'){ tone(523,0,0.16); tone(659,0.12,0.18); tone(784,0.24,0.24); }
+      else if (kind === 'wrong'){ tone(330,0,0.18,'sine',0.1); tone(280,0.14,0.22,'sine',0.09); }
+      else if (kind === 'click'){ tone(600,0,0.08,'sine',0.08); }
+      else if (kind === 'reward'){ [523,659,784,1046].forEach((f,i)=>tone(f, i*0.12, 0.22)); }
+    }catch(e){ /* Web Audio unsupported — visuals still work */ }
+  }
+  return { speak, beep };
+})();
+
+/* ==========================================================================
+   CONFETTI
+   ========================================================================== */
+const Confetti = (() => {
+  const canvas = document.getElementById('confetti-canvas');
+  const ctx = canvas.getContext('2d');
+  let particles = []; let running = false;
+  const colors = ['#5FBEE8','#64D4A0','#FFA552','#FFD23F','#FF6B8A'];
+  function resize(){ canvas.width = innerWidth; canvas.height = innerHeight; }
+  window.addEventListener('resize', resize); resize();
+  function burst(count = 80){
+    for (let i=0;i<count;i++){
+      particles.push({ x: canvas.width/2 + (Math.random()-0.5)*200, y: canvas.height*0.35,
+        vx: (Math.random()-0.5)*10, vy: Math.random()*-8 - 4, size: Math.random()*8+5,
+        color: colors[Math.floor(Math.random()*colors.length)], rot: Math.random()*360, vr: (Math.random()-0.5)*10, life:0 });
+    }
+    if (!running){ running = true; requestAnimationFrame(loop); }
+  }
+  function loop(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    particles.forEach(p=>{
+      p.vy += 0.28; p.x += p.vx; p.y += p.vy; p.rot += p.vr; p.life++;
+      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot*Math.PI/180);
+      ctx.fillStyle = p.color; ctx.fillRect(-p.size/2,-p.size/2,p.size,p.size*0.6);
+      ctx.restore();
+    });
+    particles = particles.filter(p => p.y < canvas.height + 40 && p.life < 260);
+    if (particles.length){ requestAnimationFrame(loop); } else { running = false; }
+  }
+  return { burst };
+})();
+
+function shuffleArray(arr){
+  const a = [...arr];
+  for (let i=a.length-1;i>0;i--){ const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+// Returns `count` random words other than `target` — used to build wrong answers.
+function buildDistractors(target, count=3){
+  return shuffleArray(WORDS.filter(w=>w.id!==target.id)).slice(0,count);
+}
+function injectMascot(containerId){
+  const tpl = document.getElementById('mascotTemplate');
+  document.getElementById(containerId).appendChild(tpl.content.cloneNode(true));
+}
+injectMascot('mascotWelcome');
+
+/* ==========================================================================
+   TOP-LEVEL SECTION + MISSION PILL CONTROL
+   ========================================================================== */
+const pills = { basic: document.getElementById('pillBasic'), practice: document.getElementById('pillPractice'), home: document.getElementById('pillHome') };
+
+function revealSection(id){
+  const el = document.getElementById(id);
+  el.classList.remove('locked');
+  void el.offsetWidth;
+  el.classList.add('revealed');
+}
+function unlockTopSection(id){
+  revealSection(id);
+  setActivePill(id);
+  setTimeout(()=>{ document.getElementById(id).scrollIntoView({ behavior:'smooth', block:'start' }); }, 60);
+}
+function setActivePill(id){
+  Object.entries(pills).forEach(([key,p])=> p.classList.toggle('active', key===id));
+}
+Object.entries(pills).forEach(([key, p])=>{
+  p.addEventListener('click', ()=>{
+    AudioEngine.beep('click');
+    document.getElementById(key).scrollIntoView({ behavior:'smooth', block:'start' });
+    setActivePill(key);
+  });
+});
+
+// Track which top-level section is in view to keep the active pill accurate.
+const topObserver = new IntersectionObserver((entries)=>{
+  entries.forEach(entry=>{
+    if (entry.isIntersecting && pills[entry.target.id]){ setActivePill(entry.target.id); }
+  });
+}, { threshold:0.5 });
+['basic','practice','home'].forEach(id=> topObserver.observe(document.getElementById(id)));
+
+/* ==========================================================================
+   WELCOME → all three sections open together (free to enter)
+   ========================================================================== */
+document.getElementById('startBtn').addEventListener('click', ()=>{
+  AudioEngine.beep('click');
+  unlockTopSection('basic');
+  revealSection('practice');
+  revealSection('home');
+  initLearning();
+  initPictureMatch();
+});
+
+/* ==========================================================================
+   BASIC SUB-STEP ENGINE (sequential gating — unchanged from Mission 1)
+   ========================================================================== */
+const basicOrder = ['learning','pronunciation','reading'];
+function switchBasicPanel(step){
+  basicOrder.forEach(s=>{ document.getElementById('panel-'+s).hidden = (s !== step); });
+  document.querySelectorAll('#basicSubNav .substep-btn').forEach(btn=>{
+    btn.classList.toggle('current', btn.dataset.step === step);
+  });
+}
+function markBasicStepDone(step, nextStep){
+  const btn = document.querySelector(`#basicSubNav .substep-btn[data-step="${step}"]`);
+  btn.classList.remove('current'); btn.classList.add('done');
+  if (nextStep){
+    const nextBtn = document.querySelector(`#basicSubNav .substep-btn[data-step="${nextStep}"]`);
+    nextBtn.classList.remove('locked'); nextBtn.disabled = false;
+    switchBasicPanel(nextStep);
+  }
+}
+document.querySelectorAll('#basicSubNav .substep-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    if (btn.classList.contains('locked')) return;
+    AudioEngine.beep('click');
+    switchBasicPanel(btn.dataset.step);
+  });
+});
+
+/* --- Basic Step 1: Learning --- */
+let learnIdx = 0;
+function initLearning(){
+  document.getElementById('learnDots').innerHTML = WORDS.map((_,i)=>`<div class="pd${i===0?' active':''}"></div>`).join('');
+  renderLearnWord();
+}
+function renderLearnWord(){
+  const w = WORDS[learnIdx];
+  document.getElementById('learnEmoji').textContent = w.emoji;
+  document.getElementById('learnBangla').textContent = w.bn;
+  document.getElementById('learnEnglish').textContent = w.en;
+  document.querySelectorAll('#learnDots .pd').forEach((d,i)=>d.classList.toggle('active', i===learnIdx));
+  document.getElementById('learnPrev').disabled = learnIdx === 0;
+  document.getElementById('learnDoneRow').style.display = learnIdx === WORDS.length-1 ? 'flex' : 'none';
+}
+document.getElementById('learnSpeaker').addEventListener('click', (e)=>{
+  AudioEngine.speak(WORDS[learnIdx].bn);
+  e.currentTarget.classList.remove('pulse'); void e.currentTarget.offsetWidth; e.currentTarget.classList.add('pulse');
+});
+document.getElementById('learnPrev').addEventListener('click', ()=>{ if(learnIdx>0){ learnIdx--; renderLearnWord(); AudioEngine.beep('click'); }});
+document.getElementById('learnNext').addEventListener('click', ()=>{
+  AudioEngine.beep('click');
+  if (learnIdx < WORDS.length-1){ learnIdx++; renderLearnWord(); }
+});
+document.getElementById('learnContinue').addEventListener('click', ()=>{
+  AudioEngine.beep('click');
+  markBasicStepDone('learning','pronunciation');
+  initPronunciation();
+});
+
+/* --- Basic Step 2: Pronunciation --- */
+let pracIdx = 0;
+let pracMode = 'order';
+let pracOrderShuffled = [...WORDS];
+function initPronunciation(){ pracIdx = 0; renderPracWord(); }
+function currentPracList(){ return pracMode === 'random' ? pracOrderShuffled : WORDS; }
+function renderPracWord(){
+  const list = currentPracList();
+  const w = list[pracIdx % list.length];
+  document.getElementById('pracEmoji').textContent = w.emoji;
+  document.getElementById('pracBangla').textContent = w.bn;
+  document.getElementById('pracEnglish').textContent = w.en;
+}
+document.getElementById('modeOrder').addEventListener('click', ()=>{
+  pracMode = 'order'; pracIdx = 0;
+  document.getElementById('modeOrder').classList.add('active');
+  document.getElementById('modeRandom').classList.remove('active');
+  renderPracWord(); AudioEngine.beep('click');
+});
+document.getElementById('modeRandom').addEventListener('click', ()=>{
+  pracMode = 'random'; pracOrderShuffled = shuffleArray(WORDS); pracIdx = 0;
+  document.getElementById('modeRandom').classList.add('active');
+  document.getElementById('modeOrder').classList.remove('active');
+  renderPracWord(); AudioEngine.beep('click');
+});
+document.getElementById('pracSpeaker').addEventListener('click', (e)=>{
+  const list = currentPracList();
+  AudioEngine.speak(list[pracIdx % list.length].bn);
+  e.currentTarget.classList.remove('pulse'); void e.currentTarget.offsetWidth; e.currentTarget.classList.add('pulse');
+});
+document.getElementById('pracAnother').addEventListener('click', ()=>{
+  AudioEngine.beep('click');
+  pracIdx++;
+  if (pracMode === 'random' && pracIdx % WORDS.length === 0){ pracOrderShuffled = shuffleArray(WORDS); }
+  renderPracWord();
+});
+document.getElementById('pracContinue').addEventListener('click', ()=>{
+  AudioEngine.beep('click');
+  markBasicStepDone('pronunciation','reading');
+  initReading();
+});
+
+/* --- Basic Step 3: Reading --- */
+let readingOrder = [...WORDS];
+function initReading(){ readingOrder = [...WORDS]; renderFlashGrid(); }
+function renderFlashGrid(){
+  const grid = document.getElementById('flashGrid');
+  grid.innerHTML = '';
+  readingOrder.forEach(w=>{
+    const card = document.createElement('div');
+    card.className = 'flash-card'; card.tabIndex = 0;
+    card.setAttribute('role','button'); card.setAttribute('aria-label', `${w.en} flashcard`);
+    card.innerHTML = `<div class="fc-emoji">${w.emoji}</div><div class="fc-bn" lang="bn">${w.bn}</div><button class="fc-speak" aria-label="Play ${w.en}">🔊</button>`;
+    card.addEventListener('click', ()=> toggleEnlarge(card, w));
+    card.addEventListener('keydown', (e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); toggleEnlarge(card,w); }});
+    card.querySelector('.fc-speak').addEventListener('click', (e)=>{ e.stopPropagation(); AudioEngine.speak(w.bn); });
+    grid.appendChild(card);
+  });
+}
+function toggleEnlarge(card, w){
+  const isEnlarged = card.classList.contains('enlarged');
+  document.querySelectorAll('.flash-card.enlarged').forEach(c=>c.classList.remove('enlarged'));
+  document.getElementById('overlayDim').classList.remove('show');
+  if (!isEnlarged){
+    card.classList.add('enlarged');
+    document.getElementById('overlayDim').classList.add('show');
+    AudioEngine.speak(w.bn);
+  }
+}
+document.getElementById('overlayDim').addEventListener('click', ()=>{
+  document.querySelectorAll('.flash-card.enlarged').forEach(c=>c.classList.remove('enlarged'));
+  document.getElementById('overlayDim').classList.remove('show');
+});
+document.getElementById('shuffleBtn').addEventListener('click', ()=>{
+  AudioEngine.beep('click'); readingOrder = shuffleArray(readingOrder); renderFlashGrid();
+});
+document.getElementById('readingContinue').addEventListener('click', ()=>{
+  AudioEngine.beep('click');
+  document.querySelector('#basicSubNav .substep-btn[data-step="reading"]').classList.remove('current');
+  document.querySelector('#basicSubNav .substep-btn[data-step="reading"]').classList.add('done');
+  document.getElementById('readingContinue').textContent = '🎉 Basics Complete!';
+  document.getElementById('readingContinue').disabled = true;
+});
+
+/* ==========================================================================
+   PRACTICE SUB-STEP ENGINE (free navigation, no gating, lazy-init)
+   ========================================================================== */
+let wiInitialized=false, lcInitialized=false, writingInitialized=false, reviewInitialized=false;
+const practiceStepOrder = ['picture','whois','listen','writing','review'];
+function switchPracticePanel(step){
+  practiceStepOrder.forEach(s=>{ document.getElementById('panel-'+s).hidden = (s !== step); });
+  document.querySelectorAll('#practiceSubNav .substep-btn').forEach(btn=>{
+    btn.classList.toggle('current', btn.dataset.step === step);
+  });
+  if (step === 'whois' && !wiInitialized){ wiInitialized = true; initWhoIsThis(); }
+  if (step === 'listen' && !lcInitialized){ lcInitialized = true; initListenClick(); }
+  if (step === 'writing' && !writingInitialized){ writingInitialized = true; initWriting(); }
+  if (step === 'review' && !reviewInitialized){ reviewInitialized = true; initMiniReview(); }
+}
+document.querySelectorAll('#practiceSubNav .substep-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{ AudioEngine.beep('click'); switchPracticePanel(btn.dataset.step); });
+});
+document.getElementById('pmGoNext').addEventListener('click', ()=>{ AudioEngine.beep('click'); switchPracticePanel('whois'); });
+document.getElementById('wiGoNext').addEventListener('click', ()=>{ AudioEngine.beep('click'); switchPracticePanel('listen'); });
+document.getElementById('lcGoNext').addEventListener('click', ()=>{ AudioEngine.beep('click'); switchPracticePanel('writing'); });
+
+/* --- Practice: Picture Match ---
+   Show a Bangla word; child picks the matching illustration from four. */
+let pmOrder=[], pmRound=0, pmTarget=null, pmLocked=false;
+function initPictureMatch(){
+  pmOrder = shuffleArray(WORDS); pmRound = 0;
+  document.querySelectorAll('#pmStars .star').forEach(s=>s.classList.remove('earned'));
+  document.getElementById('pmDoneRow').style.display = 'none';
+  loadPmRound();
+}
+function loadPmRound(){
+  pmLocked = false;
+  pmTarget = pmOrder[pmRound];
+  document.getElementById('pmRound').textContent = pmRound+1;
+  document.getElementById('pmTargetWord').textContent = pmTarget.bn;
+  document.getElementById('pmFeedback').textContent = '';
+  document.getElementById('pmFeedback').className = 'feedback-msg';
+
+  const options = shuffleArray([pmTarget, ...buildDistractors(pmTarget)]);
+  const grid = document.getElementById('pmOptions');
+  grid.innerHTML = '';
+  options.forEach(opt=>{
+    const card = document.createElement('button');
+    card.className = 'choice-card emoji'; card.setAttribute('aria-label', opt.en); card.textContent = opt.emoji;
+    card.addEventListener('click', ()=> handlePmAnswer(card, opt));
+    grid.appendChild(card);
+  });
+  setTimeout(()=> AudioEngine.speak(pmTarget.bn), 300);
+}
+document.getElementById('pmSpeaker').addEventListener('click', ()=> AudioEngine.speak(pmTarget.bn));
+function handlePmAnswer(card, opt){
+  if (pmLocked) return;
+  const fb = document.getElementById('pmFeedback');
+  if (opt.id === pmTarget.id){
+    pmLocked = true;
+    card.classList.add('flash-good');
+    fb.textContent = '🎉 Correct! Great job!'; fb.className = 'feedback-msg good';
+    AudioEngine.beep('correct'); Confetti.burst(60);
+    document.querySelectorAll('#pmStars .star')[pmRound].classList.add('earned');
+    setTimeout(()=>{
+      pmRound++;
+      if (pmRound < WORDS.length){ loadPmRound(); }
+      else{
+        document.getElementById('pmFeedback').textContent = '🏆 All pictures matched!';
+        document.getElementById('pmDoneRow').style.display = 'flex';
+      }
+    }, 1100);
+  } else {
+    card.classList.add('flash-bad');
+    fb.textContent = 'Try again — listen once more! 💛'; fb.className = 'feedback-msg retry';
+    AudioEngine.beep('wrong');
+    setTimeout(()=> card.classList.remove('flash-bad'), 500);
+  }
+}
+document.getElementById('pmPlayAgain').addEventListener('click', ()=>{ AudioEngine.beep('click'); initPictureMatch(); });
+
+/* --- Practice: Who's This? ---
+   Show an illustration; child picks the matching Bangla word from four. */
+let wiOrder=[], wiRound=0, wiTarget=null, wiLocked=false;
+function initWhoIsThis(){
+  wiOrder = shuffleArray(WORDS); wiRound = 0;
+  document.querySelectorAll('#wiStars .star').forEach(s=>s.classList.remove('earned'));
+  document.getElementById('wiDoneRow').style.display = 'none';
+  loadWiRound();
+}
+function loadWiRound(){
+  wiLocked = false;
+  wiTarget = wiOrder[wiRound];
+  document.getElementById('wiRound').textContent = wiRound+1;
+  document.getElementById('wiEmoji').textContent = wiTarget.emoji;
+  document.getElementById('wiFeedback').textContent = '';
+  document.getElementById('wiFeedback').className = 'feedback-msg';
+
+  const options = shuffleArray([wiTarget, ...buildDistractors(wiTarget)]);
+  const grid = document.getElementById('wiOptions');
+  grid.innerHTML = '';
+  options.forEach(opt=>{
+    const card = document.createElement('button');
+    card.className = 'choice-card word'; card.setAttribute('lang','bn'); card.textContent = opt.bn;
+    card.addEventListener('click', ()=> handleWiAnswer(card, opt));
+    grid.appendChild(card);
+  });
+}
+function handleWiAnswer(card, opt){
+  if (wiLocked) return;
+  const fb = document.getElementById('wiFeedback');
+  if (opt.id === wiTarget.id){
+    wiLocked = true;
+    card.classList.add('flash-good');
+    fb.textContent = '🎉 Correct! Great job!'; fb.className = 'feedback-msg good';
+    AudioEngine.beep('correct'); Confetti.burst(60);
+    document.querySelectorAll('#wiStars .star')[wiRound].classList.add('earned');
+    setTimeout(()=>{
+      wiRound++;
+      if (wiRound < WORDS.length){ loadWiRound(); }
+      else{
+        document.getElementById('wiFeedback').textContent = '🏆 Every family member found!';
+        document.getElementById('wiDoneRow').style.display = 'flex';
+      }
+    }, 1100);
+  } else {
+    card.classList.add('flash-bad');
+    fb.textContent = 'Not quite — look again! 💛'; fb.className = 'feedback-msg retry';
+    AudioEngine.beep('wrong');
+    setTimeout(()=> card.classList.remove('flash-bad'), 500);
+  }
+}
+document.getElementById('wiPlayAgain').addEventListener('click', ()=>{ AudioEngine.beep('click'); initWhoIsThis(); });
+
+/* --- Practice: Listen & Click ---
+   Speaker plays a word; child clicks the matching word among all five. */
+let lcOrder=[], lcRound=0, lcTarget=null, lcLocked=false;
+function initListenClick(){
+  lcOrder = shuffleArray(WORDS); lcRound = 0;
+  document.querySelectorAll('#lcStars .star').forEach(s=>s.classList.remove('earned'));
+  document.getElementById('lcDoneRow').style.display = 'none';
+  loadLcRound();
+}
+function loadLcRound(){
+  lcLocked = false;
+  lcTarget = lcOrder[lcRound];
+  document.getElementById('lcRound').textContent = lcRound+1;
+  document.getElementById('lcFeedback').textContent = '';
+  document.getElementById('lcFeedback').className = 'feedback-msg';
+
+  const options = shuffleArray(WORDS); // all five words, every round
+  const grid = document.getElementById('lcOptions');
+  grid.innerHTML = '';
+  options.forEach(opt=>{
+    const card = document.createElement('button');
+    card.className = 'choice-card word'; card.setAttribute('lang','bn'); card.textContent = opt.bn;
+    card.addEventListener('click', ()=> handleLcAnswer(card, opt));
+    grid.appendChild(card);
+  });
+  setTimeout(()=> AudioEngine.speak(lcTarget.bn), 300);
+}
+document.getElementById('lcSpeaker').addEventListener('click', ()=> AudioEngine.speak(lcTarget.bn));
+function handleLcAnswer(card, opt){
+  if (lcLocked) return;
+  const fb = document.getElementById('lcFeedback');
+  if (opt.id === lcTarget.id){
+    lcLocked = true;
+    card.classList.add('flash-good');
+    fb.textContent = '🎉 Correct! Great listening!'; fb.className = 'feedback-msg good';
+    AudioEngine.beep('correct'); Confetti.burst(60);
+    document.querySelectorAll('#lcStars .star')[lcRound].classList.add('earned');
+    setTimeout(()=>{
+      lcRound++;
+      if (lcRound < WORDS.length){ loadLcRound(); }
+      else{
+        document.getElementById('lcFeedback').textContent = '🏆 You heard them all!';
+        document.getElementById('lcDoneRow').style.display = 'flex';
+      }
+    }, 1100);
+  } else {
+    card.classList.add('flash-bad');
+    fb.textContent = 'Listen again! 💛'; fb.className = 'feedback-msg retry';
+    AudioEngine.beep('wrong');
+    setTimeout(()=> card.classList.remove('flash-bad'), 500);
+  }
+}
+document.getElementById('lcPlayAgain').addEventListener('click', ()=>{ AudioEngine.beep('click'); initListenClick(); });
+
+/* --- Practice: Writing (Teacher Mode) --- */
+let dictIdx = 0;
+function initWriting(){
+  dictIdx = 0;
+  document.getElementById('dictTotal').textContent = WORDS.length;
+  renderWriting();
+}
+function renderWriting(){
+  document.getElementById('dictIndex').textContent = dictIdx+1;
+  document.getElementById('dictBanglaHidden').textContent = '•••';
+  document.getElementById('dictWriteBox').textContent = '📓 Write this word in your notebook.';
+  document.getElementById('dictPrev').disabled = dictIdx === 0;
+}
+document.getElementById('dictSpeaker').addEventListener('click', ()=> AudioEngine.speak(WORDS[dictIdx].bn));
+document.getElementById('dictReveal').addEventListener('click', ()=>{
+  document.getElementById('dictBanglaHidden').textContent = WORDS[dictIdx].bn;
+});
+document.getElementById('dictPrev').addEventListener('click', ()=>{
+  if (dictIdx>0){ dictIdx--; renderWriting(); AudioEngine.beep('click'); }
+});
+document.getElementById('dictNext').addEventListener('click', ()=>{
+  AudioEngine.beep('click');
+  if (dictIdx < WORDS.length-1){ dictIdx++; renderWriting(); }
+});
+
+/* --- Practice: Mini Review Challenge ---
+   Mixes Picture Match / Who's This? / Listen & Click / Reading (meaning
+   match) into five random questions and scores the result. */
+const REVIEW_TYPES = ['picture','whois','listen','reading'];
+let rvWordOrder=[], rvTypeOrder=[], rvRound=0, rvScore=0, rvTarget=null, rvType=null, rvLocked=false;
+
+function initMiniReview(){
+  rvWordOrder = shuffleArray(WORDS);                      // each of the 5 words appears once
+  rvTypeOrder = shuffleArray([...REVIEW_TYPES, REVIEW_TYPES[Math.floor(Math.random()*REVIEW_TYPES.length)]]).slice(0,5);
+  rvRound = 0; rvScore = 0;
+  document.getElementById('rvScore').textContent = '0';
+  document.getElementById('rvResultCard').hidden = true;
+  document.getElementById('rvQuestionArea').style.display = '';
+  loadRvRound();
+}
+function loadRvRound(){
+  rvLocked = false;
+  rvTarget = rvWordOrder[rvRound];
+  rvType = rvTypeOrder[rvRound];
+  document.getElementById('rvRound').textContent = rvRound+1;
+  document.getElementById('rvFeedback').textContent = '';
+  document.getElementById('rvFeedback').className = 'feedback-msg';
+
+  const area = document.getElementById('rvQuestionArea');
+  area.innerHTML = '';
+
+  if (rvType === 'picture'){
+    area.innerHTML = `
+      <div class="game-prompt">
+        <div class="word-bangla" style="font-size:2.8rem;" lang="bn">${rvTarget.bn}</div>
+        <button class="speaker-btn" id="rvSpeaker" aria-label="Play the word">🔊</button>
+      </div>
+      <div class="choice-grid" id="rvOptions"></div>`;
+    document.getElementById('rvSpeaker').addEventListener('click', ()=> AudioEngine.speak(rvTarget.bn));
+    const options = shuffleArray([rvTarget, ...buildDistractors(rvTarget)]);
+    options.forEach(opt=> addRvChoice(opt, 'choice-card emoji', opt.emoji));
+    setTimeout(()=> AudioEngine.speak(rvTarget.bn), 300);
+
+  } else if (rvType === 'whois'){
+    area.innerHTML = `
+      <div class="game-prompt">
+        <div class="word-illustration" style="font-size:5rem; margin-bottom:0;">${rvTarget.emoji}</div>
+        <div class="word-bangla" style="font-size:1.8rem;" lang="bn">এটি কে?</div>
+      </div>
+      <div class="choice-grid" id="rvOptions"></div>`;
+    const options = shuffleArray([rvTarget, ...buildDistractors(rvTarget)]);
+    options.forEach(opt=> addRvChoice(opt, 'choice-card word', opt.bn, true));
+
+  } else if (rvType === 'listen'){
+    area.innerHTML = `
+      <div class="game-prompt">
+        <button class="speaker-btn" id="rvSpeaker" aria-label="Play the word">🔊</button>
+      </div>
+      <div class="choice-grid five" id="rvOptions"></div>`;
+    document.getElementById('rvSpeaker').addEventListener('click', ()=> AudioEngine.speak(rvTarget.bn));
+    const options = shuffleArray(WORDS);
+    options.forEach(opt=> addRvChoice(opt, 'choice-card word', opt.bn, true));
+    setTimeout(()=> AudioEngine.speak(rvTarget.bn), 300);
+
+  } else { // 'reading' — match the Bangla word to its English meaning
+    area.innerHTML = `
+      <div class="game-prompt">
+        <div class="word-bangla" style="font-size:3rem;" lang="bn">${rvTarget.bn}</div>
+      </div>
+      <div class="choice-grid" id="rvOptions"></div>`;
+    const options = shuffleArray([rvTarget, ...buildDistractors(rvTarget)]);
+    options.forEach(opt=> addRvChoice(opt, 'choice-card meaning', opt.en));
+  }
+}
+function addRvChoice(opt, className, label, isBangla){
+  const card = document.createElement('button');
+  card.className = className;
+  if (isBangla) card.setAttribute('lang','bn');
+  card.textContent = label;
+  card.addEventListener('click', ()=> handleRvAnswer(card, opt));
+  document.getElementById('rvOptions').appendChild(card);
+}
+function handleRvAnswer(card, opt){
+  if (rvLocked) return;
+  rvLocked = true;
+  const fb = document.getElementById('rvFeedback');
+  const correct = opt.id === rvTarget.id;
+  if (correct){
+    rvScore++;
+    document.getElementById('rvScore').textContent = rvScore;
+    card.classList.add('flash-good');
+    fb.textContent = '🎉 Correct!'; fb.className = 'feedback-msg good';
+    AudioEngine.beep('correct'); Confetti.burst(50);
+  } else {
+    card.classList.add('flash-bad');
+    fb.textContent = '💛 Not quite!'; fb.className = 'feedback-msg retry';
+    AudioEngine.beep('wrong');
+    // Reveal the correct option so the child still learns the right answer.
+    document.querySelectorAll('#rvOptions .choice-card, #rvOptions button').forEach(c=>{
+      if (c.textContent === rvTarget.bn || c.textContent === rvTarget.en || c.textContent === rvTarget.emoji){ c.classList.add('flash-good'); }
+    });
+  }
+  setTimeout(()=>{
+    rvRound++;
+    if (rvRound < 5){ loadRvRound(); } else { finishMiniReview(); }
+  }, 1300);
+}
+function finishMiniReview(){
+  document.getElementById('rvQuestionArea').style.display = 'none';
+  document.getElementById('rvFeedback').textContent = '';
+  document.getElementById('rvFinalScore').textContent = `${rvScore}/5`;
+  let msg = 'Keep practicing — you\'ll get there!';
+  if (rvScore === 5) msg = 'Perfect score! Amazing work! 🌟';
+  else if (rvScore >= 4) msg = 'Great job! Almost perfect!';
+  else if (rvScore >= 3) msg = 'Good work! Keep it up!';
+  document.getElementById('rvResultMsg').textContent = msg;
+  document.getElementById('rvResultCard').hidden = false;
+  Confetti.burst(60 + rvScore*20);
+}
+document.getElementById('rvPlayAgain').addEventListener('click', ()=>{ AudioEngine.beep('click'); initMiniReview(); });
+
+/* ==========================================================================
+   HOME SECTION — homework + reward
+   ========================================================================== */
+document.getElementById('homeworkContinue').addEventListener('click', ()=>{
+  AudioEngine.beep('reward');
+  document.getElementById('homeworkBtnRow').style.display = 'none';
+  document.getElementById('rewardBlock').hidden = false;
+  setTimeout(()=> Confetti.burst(140), 150);
+  const stars = document.querySelectorAll('#rewardStars span');
+  stars.forEach((s,i)=> setTimeout(()=> s.classList.add('show'), 350 + i*250));
+});
+</script>
+</body>
+</html>
